@@ -1,0 +1,67 @@
+Oct-21 18:47:57.267 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf -profile test,singularity --input test_data/samplesheet.csv --ref_16s test_data/references/16S.fa --ref_23s test_data/references/23S.fa --outdir results_stub -stub-run
+Oct-21 18:47:57.303 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.04.8
+Oct-21 18:47:57.315 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/bmorampa/.nextflow/plugins; core-plugins: nf-amazon@2.15.0-patch2,nf-azure@1.16.0-patch1,nf-cloudcache@0.4.3,nf-codecommit@0.2.3,nf-console@1.2.1,nf-google@1.21.1,nf-k8s@1.0.1,nf-tower@1.11.4-patch2,nf-wave@1.12.1
+Oct-21 18:47:57.326 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Oct-21 18:47:57.326 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Oct-21 18:47:57.328 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Oct-21 18:47:57.333 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Oct-21 18:47:57.344 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/bmorampa/new_improved/nextflow.config
+Oct-21 18:47:57.346 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
+Oct-21 18:47:57.360 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/bmorampa/.nextflow/secrets/store.json
+Oct-21 18:47:57.362 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@19f040ba] - activable => nextflow.secret.LocalSecretsProvider@19f040ba
+Oct-21 18:47:57.369 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,singularity`
+Oct-21 18:47:58.276 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [bih, cfc_dev, uzl_omics, ifb_core, embl_hd, denbi_qbic, alice, mjolnir_globe, uppmax, giga, incliva, ilifu, ki_luria, uge, icr_alma, rosalind_uge, lugh, mccleary, unibe_ibu, vai, czbiohub_aws, jax, roslin, tes, scw, unc_longleaf, tigem, tubingen_apg, apollo, ipop_up, vsc_calcua, pdc_kth, ceci_nic5, ccga_cau, humantechnopole, stjude, daisybio, eddie, medair, biowulf, apptainer, bi, bigpurple, adcra, cedars, pawsey_setonix, vsc_kul_uhasselt, pawsey_nimbus, ucl_myriad, utd_ganymede, charliecloud, fred_hutch, seattlechildrens, icr_davros, ceres, munin, arm, rosalind, hasta, cfc, uzh, shu_bmrc, ebi_codon_slurm, ebc, ccga_dx, crick, ku_sund_danhead, marvin, biohpc_gen, shifter, mana, mamba, york_viking, unc_lccc, wehi, awsbatch, wustl_htcf, arcc, ceci_dragon2, imperial, maestro, software_license, cannon, genotoul, nci_gadi, abims, eva_grace, janelia, nu_genomics, googlebatch, oist, sahmri, kaust, alliance_canada, mpcdf, leicester, vsc_ugent, create, sage, cambridge, jex, podman, ebi_codon, cheaha, xanadu, nyu_hpc, test, marjorie, computerome, ucd_sonic, seg_globe, mssm, sanger, dkfz, bluebear, pasteur, einstein, ethz_euler, m3c, test_full, imb, ucl_cscluster, tuos_stanage, azurebatch, hki, seadragon, crukmi, csiro_petrichor, qmul_apocrita, docker, engaging, gis, hypatia, psmn, eva, unity, cropdiversityhpc, nygc, fgcz, conda, crg, singularity, mpcdf_viper, pe2, dirac, self_hosted_runner, tufts, uw_hyak_pedslabs, binac2, debug, genouest, cbe, unsw_katana, utd_juno, phoenix, gitpod, seawulf, uod_hpc, fub_curta, lovelace, uct_hpc, aws_tower, binac, fsu_draco]
+Oct-21 18:47:58.297 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Oct-21 18:47:58.307 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [clever_jones] DSL2 - revision: 43fa2bc9f4
+Oct-21 18:47:58.308 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-validation]
+Oct-21 18:47:58.308 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Oct-21 18:47:58.308 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-validation]
+Oct-21 18:47:58.309 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-validation version: latest
+Oct-21 18:47:58.740 [main] DEBUG nextflow.plugin.PluginUpdater - Plugin nf-validation version null resolved to: 1.1.4
+Oct-21 18:47:58.741 [main] INFO  nextflow.plugin.PluginUpdater - Downloading plugin nf-validation@1.1.4
+Oct-21 18:48:00.546 [main] INFO  org.pf4j.util.FileUtils - Expanded plugin zip 'nf-validation-1.1.4.zip' in 'nf-validation-1.1.4'
+Oct-21 18:48:00.551 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-validation@1.1.4' resolved
+Oct-21 18:48:00.551 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-validation@1.1.4'
+Oct-21 18:48:00.554 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-validation@1.1.4
+Oct-21 18:48:00.581 [main] DEBUG nextflow.Session - Session UUID: e07e565d-3e35-4c91-be3e-76ec899d181a
+Oct-21 18:48:00.582 [main] DEBUG nextflow.Session - Run name: clever_jones
+Oct-21 18:48:00.582 [main] DEBUG nextflow.Session - Executor pool size: 12
+Oct-21 18:48:00.585 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Oct-21 18:48:00.588 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Oct-21 18:48:00.601 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 25.04.8 build 5956
+  Created: 06-10-2025 21:19 UTC (07-10-2025 02:49 IDT)
+  System: Linux 6.14.0-33-generic
+  Runtime: Groovy 4.0.26 on OpenJDK 64-Bit Server VM 17.0.10+7
+  Encoding: UTF-8 (UTF-8)
+  Process: 27173@gandalf [127.0.1.1]
+  CPUs: 12 - Mem: 93.5 GB (82.6 GB) - Swap: 8 GB (8 GB)
+Oct-21 18:48:00.613 [main] DEBUG nextflow.Session - Work-dir: /home/bmorampa/new_improved/work [ext2/ext3]
+Oct-21 18:48:00.629 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Oct-21 18:48:00.634 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Oct-21 18:48:00.646 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
+Oct-21 18:48:00.658 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Oct-21 18:48:00.664 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
+Oct-21 18:48:00.709 [main] DEBUG nextflow.Session - Session start
+Oct-21 18:48:00.711 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/bmorampa/new_improved/results_stub/pipeline_info/execution_trace_2025-10-21_18-47-58.txt
+Oct-21 18:48:00.762 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Oct-21 18:48:00.767 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_4dee007e67ca1e93: /home/bmorampa/new_improved/main.nf
+Oct-21 18:48:00.768 [main] DEBUG nextflow.Session - Session aborted -- Cause: No such property: WorkflowMain for class: Script_4dee007e67ca1e93
+Oct-21 18:48:00.775 [main] ERROR nextflow.cli.Launcher - @unknown
+groovy.lang.MissingPropertyException: No such property: WorkflowMain for class: Script_4dee007e67ca1e93
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.unwrap(ScriptBytecodeAdapter.java:67)
+	at org.codehaus.groovy.vmplugin.v8.IndyGuardsFiltersAndSignatures.unwrap(IndyGuardsFiltersAndSignatures.java:163)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at Script_4dee007e67ca1e93.runScript(Script_4dee007e67ca1e93:24)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.script.BaseScript.run0(BaseScript.groovy:159)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:193)
+	at nextflow.script.parser.v1.ScriptLoaderV1.runScript(ScriptLoaderV1.groovy:246)
+	at nextflow.script.parser.v1.ScriptLoaderV1.runScript(ScriptLoaderV1.groovy)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:246)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:139)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:379)
+	at nextflow.cli.Launcher.run(Launcher.groovy:513)
+	at nextflow.cli.Launcher.main(Launcher.groovy:673)

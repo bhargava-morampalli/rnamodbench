@@ -1,0 +1,148 @@
+Oct-21 18:52:47.018 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf -profile test,singularity --input test_data/samplesheet.csv --ref_16s test_data/references/16S.fa --ref_23s test_data/references/23S.fa --outdir results_stub -stub-run
+Oct-21 18:52:47.056 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.04.8
+Oct-21 18:52:47.066 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/bmorampa/.nextflow/plugins; core-plugins: nf-amazon@2.15.0-patch2,nf-azure@1.16.0-patch1,nf-cloudcache@0.4.3,nf-codecommit@0.2.3,nf-console@1.2.1,nf-google@1.21.1,nf-k8s@1.0.1,nf-tower@1.11.4-patch2,nf-wave@1.12.1
+Oct-21 18:52:47.077 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Oct-21 18:52:47.077 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Oct-21 18:52:47.079 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Oct-21 18:52:47.084 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Oct-21 18:52:47.094 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/bmorampa/new_improved/nextflow.config
+Oct-21 18:52:47.096 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
+Oct-21 18:52:47.111 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/bmorampa/.nextflow/secrets/store.json
+Oct-21 18:52:47.113 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@aed0151] - activable => nextflow.secret.LocalSecretsProvider@aed0151
+Oct-21 18:52:47.119 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,singularity`
+Oct-21 18:52:48.277 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [bih, cfc_dev, uzl_omics, ifb_core, embl_hd, denbi_qbic, alice, mjolnir_globe, uppmax, giga, incliva, ilifu, ki_luria, uge, icr_alma, rosalind_uge, lugh, mccleary, unibe_ibu, vai, czbiohub_aws, jax, roslin, tes, scw, unc_longleaf, tigem, tubingen_apg, apollo, ipop_up, vsc_calcua, pdc_kth, ceci_nic5, ccga_cau, humantechnopole, stjude, daisybio, eddie, medair, biowulf, apptainer, bi, bigpurple, adcra, cedars, pawsey_setonix, vsc_kul_uhasselt, pawsey_nimbus, ucl_myriad, utd_ganymede, charliecloud, fred_hutch, seattlechildrens, icr_davros, ceres, munin, arm, rosalind, hasta, cfc, uzh, shu_bmrc, ebi_codon_slurm, ebc, ccga_dx, crick, ku_sund_danhead, marvin, biohpc_gen, shifter, mana, mamba, york_viking, unc_lccc, wehi, awsbatch, wustl_htcf, arcc, ceci_dragon2, imperial, maestro, software_license, cannon, genotoul, nci_gadi, abims, eva_grace, janelia, nu_genomics, googlebatch, oist, sahmri, kaust, alliance_canada, mpcdf, leicester, vsc_ugent, create, sage, cambridge, jex, podman, ebi_codon, cheaha, xanadu, nyu_hpc, test, marjorie, computerome, ucd_sonic, seg_globe, mssm, sanger, dkfz, bluebear, pasteur, einstein, ethz_euler, m3c, test_full, imb, ucl_cscluster, tuos_stanage, azurebatch, hki, seadragon, crukmi, csiro_petrichor, qmul_apocrita, docker, engaging, gis, hypatia, psmn, eva, unity, cropdiversityhpc, nygc, fgcz, conda, crg, singularity, mpcdf_viper, pe2, dirac, self_hosted_runner, tufts, uw_hyak_pedslabs, binac2, debug, genouest, cbe, unsw_katana, utd_juno, phoenix, gitpod, seawulf, uod_hpc, fub_curta, lovelace, uct_hpc, aws_tower, binac, fsu_draco]
+Oct-21 18:52:48.295 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Oct-21 18:52:48.303 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [thirsty_waddington] DSL2 - revision: 43fa2bc9f4
+Oct-21 18:52:48.304 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-validation]
+Oct-21 18:52:48.304 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Oct-21 18:52:48.304 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-validation]
+Oct-21 18:52:48.305 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-validation version: latest
+Oct-21 18:52:48.493 [main] DEBUG nextflow.plugin.PluginUpdater - Plugin nf-validation version null resolved to: 1.1.4
+Oct-21 18:52:48.496 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-validation@1.1.4' resolved
+Oct-21 18:52:48.496 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-validation@1.1.4'
+Oct-21 18:52:48.499 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-validation@1.1.4
+Oct-21 18:52:48.522 [main] DEBUG nextflow.Session - Session UUID: 64e3aef8-6d21-4be5-a6de-8230f4ab0cb0
+Oct-21 18:52:48.522 [main] DEBUG nextflow.Session - Run name: thirsty_waddington
+Oct-21 18:52:48.522 [main] DEBUG nextflow.Session - Executor pool size: 12
+Oct-21 18:52:48.526 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Oct-21 18:52:48.528 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Oct-21 18:52:48.538 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 25.04.8 build 5956
+  Created: 06-10-2025 21:19 UTC (07-10-2025 02:49 IDT)
+  System: Linux 6.14.0-33-generic
+  Runtime: Groovy 4.0.26 on OpenJDK 64-Bit Server VM 17.0.10+7
+  Encoding: UTF-8 (UTF-8)
+  Process: 27369@gandalf [127.0.1.1]
+  CPUs: 12 - Mem: 93.5 GB (82.6 GB) - Swap: 8 GB (8 GB)
+Oct-21 18:52:48.547 [main] DEBUG nextflow.Session - Work-dir: /home/bmorampa/new_improved/work [ext2/ext3]
+Oct-21 18:52:48.565 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Oct-21 18:52:48.570 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Oct-21 18:52:48.582 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
+Oct-21 18:52:48.595 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Oct-21 18:52:48.600 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
+Oct-21 18:52:48.640 [main] DEBUG nextflow.Session - Session start
+Oct-21 18:52:48.642 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/bmorampa/new_improved/results_stub/pipeline_info/execution_trace_2025-10-21_18-52-48.txt
+Oct-21 18:52:48.646 [main] DEBUG nextflow.Session - Using default localLib path: /home/bmorampa/new_improved/lib
+Oct-21 18:52:48.648 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/bmorampa/new_improved/lib
+Oct-21 18:52:48.781 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+Oct-21 18:52:48.781 [main] DEBUG nextflow.Session - Session aborted -- Cause: BUG! exception in phase 'semantic analysis' in source unit 'Script_4dee007e67ca1e93' The lookup for WorkflowMain caused a failed compilation. There should not have been any compilation from this call.
+Oct-21 18:52:48.786 [main] ERROR nextflow.cli.Launcher - @unknown
+org.codehaus.groovy.GroovyBugError: BUG! exception in phase 'semantic analysis' in source unit 'Script_4dee007e67ca1e93' The lookup for WorkflowMain caused a failed compilation. There should not have been any compilation from this call.
+	at org.codehaus.groovy.control.ClassNodeResolver.findByClassLoading(ClassNodeResolver.java:218)
+	at org.codehaus.groovy.control.ClassNodeResolver.tryAsLoaderClassOrScript(ClassNodeResolver.java:200)
+	at org.codehaus.groovy.control.ClassNodeResolver.findClassNode(ClassNodeResolver.java:175)
+	at org.codehaus.groovy.control.ClassNodeResolver.resolveName(ClassNodeResolver.java:129)
+	at org.codehaus.groovy.control.ResolveVisitor.resolveToOuter(ResolveVisitor.java:782)
+	at org.codehaus.groovy.control.ResolveVisitor.resolve(ResolveVisitor.java:423)
+	at org.codehaus.groovy.control.ResolveVisitor.resolve(ResolveVisitor.java:384)
+	at org.codehaus.groovy.control.ResolveVisitor.transformVariableExpression(ResolveVisitor.java:1024)
+	at org.codehaus.groovy.control.ResolveVisitor.transform(ResolveVisitor.java:801)
+	at org.codehaus.groovy.control.ResolveVisitor.transformMethodCallExpression(ResolveVisitor.java:1149)
+	at org.codehaus.groovy.control.ResolveVisitor.transform(ResolveVisitor.java:809)
+	at org.codehaus.groovy.ast.ClassCodeExpressionTransformer.visitExpressionStatement(ClassCodeExpressionTransformer.java:129)
+	at org.codehaus.groovy.ast.stmt.ExpressionStatement.visit(ExpressionStatement.java:41)
+	at org.codehaus.groovy.ast.CodeVisitorSupport.visitBlockStatement(CodeVisitorSupport.java:86)
+	at org.codehaus.groovy.ast.ClassCodeVisitorSupport.visitBlockStatement(ClassCodeVisitorSupport.java:168)
+	at org.codehaus.groovy.control.ResolveVisitor.visitBlockStatement(ResolveVisitor.java:1386)
+	at org.codehaus.groovy.ast.stmt.BlockStatement.visit(BlockStatement.java:72)
+	at org.codehaus.groovy.ast.ClassCodeVisitorSupport.visitClassCodeContainer(ClassCodeVisitorSupport.java:142)
+	at org.codehaus.groovy.ast.ClassCodeVisitorSupport.visitConstructorOrMethod(ClassCodeVisitorSupport.java:115)
+	at org.codehaus.groovy.ast.ClassCodeExpressionTransformer.visitConstructorOrMethod(ClassCodeExpressionTransformer.java:87)
+	at org.codehaus.groovy.control.ResolveVisitor.visitConstructorOrMethod(ResolveVisitor.java:329)
+	at org.codehaus.groovy.ast.ClassCodeVisitorSupport.visitMethod(ClassCodeVisitorSupport.java:110)
+	at org.codehaus.groovy.ast.ClassNode.visitMethods(ClassNode.java:1132)
+	at org.codehaus.groovy.ast.ClassNode.visitContents(ClassNode.java:1125)
+	at org.codehaus.groovy.control.ResolveVisitor.visitClass(ResolveVisitor.java:1315)
+	at org.codehaus.groovy.control.ResolveVisitor.startResolving(ResolveVisitor.java:258)
+	at org.codehaus.groovy.control.CompilationUnit.lambda$addPhaseOperations$4(CompilationUnit.java:218)
+	at org.codehaus.groovy.control.CompilationUnit$ISourceUnitOperation.doPhaseOperation(CompilationUnit.java:897)
+	at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:692)
+	at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:666)
+	at groovy.lang.GroovyClassLoader.doParseClass(GroovyClassLoader.java:365)
+	at groovy.lang.GroovyClassLoader.lambda$parseClass$2(GroovyClassLoader.java:314)
+	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.compute(StampedCommonCache.java:163)
+	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.getAndPut(StampedCommonCache.java:154)
+	at groovy.lang.GroovyClassLoader.parseClass(GroovyClassLoader.java:314)
+	at groovy.lang.GroovyShell.parseClass(GroovyShell.java:572)
+	at groovy.lang.GroovyShell.parse(GroovyShell.java:585)
+	at groovy.lang.GroovyShell.parse(GroovyShell.java:639)
+	at groovy.lang.GroovyShell.parse(GroovyShell.java:643)
+	at nextflow.script.parser.v1.ScriptLoaderV1.parse0(ScriptLoaderV1.groovy:183)
+	at nextflow.script.parser.v1.ScriptLoaderV1.parse(ScriptLoaderV1.groovy:215)
+	at nextflow.script.parser.v1.ScriptLoaderV1.parse(ScriptLoaderV1.groovy)
+	at nextflow.script.ScriptRunner.parseScript(ScriptRunner.groovy:232)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:137)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:379)
+	at nextflow.cli.Launcher.run(Launcher.groovy:513)
+	at nextflow.cli.Launcher.main(Launcher.groovy:673)
+Caused by: org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
+file:/home/bmorampa/new_improved/lib/NfcoreSchema.groovy: 5: unable to resolve class org.everit.json.schema.Schema
+ @ line 5, column 1.
+   import org.everit.json.schema.Schema
+   ^
+
+file:/home/bmorampa/new_improved/lib/NfcoreSchema.groovy: 6: unable to resolve class org.everit.json.schema.loader.SchemaLoader
+ @ line 6, column 1.
+   import org.everit.json.schema.loader.SchemaLoader
+   ^
+
+file:/home/bmorampa/new_improved/lib/NfcoreSchema.groovy: 7: unable to resolve class org.everit.json.schema.ValidationException
+ @ line 7, column 1.
+   import org.everit.json.schema.ValidationException
+   ^
+
+file:/home/bmorampa/new_improved/lib/NfcoreSchema.groovy: 8: unable to resolve class org.json.JSONObject
+ @ line 8, column 1.
+   import org.json.JSONObject
+   ^
+
+file:/home/bmorampa/new_improved/lib/NfcoreSchema.groovy: 9: unable to resolve class org.json.JSONTokener
+ @ line 9, column 1.
+   import org.json.JSONTokener
+   ^
+
+file:/home/bmorampa/new_improved/lib/NfcoreSchema.groovy: 10: unable to resolve class org.json.JSONArray
+ @ line 10, column 1.
+   import org.json.JSONArray
+   ^
+
+6 errors
+
+	at org.codehaus.groovy.control.ErrorCollector.failIfErrors(ErrorCollector.java:292)
+	at org.codehaus.groovy.control.CompilationUnit$ISourceUnitOperation.doPhaseOperation(CompilationUnit.java:910)
+	at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:692)
+	at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:666)
+	at groovy.lang.GroovyClassLoader.doParseClass(GroovyClassLoader.java:365)
+	at groovy.lang.GroovyClassLoader.lambda$parseClass$2(GroovyClassLoader.java:314)
+	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.compute(StampedCommonCache.java:163)
+	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.getAndPut(StampedCommonCache.java:154)
+	at groovy.lang.GroovyClassLoader.parseClass(GroovyClassLoader.java:314)
+	at groovy.lang.GroovyClassLoader.parseClass(GroovyClassLoader.java:298)
+	at groovy.lang.GroovyClassLoader.recompile(GroovyClassLoader.java:939)
+	at groovy.lang.GroovyClassLoader.loadClass(GroovyClassLoader.java:895)
+	at groovy.lang.GroovyClassLoader.loadClass(GroovyClassLoader.java:965)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:579)
+	at groovy.lang.GroovyClassLoader.loadClass(GroovyClassLoader.java:854)
+	at groovy.lang.GroovyClassLoader.loadClass(GroovyClassLoader.java:728)
+	at org.codehaus.groovy.control.ClassNodeResolver.findByClassLoading(ClassNodeResolver.java:214)
+	... 46 common frames omitted

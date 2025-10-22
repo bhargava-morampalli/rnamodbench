@@ -1,0 +1,43 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/nf-core/rnamodifications/master/assets/schema_input.json",
+    "title": "nf-core/rnamodifications pipeline - params.input schema",
+    "description": "Schema for the file provided with params.input",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "sample": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Sample name must be provided and cannot contain spaces",
+                "meta": ["id"]
+            },
+            "fastq": {
+                "type": "string",
+                "format": "file-path",
+                "pattern": "^\\S+\\.f(ast)?q(\\.gz)?$",
+                "errorMessage": "FastQ file must be provided, cannot contain spaces and must have extension '.fq', '.fq.gz', '.fastq' or '.fastq.gz'"
+            },
+            "type": {
+                "type": "string",
+                "pattern": "^(native|ivt)$",
+                "errorMessage": "Type must be either 'native' or 'ivt'",
+                "meta": ["type"]
+            },
+            "replicate": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Replicate identifier must be provided and cannot contain spaces",
+                "meta": ["replicate"]
+            },
+            "fast5_dir": {
+                "type": "string",
+                "format": "directory-path",
+                "pattern": "^\\S+$",
+                "errorMessage": "FAST5 directory path must be provided and cannot contain spaces"
+            }
+        },
+        "required": ["sample", "fastq", "type", "replicate", "fast5_dir"]
+    }
+}

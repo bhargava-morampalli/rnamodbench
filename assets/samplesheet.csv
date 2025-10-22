@@ -1,0 +1,7 @@
+sample,fastq,type,replicate,fast5_dir
+native_rep1,/path/to/native_rep1.fastq,native,rep1,/path/to/native_fast5
+native_rep2,/path/to/native_rep2.fastq,native,rep2,/path/to/native_fast5
+native_rep3,/path/to/native_rep3.fastq,native,rep3,/path/to/native_fast5
+ivt_rep1,/path/to/ivt_rep1.fastq,ivt,rep1,/path/to/ivt_fast5
+ivt_rep2,/path/to/ivt_rep2.fastq,ivt,rep2,/path/to/ivt_fast5
+ivt_rep3,/path/to/ivt_rep3.fastq,ivt,rep3,/path/to/ivt_fast5
