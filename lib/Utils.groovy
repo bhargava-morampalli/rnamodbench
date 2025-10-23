@@ -3,7 +3,7 @@
 //
 
 class Utils {
-    
+
     //
     // Function to generate software versions YAML
     //

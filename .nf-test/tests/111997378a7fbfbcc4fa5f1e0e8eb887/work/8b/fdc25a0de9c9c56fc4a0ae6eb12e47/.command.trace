@@ -1,0 +1,17 @@
+nextflow.trace/v2
+realtime=0
+%cpu=1412
+cpu_model=AMD Ryzen 5 7600 6-Core Processor
+rchar=96527
+wchar=4805
+syscr=210
+syscw=18
+read_bytes=0
+write_bytes=8192
+%mem=0
+vmem=5508
+rss=3372
+peak_vmem=5512
+peak_rss=3372
+vol_ctxt=2
+inv_ctxt=1

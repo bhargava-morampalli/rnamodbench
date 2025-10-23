@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	df/e4db1f	51738	SAMTOOLS_VIEW (test_meta)	FAILED	1	2025-10-23 20:02:35.131	309ms	238ms	-	-	-	-	-

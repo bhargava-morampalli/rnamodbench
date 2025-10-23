@@ -1,0 +1,146 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT LOCAL MODULES/SUBWORKFLOWS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+//
+// SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
+//
+// include { INPUT_CHECK          } from '../subworkflows/local/input_check'
+include { MAPPING_RRNA         } from '../subworkflows/local/mapping_rrna'
+include { QC_STATS             } from '../subworkflows/local/qc_stats'
+include { PREPARE_SIGNAL_DATA  } from '../subworkflows/local/prepare_signal_data'
+include { SIGNAL_PROCESSING    } from '../subworkflows/local/signal_processing'
+include { MODIFICATION_CALLING } from '../subworkflows/local/modification_calling'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN MAIN WORKFLOW
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+workflow RNAMODIFICATIONS {
+
+    // Validate input parameters
+    // WorkflowRnamodifications.initialise(params, log)
+
+    ch_versions = Channel.empty()
+
+    //
+    // Read samplesheet directly without INPUT_CHECK subworkflow
+    //
+    reads = Channel
+        .fromPath(params.input)
+        .splitCsv(header: true, sep: ',')
+        .map { row ->
+            def meta = [:]
+            meta.id = row.sample
+            meta.single_end = true
+            meta.type = row.type
+            meta.replicate = row.replicate
+            [ meta, file(row.fastq), row.type, row.replicate, file(row.fast5_dir) ]
+        }
+
+    branched_reads = reads.branch {
+        native: it[2] == 'native'
+        ivt: it[2] == 'ivt'
+    }
+
+    native_reads = branched_reads.native.map { meta, fastq, t, r, f -> [ meta, fastq ] }
+    ivt_reads = branched_reads.ivt.map { meta, fastq, t, r, f -> [ meta, fastq ] }
+    native_fast5 = reads.filter { it[2] == 'native' }.map { it[4] }.first()
+    ivt_fast5 = reads.filter { it[2] == 'ivt' }.map { it[4] }.first()
+
+    //
+    // Create reference channels
+    //
+    ch_ref_16s = Channel.value(file(params.ref_16s, checkIfExists: true))
+    ch_ref_23s = Channel.value(file(params.ref_23s, checkIfExists: true))
+
+    //
+    // SUBWORKFLOW: Map reads to 16S and 23S rRNA references
+    //
+    MAPPING_RRNA (
+        native_reads,
+        ivt_reads,
+        ch_ref_16s,
+        ch_ref_23s
+    )
+    ch_versions = ch_versions.mix(MAPPING_RRNA.out.versions)
+
+    //
+    // SUBWORKFLOW: Generate QC statistics and coverage plots
+    //
+    QC_STATS (
+        MAPPING_RRNA.out.bams_16s_native,
+        MAPPING_RRNA.out.bams_16s_ivt,
+        MAPPING_RRNA.out.bams_23s_native,
+        MAPPING_RRNA.out.bams_23s_ivt
+    )
+    ch_versions = ch_versions.mix(QC_STATS.out.versions)
+
+    //
+    // SUBWORKFLOW: Prepare signal-level data (FAST5 extraction, tombo resquiggle, f5c)
+    //
+    PREPARE_SIGNAL_DATA (
+        MAPPING_RRNA.out.mapped_fastq_16s_native,
+        MAPPING_RRNA.out.mapped_fastq_16s_ivt,
+        MAPPING_RRNA.out.mapped_fastq_23s_native,
+        MAPPING_RRNA.out.mapped_fastq_23s_ivt,
+        MAPPING_RRNA.out.mapped_bam_16s_native,
+        MAPPING_RRNA.out.mapped_bam_16s_ivt,
+        MAPPING_RRNA.out.mapped_bam_23s_native,
+        MAPPING_RRNA.out.mapped_bam_23s_ivt,
+        native_fast5,
+        ivt_fast5,
+        ch_ref_16s,
+        ch_ref_23s
+    )
+    ch_versions = ch_versions.mix(PREPARE_SIGNAL_DATA.out.versions)
+
+    //
+    // SUBWORKFLOW: Signal processing and eventalign
+    //
+    SIGNAL_PROCESSING (
+        PREPARE_SIGNAL_DATA.out.f5c_ready_16s_native,
+        PREPARE_SIGNAL_DATA.out.f5c_ready_16s_ivt,
+        PREPARE_SIGNAL_DATA.out.f5c_ready_23s_native,
+        PREPARE_SIGNAL_DATA.out.f5c_ready_23s_ivt,
+        ch_ref_16s,
+        ch_ref_23s
+    )
+    ch_versions = ch_versions.mix(SIGNAL_PROCESSING.out.versions)
+
+    //
+    // SUBWORKFLOW: RNA modification calling with multiple tools
+    //
+    MODIFICATION_CALLING (
+        PREPARE_SIGNAL_DATA.out.tombo_resquiggled_16s,
+        PREPARE_SIGNAL_DATA.out.tombo_resquiggled_23s,
+        SIGNAL_PROCESSING.out.eventalign_16s_native,
+        SIGNAL_PROCESSING.out.eventalign_16s_ivt,
+        SIGNAL_PROCESSING.out.eventalign_23s_native,
+        SIGNAL_PROCESSING.out.eventalign_23s_ivt
+    )
+    ch_versions = ch_versions.mix(MODIFICATION_CALLING.out.versions)
+
+    //
+    // Collate and save software versions
+    //
+    ch_versions
+        .unique()
+        .map { it.text }
+        .collectFile(
+            storeDir: "${params.outdir}/pipeline_info",
+            name: 'nf_core_pipeline_software_versions.yml',
+            sort: true,
+            newLine: true
+        )
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    THE END
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/

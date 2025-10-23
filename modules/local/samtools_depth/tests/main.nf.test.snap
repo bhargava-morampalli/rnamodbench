@@ -1,0 +1,37 @@
+{
+    "Should calculate per-base depth from BAM file": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.txt:md5,69d49bf5e82d7714a54d9f36a5403cff"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,233d45b071cc76275b543cccfd36821b"
+                ],
+                "depth": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.txt:md5,69d49bf5e82d7714a54d9f36a5403cff"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,233d45b071cc76275b543cccfd36821b"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-23T20:40:19.872533907"
+    }
+}

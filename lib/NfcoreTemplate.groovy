@@ -79,14 +79,6 @@ class NfcoreTemplate {
     }
 
     //
-    // Does what is says on the tin
-    //
-    public static String dashedLine(monochrome_logs) {
-        Map colors = logColours(monochrome_logs)
-        return "-${colors.dim}----------------------------------------------------${colors.reset}-"
-    }
-
-    //
     // Print a warning
     //
     public static void warn(log, message) {
@@ -95,16 +87,20 @@ class NfcoreTemplate {
     }
 
     //
-    // ANSII Colours used for terminal logging
+    // Send completion email and summary
     //
-    public static String logColours(Boolean monochrome_logs=true) {
-        Map colorcodes = [:]
+    public static void email(workflow, params, summary_params, projectDir, log) {
+        // Email functionality placeholder - implement if needed
+    }
 
-        // Reset / Meta
-        colorcodes['reset']      = monochrome_logs ? '' : "\033[0m"
-        colorcodes['bold']       = monochrome_logs ? '' : "\033[1m"
-        colorcodes['dim']        = monochrome_logs ? '' : "\033[2m"
-
-        return colorcodes
+    //
+    // Print workflow summary
+    //
+    public static void summary(workflow, params, log) {
+        if (workflow.success) {
+            log.info "[${workflow.manifest.name}] Pipeline completed successfully"
+        } else {
+            log.info "[${workflow.manifest.name}] Pipeline completed with errors"
+        }
     }
 }

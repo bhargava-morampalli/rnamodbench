@@ -1,0 +1,3 @@
+[E::sam_parse1] SEQ and QUAL are of different length
+samtools view: error reading file "test.sam"
+samtools view: error closing "test.sam": -5

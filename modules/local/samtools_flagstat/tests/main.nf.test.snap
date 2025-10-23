@@ -1,0 +1,37 @@
+{
+    "Should generate flagstat statistics from BAM file": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_flagstat.txt:md5,c054220bfc908d26852cc3811b95bdaf"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,ed7b2c76f625850b2e7b84b3f8ecaac0"
+                ],
+                "flagstat": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_flagstat.txt:md5,c054220bfc908d26852cc3811b95bdaf"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,ed7b2c76f625850b2e7b84b3f8ecaac0"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-23T20:44:46.625683329"
+    }
+}

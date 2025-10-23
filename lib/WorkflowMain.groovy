@@ -61,5 +61,10 @@ class WorkflowMain {
         if (!params.input) {
             Nextflow.error "Please provide an input samplesheet using --input"
         }
+
+        // Validate parameters against the schema
+        if (params.validate_params) {
+            NfcoreSchema.validateParameters(workflow, params, log)
+        }
     }
 }

@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	01/f4388b	47629	EXTRACT_READ_IDS (test_nanopore_gz)	COMPLETED	0	2025-10-23 19:37:35.376	297ms	0ms	105.9%	3.1 MB	5.4 MB	52.9 KB	382 B

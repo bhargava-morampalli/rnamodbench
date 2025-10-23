@@ -8,35 +8,26 @@ process FAST5_SUBSET {
         'biocontainers/ont-fast5-api:4.1.0--pyhdfd78af_0' }"
 
     input:
-    tuple val(meta), path(fast5_dir), path(readids)
+    tuple val(meta), path(read_ids)
 
     output:
-    tuple val(meta), path("${prefix}_fast5s"), emit: fast5
-    path "versions.yml"                      , emit: versions
+    tuple val(meta), path("fast5_subset"), emit: fast5
+    path "versions.yml"                   , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def args = task.ext.args ?: ''
+    def fast5_dir = meta.fast5_dir // Access fast5_dir from the meta map
     """
-    mkdir -p ${prefix}_fast5s
-    fast5_subset -i $fast5_dir -s ${prefix}_fast5s -l $readids --recursive
+    fast5_subset \\
+        $args \\
+        --input ${fast5_dir} \\
+        --read_id_list ${read_ids} \\
+        --save_path fast5_subset \\
+        --recursive
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        ont-fast5-api: \$(echo \$(fast5_subset --version 2>&1) | sed 's/^.*version //; s/ .*\$//')
-    END_VERSIONS
-    """
-
-    stub:
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    """
-    mkdir -p ${prefix}_fast5s
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        ont-fast5-api: \$(echo \$(fast5_subset --version 2>&1) | sed 's/^.*version //; s/ .*\$//')
-    END_VERSIONS
+    echo -e '"${task.process}":\n  ont-fast5-api: \$(fast5_subset --version | sed -nE "s/fast5_subset, version (.*)/\\1/p")' > versions.yml
     """
 }

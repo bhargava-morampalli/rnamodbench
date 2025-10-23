@@ -2,12 +2,6 @@
 // This file holds several functions used to perform JSON parameter validation, help and summary rendering for the nf-core pipeline template.
 //
 
-import org.everit.json.schema.Schema
-import org.everit.json.schema.loader.SchemaLoader
-import org.everit.json.schema.ValidationException
-import org.json.JSONObject
-import org.json.JSONTokener
-import org.json.JSONArray
 import groovy.json.JsonSlurper
 import groovy.json.JsonBuilder
 
@@ -17,20 +11,30 @@ class NfcoreSchema {
     // Function to loop over all parameters defined in schema and check
     // whether the given parameters adhere to the specifications
     //
-    public static void validateParameters(params, json_schema, log) {
-        // Simply return if no schema is provided
-        if(json_schema == null) {
+    public static void validateParameters(workflow, params, log) {
+        // If no schema is present, we can't validate
+        def schema_path = "${workflow.projectDir}/nextflow_schema.json"
+        if (!file(schema_path).exists()) {
+            log.warn "Could not find pipeline schema file: ${schema_path}"
             return
         }
-        def has_error = false
-        //==================================================================//
-        // Check for params not in the schema
-        //
-        params.each { param_name, param_value ->
-            if(!json_schema.get('definitions').keySet().contains(param_name)) {
-                if(!params.schema_ignore_params.toString().split(',').contains(param_name)) {
-                    log.warn "Parameter '$param_name' is not recognised. Ignoring."
+
+        // Parse the schema
+        def schema = new JsonSlurper().parseText(file(schema_path).text)
+        def schema_params = []
+        schema.definitions.each { key, val ->
+            if(val.properties) {
+                val.properties.each { pkey, pval ->
+                    schema_params.add(pkey)
                 }
+            }
+        }
+
+        // Check for parameters that are not in the schema
+        def ignored_params = ['help', 'version', 'outdir', 'input', 'validate_params', 'monochrome_logs', 'schema_ignore_params']
+        params.each { param_name, param_value ->
+            if(!schema_params.contains(param_name) && !ignored_params.contains(param_name)) {
+                log.warn "Parameter `${param_name}` is not recognised by the pipeline."
             }
         }
     }

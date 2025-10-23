@@ -1,0 +1,37 @@
+{
+    "Should convert SAM to BAM with default filtering (exclude unmapped reads)": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam:md5,79b936d8f5eb1dc9d2dbe65c4b378cc4"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,277cc8b339782d658bdf35259c702710"
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam:md5,79b936d8f5eb1dc9d2dbe65c4b378cc4"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,277cc8b339782d658bdf35259c702710"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-23T20:13:20.62676365"
+    }
+}

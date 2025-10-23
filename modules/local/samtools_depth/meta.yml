@@ -1,0 +1,47 @@
+name: "samtools_depth"
+description: Calculate per-base depth coverage from BAM files
+keywords:
+  - depth
+  - coverage
+  - bam
+  - samtools
+tools:
+  - samtools:
+      description: |
+        SAMtools is a suite of programs for interacting with high-throughput sequencing data.
+        It consists of three separate repositories: Samtools (reading/writing/editing/indexing/viewing SAM/BAM/CRAM format),
+        BCFtools (reading/writing BCF2/VCF/gVCF files and calling/filtering/summarising SNP and short indel sequence variants),
+        and HTSlib (a C library for reading/writing high-throughput sequencing data formats).
+      homepage: http://www.htslib.org/
+      documentation: https://www.htslib.org/doc/samtools-depth.html
+      doi: 10.1093/bioinformatics/btp352
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - bam:
+      type: file
+      description: BAM file for depth calculation
+      pattern: "*.bam"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - depth:
+      type: file
+      description: Per-base depth coverage file
+      pattern: "*.txt"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

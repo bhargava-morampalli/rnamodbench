@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	f5/7f16bb	48439	EXTRACT_READ_IDS (test_stub)	COMPLETED	0	2025-10-23 19:37:43.382	316ms	0ms	114.3%	3.1 MB	5.4 MB	55.8 KB	314 B

@@ -1,0 +1,56 @@
+nextflow_process {
+
+    name "Test Process SAMTOOLS_VIEW"
+    script "../main.nf"
+    process "SAMTOOLS_VIEW"
+
+    tag "modules"
+    tag "modules_local"
+    tag "samtools"
+    tag "samtools/view"
+
+    test("Should convert SAM to BAM with default filtering (exclude unmapped reads)") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: false ],
+                    file("${projectDir}/modules/local/samtools_view/tests/data/test.sam", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/samtools_view/tests/data/test.sam", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.bam },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

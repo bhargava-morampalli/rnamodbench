@@ -1,0 +1,3 @@
+read1_nanopore_test
+read2_nanopore_test
+read3_nanopore_test

@@ -1,6 +1,6 @@
 process MULTI_TO_SINGLE_FAST5 {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
 
     conda "bioconda::ont-fast5-api=4.1.0"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -11,32 +11,21 @@ process MULTI_TO_SINGLE_FAST5 {
     tuple val(meta), path(fast5_dir)
 
     output:
-    tuple val(meta), path("${prefix}_single"), emit: single_fast5
-    path "versions.yml"                      , emit: versions
+    tuple val(meta), path("single_fast5"), emit: fast5
+    path "versions.yml"                   , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def args = task.ext.args ?: ''
     """
-    mkdir -p ${prefix}_single
-    multi_to_single_fast5 --input_path $fast5_dir --save_path ${prefix}_single --recursive
+    multi_to_single_fast5 \\
+        $args \\
+        --input_path ${fast5_dir} \\
+        --save_path single_fast5 \\
+        --recursive
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        ont-fast5-api: \$(echo \$(multi_to_single_fast5 --version 2>&1) | sed 's/^.*version //; s/ .*\$//')
-    END_VERSIONS
-    """
-
-    stub:
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    """
-    mkdir -p ${prefix}_single
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        ont-fast5-api: \$(echo \$(multi_to_single_fast5 --version 2>&1) | sed 's/^.*version //; s/ .*\$//')
-    END_VERSIONS
+    echo -e '"${task.process}":\n  ont-fast5-api: \$(multi_to_single_fast5 --version | sed -nE "s/multi_to_single_fast5, version (.*)/\\1/p")' > versions.yml
     """
 }

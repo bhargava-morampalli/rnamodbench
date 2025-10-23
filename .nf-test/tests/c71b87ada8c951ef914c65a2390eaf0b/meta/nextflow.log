@@ -1,0 +1,157 @@
+Oct-23 20:02:32.729 [main] DEBUG nextflow.cli.Launcher - $> nextflow -quiet -log /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/meta/nextflow.log run /home/bmorampa/new_improved/.nf-test-c71b87ada8c951ef914c65a2390eaf0b.nf -c /home/bmorampa/new_improved/nextflow.config -params-file /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/meta/params.json -ansi-log false -profile docker -with-trace /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/meta/trace.csv -w /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/work
+Oct-23 20:02:32.761 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.10.0
+Oct-23 20:02:32.783 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:02:32.785 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:02:32.786 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:02:32.786 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:02:32.800 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `docker`
+Oct-23 20:02:33.226 [main] DEBUG nextflow.plugin.PluginsFacade - Using Default plugin manager
+Oct-23 20:02:33.230 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Oct-23 20:02:33.231 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Oct-23 20:02:33.232 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Oct-23 20:02:33.238 [main] DEBUG nextflow.plugin.PluginsFacade - Using Default plugin manager
+Oct-23 20:02:33.695 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `docker`
+Oct-23 20:02:33.724 [main] DEBUG nextflow.plugin.PluginsFacade - Using Default plugin manager
+Oct-23 20:02:33.724 [main] DEBUG nextflow.plugin.PluginsFacade - Using Default plugin manager
+Oct-23 20:02:33.849 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [bih, cfc_dev, uzl_omics, ifb_core, embl_hd, denbi_qbic, alice, mjolnir_globe, uppmax, giga, incliva, ilifu, ki_luria, uge, icr_alma, rosalind_uge, lugh, mccleary, unibe_ibu, vai, czbiohub_aws, jax, roslin, tes, scw, unc_longleaf, tigem, tubingen_apg, apollo, ipop_up, vsc_calcua, pdc_kth, ceci_nic5, ccga_cau, humantechnopole, stjude, daisybio, eddie, medair, biowulf, apptainer, bi, bigpurple, adcra, cedars, pawsey_setonix, vsc_kul_uhasselt, pawsey_nimbus, ucl_myriad, utd_ganymede, charliecloud, fred_hutch, seattlechildrens, icr_davros, ceres, munin, arm, rosalind, hasta, cfc, uzh, shu_bmrc, ebi_codon_slurm, ebc, ccga_dx, crick, ku_sund_danhead, marvin, biohpc_gen, shifter, mana, mamba, york_viking, unc_lccc, wehi, awsbatch, wustl_htcf, arcc, ceci_dragon2, imperial, maestro, software_license, cannon, genotoul, nci_gadi, abims, eva_grace, janelia, nu_genomics, googlebatch, oist, sahmri, kaust, alliance_canada, mpcdf, leicester, vsc_ugent, create, sage, cambridge, jex, podman, ebi_codon, cheaha, xanadu, nyu_hpc, test, marjorie, computerome, ucd_sonic, seg_globe, mssm, sanger, dkfz, bluebear, pasteur, einstein, ethz_euler, m3c, test_full, imb, ucl_cscluster, tuos_stanage, azurebatch, seadragon, crukmi, csiro_petrichor, qmul_apocrita, docker, engaging, gis, hypatia, psmn, eva, unity, cropdiversityhpc, nygc, fgcz, conda, crg, singularity, mpcdf_viper, pe2, dirac, self_hosted_runner, tufts, uw_hyak_pedslabs, binac2, hki_genie, debug, genouest, cbe, unsw_katana, utd_juno, phoenix, gitpod, seawulf, uod_hpc, fub_curta, lovelace, uct_hpc, aws_tower, binac, fsu_draco]
+Oct-23 20:02:33.870 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/bmorampa/.nextflow/plugins; core-plugins: nf-amazon@3.4.1,nf-azure@1.20.2,nf-cloudcache@0.5.0,nf-codecommit@0.5.0,nf-console@1.3.0,nf-google@1.23.3,nf-k8s@1.2.2,nf-tower@1.17.1,nf-wave@1.16.1
+Oct-23 20:02:33.872 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Oct-23 20:02:33.872 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Oct-23 20:02:33.873 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Oct-23 20:02:33.878 [main] DEBUG nextflow.util.RetryConfig - Missing nextflow session - using default retry config
+Oct-23 20:02:33.892 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Oct-23 20:02:33.893 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-validation]
+Oct-23 20:02:33.893 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Oct-23 20:02:33.893 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-validation]
+Oct-23 20:02:34.503 [main] DEBUG n.plugin.HttpPluginRepository - Registry request: https://registry.nextflow.io/api/v1/plugins/dependencies?plugins=nf-validation&nextflowVersion=25.10.0
+- code: 200
+- body: {"plugins":[{"id":"nf-validation","downloadCount":278,"downloadGhCount":593109,"releases":[{"version":"1.1.4","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.4/download/nf-validation-1.1.4.zip","date":"2024-08-07T15:06:44.318431Z","sha512sum":"4528eb0676b3132c688831e13859939d64ef685f09e53652e858892e14e38d541e895a1fd7a398ea88de3cdcc239dca3c8d0a6dbcd85889811d8e83286ebf9e6","requires":">=22.10.0","dependsOn":[],"downloadCount":85,"downloadGhCount":86045,"status":"PUBLISHED","spec":null},{"version":"1.1.3","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.3/download/nf-validation-1.1.3.zip","date":"2023-11-21T10:34:48.682432Z","sha512sum":"673e998b83f21315b1f465d3d1609806428518955c174155a1e14a1c410ed9e7c84034b849780567a1a6254f8e6b9bdbb87b1939e5a8f754ff2268e5809bf77e","requires":">=22.10.0","dependsOn":[],"downloadCount":134,"downloadGhCount":428591,"status":"PUBLISHED","spec":null},{"version":"1.1.2","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.2/download/nf-validation-1.1.2.zip","date":"2023-11-16T12:24:24.89153Z","sha512sum":"e42d9465e2e127fc73070cc41a19e22c4299039915fc1d09cfcd5466727d5614d808e196ee8e16f183eccc84c8978995bc5e0234021ec9cc398e8265f060ef69","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":3435,"status":"PUBLISHED","spec":null},{"version":"1.1.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.1/download/nf-validation-1.1.1.zip","date":"2023-10-23T11:36:47.660915Z","sha512sum":"ea85d16ec3d707d4d8bc5e0d36c9e0c6f6b8cc96da803d00d95b0532ae9a3c146f011ae70955fc945a4ddb5ae901524285bbc7821b4069fa0dea32f0c7a56a07","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":14198,"status":"PUBLISHED","spec":null},{"version":"1.1.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.0/download/nf-validation-1.1.0.zip","date":"2023-10-18T09:42:16.30148Z","sha512sum":"f1ad3b09ca39cf8b0f738fda3e82dacaf9dfceafa771063f5db8d08d4a78f1b9a2c22a045a0ed5d71b9d9fcf9626921672ca1ec621eec78e6a5ec9281cd10012","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":2067,"status":"PUBLISHED","spec":null},{"version":"1.0.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.0.0/download/nf-validation-1.0.0.zip","date":"2023-10-12T08:52:42Z","sha512sum":"d947754cf20a750e3e94c9b6d9631bb894e3b94a3acfb846ab632997957c950e5adccd8061b8d9e12701c6cf8405c81edb5b93460afbc75abfcfe63c30786840","requires":">=22.10.0","dependsOn":[],"downloadCount":0,"downloadGhCount":3045,"status":"PUBLISHED","spec":null},{"version":"0.3.3","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.3/download/nf-validation-0.3.3.zip","date":"2023-10-10T10:35:43Z","sha512sum":"94804d119de5b25bea620494d575c16426ec601b858013bc0097e45d5e67f820ed41a2cc74ca42f3a4a5b9257169ffb03a61cce9b730ad1f9dd2bb0759c493b9","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":1553,"status":"PUBLISHED","spec":null},{"version":"0.3.2","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.2/download/nf-validation-0.3.2.zip","date":"2023-09-19T08:38:31.330492Z","sha512sum":"29aacfd66f9455eed5607701c0348dcc2ff90d988882618acbee7423740c6bb5ef17826ea690c7588ae006ca82afdbc3f0370fb9dc7d285b354bb39e06460b58","requires":">=22.10.0","dependsOn":[],"downloadCount":42,"downloadGhCount":10633,"status":"PUBLISHED","spec":null},{"version":"0.3.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.1/download/nf-validation-0.3.1.zip","date":"2023-07-12T09:07:50Z","sha512sum":"004f8e02c385daf95ebaf59b7f0613a99170893f69e0ad9bdcc262ffbcdc1b12470f679a7b60343031dfccbe75e85fce0c340974a4b98ffd2ad32fc3f3ae54e8","requires":">=22.10.0","dependsOn":[],"downloadCount":9,"downloadGhCount":17773,"status":"PUBLISHED","spec":null},{"version":"0.3.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.0/download/nf-validation-0.3.0.zip","date":"2023-07-10T12:50:17Z","sha512sum":"8a42ea8e6a0d9d61548bf55a22ffacd2f42d6e72e77b484a8d5fa532e50d225b04b9c5520a0503c4024df4989476a08f73bd3162f65bf9199d09db787fcfbbeb","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":828,"status":"PUBLISHED","spec":null},{"version":"0.2.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.2.1/download/nf-validation-0.2.1.zip","date":"2023-06-06T12:53:28.728085Z","sha512sum":"01166b10ddc69802ab4f528b149b78e5fded88ae6b1ee9355bf11d85571a568b061a7b2ecbd4256e2bb0e97c667ab295b89d9d2705a8c115b6ca772d1bb27844","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":23005,"status":"PUBLISHED","spec":null},{"version":"0.2.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.2.0/download/nf-validation-0.2.0.zip","date":"2023-06-06T08:03:06.923251Z","sha512sum":"304916efae3853bfb9ff422faa2124ba2ba6e38d90d7e46417b3b6951bf7477d64885a6aafcb31d55ed39b8d37b1cde009e12fa6aba2897cd1776f419f47d17c","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":411,"status":"PUBLISHED","spec":null},{"version":"0.1.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.1.0/download/nf-validation-0.1.0.zip","date":"2023-05-05T13:06:08.481Z","sha512sum":"b258fce687f8f977c5cc075a9bfcd98dcddf2fb64ea590517f3267fa9778afeac5311c8e0359c0cb9717df5378c0420b0eaad3d1bac3c95c6925f35e31310f4d","requires":">=21.02.0-edge","dependsOn":[],"downloadCount":1,"downloadGhCount":1525,"status":"PUBLISHED","spec":null}],"projectUrl":"https://github.com/nextflow-io/nf-validation","provider":"nextflow","description":null}]}
+Oct-23 20:02:34.532 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-validation version: latest
+Oct-23 20:02:34.535 [main] DEBUG nextflow.plugin.PluginUpdater - Plugin nf-validation version null resolved to: 1.1.4
+Oct-23 20:02:34.539 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-validation@1.1.4' resolved
+Oct-23 20:02:34.539 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-validation@1.1.4'
+Oct-23 20:02:34.542 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-validation@1.1.4
+Oct-23 20:02:34.545 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/bmorampa/.nextflow/secrets/store.json
+Oct-23 20:02:34.546 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@2d6a0766] - activable => nextflow.secret.LocalSecretsProvider@2d6a0766
+Oct-23 20:02:34.547 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Oct-23 20:02:34.554 [main] INFO  nextflow.cli.CmdRun - Launching `/home/bmorampa/new_improved/.nf-test-c71b87ada8c951ef914c65a2390eaf0b.nf` [cranky_hilbert] DSL2 - revision: 3654021652
+Oct-23 20:02:34.577 [main] DEBUG nextflow.Session - Session UUID: e0502f5f-9112-4c97-8837-1d23b430b8bf
+Oct-23 20:02:34.577 [main] DEBUG nextflow.Session - Run name: cranky_hilbert
+Oct-23 20:02:34.577 [main] DEBUG nextflow.Session - Executor pool size: 12
+Oct-23 20:02:34.581 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Oct-23 20:02:34.583 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Oct-23 20:02:34.592 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 25.10.0 build 10289
+  Created: 22-10-2025 16:26 UTC (21:56 IDT)
+  System: Linux 6.14.0-33-generic
+  Runtime: Groovy 4.0.28 on OpenJDK 64-Bit Server VM 17.0.14-internal+0-adhoc..src
+  Encoding: UTF-8 (UTF-8)
+  Process: 51626@gandalf [127.0.1.1]
+  CPUs: 12 - Mem: 93.5 GB (82.5 GB) - Swap: 8 GB (8 GB)
+Oct-23 20:02:34.602 [main] DEBUG nextflow.Session - Work-dir: /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/work [ext2/ext3]
+Oct-23 20:02:34.615 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Oct-23 20:02:34.620 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
+Oct-23 20:02:34.621 [main] DEBUG nextflow.Session - Observer factory (v2): DefaultObserverFactory
+Oct-23 20:02:34.634 [main] WARN  nextflow.container.DockerConfig - Config setting `docker.userEmulation` is not supported anymore
+Oct-23 20:02:34.647 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Oct-23 20:02:34.651 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
+Oct-23 20:02:34.743 [main] DEBUG nextflow.Session - Session start
+Oct-23 20:02:34.746 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/meta/trace.csv
+Oct-23 20:02:34.748 [main] DEBUG nextflow.Session - Using default localLib path: /home/bmorampa/new_improved/lib
+Oct-23 20:02:34.750 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/bmorampa/new_improved/lib
+Oct-23 20:02:34.850 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Oct-23 20:02:34.973 [main] DEBUG n.script.dsl.ProcessConfigBuilder - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name SAMTOOLS_VIEW
+Oct-23 20:02:34.975 [main] DEBUG n.script.dsl.ProcessConfigBuilder - Config settings `withName:SAMTOOLS_VIEW` matches process SAMTOOLS_VIEW
+Oct-23 20:02:34.990 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-23 20:02:34.990 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-23 20:02:34.995 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Oct-23 20:02:34.998 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=12; memory=93.5 GB; capacity=12; pollInterval=100ms; dumpInterval=5m
+Oct-23 20:02:34.999 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Oct-23 20:02:35.010 [main] DEBUG nextflow.processor.TaskProcessor - Creating process 'SAMTOOLS_VIEW': maxForks=0; fair=false; array=0
+Oct-23 20:02:35.044 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: SAMTOOLS_VIEW
+Oct-23 20:02:35.051 [main] WARN  nextflow.Session - There's no process matching config selector: SAMPLESHEET_CHECK
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: MINIMAP2_.*
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_SORT -- Did you mean: SAMTOOLS_VIEW?
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_INDEX -- Did you mean: SAMTOOLS_VIEW?
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_FLAGSTAT
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_DEPTH -- Did you mean: SAMTOOLS_VIEW?
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: COVERAGE_PLOT
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: NANOPLOT_BAM
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: EXTRACT_MAPPED_READS
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: EXTRACT_READ_IDS
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: FAST5_SUBSET
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: MULTI_TO_SINGLE_FAST5
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_RESQUIGGLE
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_DETECT_MODIFICATIONS
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_TEXT_OUTPUT
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: F5C_INDEX
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: F5C_EVENTALIGN
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: YANOCOMP_PREPARE
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: YANOCOMP_ANALYSIS
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: XPORE_DATAPREP
+Oct-23 20:02:35.052 [main] WARN  nextflow.Session - There's no process matching config selector: XPORE_DIFFMOD
+Oct-23 20:02:35.053 [main] DEBUG nextflow.Session - Igniting dataflow network (1)
+Oct-23 20:02:35.053 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > SAMTOOLS_VIEW
+Oct-23 20:02:35.054 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_c40ec28d8207cae0: /home/bmorampa/new_improved/modules/local/samtools_view/main.nf
+  Script_7217fcd19603b2d6: /home/bmorampa/new_improved/.nf-test-c71b87ada8c951ef914c65a2390eaf0b.nf
+Oct-23 20:02:35.054 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Oct-23 20:02:35.054 [main] DEBUG nextflow.Session - Session await
+Oct-23 20:02:35.130 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-23 20:02:35.131 [Task submitter] INFO  nextflow.Session - [df/e4db1f] Submitted process > SAMTOOLS_VIEW (test_meta)
+Oct-23 20:02:35.441 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: SAMTOOLS_VIEW (test_meta); status: COMPLETED; exit: 1; error: -; workDir: /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/work/df/e4db1f67daa554bd02e4ae96a14ccd]
+Oct-23 20:02:35.442 [Task monitor] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'TaskFinalizer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Oct-23 20:02:35.447 [TaskFinalizer-1] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=SAMTOOLS_VIEW (test_meta); work-dir=/home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/work/df/e4db1f67daa554bd02e4ae96a14ccd
+  error [nextflow.exception.ProcessFailedException]: Process `SAMTOOLS_VIEW (test_meta)` terminated with an error exit status (1)
+Oct-23 20:02:35.456 [TaskFinalizer-1] ERROR nextflow.processor.TaskProcessor - Error executing process > 'SAMTOOLS_VIEW (test_meta)'
+
+Caused by:
+  Process `SAMTOOLS_VIEW (test_meta)` terminated with an error exit status (1)
+
+
+Command executed:
+
+  samtools view \
+      -b -F 4 \
+      -@ 6 \
+      -o test_meta.bam \
+      test.sam
+  
+  cat <<-END_VERSIONS > versions.yml
+  "SAMTOOLS_VIEW":
+      samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+  END_VERSIONS
+
+Command exit status:
+  1
+
+Command output:
+  (empty)
+
+Command error:
+  [E::sam_parse1] SEQ and QUAL are of different length
+  samtools view: error reading file "test.sam"
+  samtools view: error closing "test.sam": -5
+
+Work dir:
+  /home/bmorampa/new_improved/.nf-test/tests/c71b87ada8c951ef914c65a2390eaf0b/work/df/e4db1f67daa554bd02e4ae96a14ccd
+
+Container:
+  quay.io/biocontainers/samtools:1.17--h00cdaf9_0
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+Oct-23 20:02:35.460 [main] DEBUG nextflow.Session - Session await > all processes finished
+Oct-23 20:02:35.464 [TaskFinalizer-1] INFO  nextflow.Session - Execution cancelled -- Finishing pending tasks before exit
+Oct-23 20:02:35.467 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Oct-23 20:02:35.467 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Oct-23 20:02:35.468 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'TaskFinalizer' shutdown completed (hard=false)
+Oct-23 20:02:35.473 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=1; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=1.4s; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=6; peakMemory=36 GB; ]
+Oct-23 20:02:35.481 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
+Oct-23 20:02:35.674 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
+Oct-23 20:02:35.696 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
+Oct-23 20:02:35.698 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Oct-23 20:02:35.703 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-validation@1.1.4'
+Oct-23 20:02:35.703 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-validation
+Oct-23 20:02:35.703 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'FileTransfer' shutdown completed (hard=false)
+Oct-23 20:02:35.703 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

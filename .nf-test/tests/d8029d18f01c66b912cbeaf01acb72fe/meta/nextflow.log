@@ -1,0 +1,15 @@
+Oct-23 20:02:21.260 [main] DEBUG nextflow.cli.Launcher - $> nextflow -quiet -log /home/bmorampa/new_improved/.nf-test/tests/d8029d18f01c66b912cbeaf01acb72fe/meta/nextflow.log run /home/bmorampa/new_improved/.nf-test-d8029d18f01c66b912cbeaf01acb72fe.nf -c /home/bmorampa/new_improved/nextflow.config -c /home/bmorampa/new_improved/modules/local/samtools_view/tests/./nextflow.config -params-file /home/bmorampa/new_improved/.nf-test/tests/d8029d18f01c66b912cbeaf01acb72fe/meta/params.json -ansi-log false -profile docker -with-trace /home/bmorampa/new_improved/.nf-test/tests/d8029d18f01c66b912cbeaf01acb72fe/meta/trace.csv -w /home/bmorampa/new_improved/.nf-test/tests/d8029d18f01c66b912cbeaf01acb72fe/work
+Oct-23 20:02:21.293 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.10.0
+Oct-23 20:02:21.314 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:02:21.316 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:02:21.319 [main] DEBUG nextflow.cli.Launcher - Operation aborted
+nextflow.exception.AbortOperationException: The specified configuration file does not exist: /home/bmorampa/new_improved/modules/local/samtools_view/tests/./nextflow.config -- check the name or choose another file
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.validateConfigFiles(ConfigBuilder.groovy:265)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.buildConfigObject(ConfigBuilder.groovy:832)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.build(ConfigBuilder.groovy:846)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:358)
+	at nextflow.cli.Launcher.run(Launcher.groovy:515)
+	at nextflow.cli.Launcher.main(Launcher.groovy:675)

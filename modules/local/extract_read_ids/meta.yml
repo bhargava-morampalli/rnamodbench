@@ -1,0 +1,44 @@
+name: "extract_read_ids"
+description: Extract read IDs from Nanopore FASTQ files using seqkit
+keywords:
+  - nanopore
+  - long-read
+  - fastq
+  - read-ids
+  - seqkit
+tools:
+  - seqkit:
+      description: A cross-platform and ultrafast toolkit for FASTA/Q file manipulation
+      homepage: https://bioinf.shenwei.me/seqkit/
+      documentation: https://bioinf.shenwei.me/seqkit/
+      tool_dev_url: https://github.com/shenwei356/seqkit
+      licence: MIT
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test' ]
+  - fastq:
+      type: file
+      description: Input Nanopore FASTQ file
+      pattern: "*.{fastq,fq,fastq.gz,fq.gz}"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test' ]
+  - read_ids:
+      type: file
+      description: Text file containing extracted read IDs
+      pattern: "*.read_ids.txt"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

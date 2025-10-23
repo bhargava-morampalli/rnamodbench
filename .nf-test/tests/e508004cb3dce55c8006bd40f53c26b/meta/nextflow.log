@@ -1,0 +1,105 @@
+Oct-23 20:52:36.138 [main] DEBUG nextflow.cli.Launcher - $> nextflow -quiet -log /home/bmorampa/new_improved/.nf-test/tests/e508004cb3dce55c8006bd40f53c26b/meta/nextflow.log run /home/bmorampa/new_improved/.nf-test-e508004cb3dce55c8006bd40f53c26b.nf -c /home/bmorampa/new_improved/nextflow.config -params-file /home/bmorampa/new_improved/.nf-test/tests/e508004cb3dce55c8006bd40f53c26b/meta/params.json -ansi-log false -profile docker -with-trace /home/bmorampa/new_improved/.nf-test/tests/e508004cb3dce55c8006bd40f53c26b/meta/trace.csv -w /home/bmorampa/new_improved/.nf-test/tests/e508004cb3dce55c8006bd40f53c26b/work -stub
+Oct-23 20:52:36.170 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 24.10.5
+Oct-23 20:52:36.180 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/bmorampa/.nextflow/plugins; core-plugins: nf-amazon@2.9.2,nf-azure@1.10.2,nf-cloudcache@0.4.2,nf-codecommit@0.2.2,nf-console@1.1.4,nf-google@1.15.4,nf-tower@1.9.3,nf-wave@1.7.4
+Oct-23 20:52:36.192 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Oct-23 20:52:36.192 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Oct-23 20:52:36.194 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Oct-23 20:52:36.201 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Oct-23 20:52:36.213 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:52:36.215 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:52:36.215 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:52:36.216 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
+Oct-23 20:52:36.229 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/bmorampa/.nextflow/secrets/store.json
+Oct-23 20:52:36.230 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@7da10b5b] - activable => nextflow.secret.LocalSecretsProvider@7da10b5b
+Oct-23 20:52:36.241 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `docker`
+Oct-23 20:52:37.117 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `docker`
+Oct-23 20:52:37.262 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [bih, cfc_dev, uzl_omics, ifb_core, embl_hd, denbi_qbic, alice, mjolnir_globe, uppmax, giga, incliva, ilifu, ki_luria, uge, icr_alma, rosalind_uge, lugh, mccleary, unibe_ibu, vai, czbiohub_aws, jax, roslin, tes, scw, unc_longleaf, tigem, tubingen_apg, apollo, ipop_up, vsc_calcua, pdc_kth, ceci_nic5, ccga_cau, humantechnopole, stjude, daisybio, eddie, medair, biowulf, apptainer, bi, bigpurple, adcra, cedars, pawsey_setonix, vsc_kul_uhasselt, pawsey_nimbus, ucl_myriad, utd_ganymede, charliecloud, fred_hutch, seattlechildrens, icr_davros, ceres, munin, arm, rosalind, hasta, cfc, uzh, shu_bmrc, ebi_codon_slurm, ebc, ccga_dx, crick, ku_sund_danhead, marvin, biohpc_gen, shifter, mana, mamba, york_viking, unc_lccc, wehi, awsbatch, wustl_htcf, arcc, ceci_dragon2, imperial, maestro, software_license, cannon, genotoul, nci_gadi, abims, eva_grace, janelia, nu_genomics, googlebatch, oist, sahmri, kaust, alliance_canada, mpcdf, leicester, vsc_ugent, create, sage, cambridge, jex, podman, ebi_codon, cheaha, xanadu, nyu_hpc, test, marjorie, computerome, ucd_sonic, seg_globe, mssm, sanger, dkfz, bluebear, pasteur, einstein, ethz_euler, m3c, test_full, imb, ucl_cscluster, tuos_stanage, azurebatch, seadragon, crukmi, csiro_petrichor, qmul_apocrita, docker, engaging, gis, hypatia, psmn, eva, unity, cropdiversityhpc, nygc, fgcz, conda, crg, singularity, mpcdf_viper, pe2, dirac, self_hosted_runner, tufts, uw_hyak_pedslabs, binac2, hki_genie, debug, genouest, cbe, unsw_katana, utd_juno, phoenix, gitpod, seawulf, uod_hpc, fub_curta, lovelace, uct_hpc, aws_tower, binac, fsu_draco]
+Oct-23 20:52:37.279 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Oct-23 20:52:37.286 [main] INFO  nextflow.cli.CmdRun - Launching `/home/bmorampa/new_improved/.nf-test-e508004cb3dce55c8006bd40f53c26b.nf` [nostalgic_lorenz] DSL2 - revision: 64abb2fc02
+Oct-23 20:52:37.287 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-validation]
+Oct-23 20:52:37.287 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Oct-23 20:52:37.287 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-validation]
+Oct-23 20:52:37.287 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-validation version: latest
+Oct-23 20:52:37.471 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-validation@1.1.4' resolved
+Oct-23 20:52:37.471 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-validation@1.1.4'
+Oct-23 20:52:37.474 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-validation@1.1.4
+Oct-23 20:52:37.496 [main] DEBUG nextflow.Session - Session UUID: a154c207-38dd-44e1-912e-930ccc8b78dd
+Oct-23 20:52:37.496 [main] DEBUG nextflow.Session - Run name: nostalgic_lorenz
+Oct-23 20:52:37.497 [main] DEBUG nextflow.Session - Executor pool size: 12
+Oct-23 20:52:37.501 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Oct-23 20:52:37.503 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Oct-23 20:52:37.512 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 24.10.5 build 5935
+  Created: 04-03-2025 17:55 UTC (23:25 IDT)
+  System: Linux 6.14.0-33-generic
+  Runtime: Groovy 4.0.23 on OpenJDK 64-Bit Server VM 17.0.10+7
+  Encoding: UTF-8 (UTF-8)
+  Process: 62708@gandalf [127.0.1.1]
+  CPUs: 12 - Mem: 93.5 GB (82.3 GB) - Swap: 8 GB (8 GB)
+Oct-23 20:52:37.525 [main] DEBUG nextflow.Session - Work-dir: /home/bmorampa/new_improved/.nf-test/tests/e508004cb3dce55c8006bd40f53c26b/work [ext2/ext3]
+Oct-23 20:52:37.544 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Oct-23 20:52:37.549 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Oct-23 20:52:37.579 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Oct-23 20:52:37.585 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
+Oct-23 20:52:37.679 [main] DEBUG nextflow.Session - Session start
+Oct-23 20:52:37.680 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/bmorampa/new_improved/.nf-test/tests/e508004cb3dce55c8006bd40f53c26b/meta/trace.csv
+Oct-23 20:52:37.683 [main] DEBUG nextflow.Session - Using default localLib path: /home/bmorampa/new_improved/lib
+Oct-23 20:52:37.685 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/bmorampa/new_improved/lib
+Oct-23 20:52:37.797 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Oct-23 20:52:37.902 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name SAMTOOLS_INDEX
+Oct-23 20:52:37.903 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SAMTOOLS_INDEX` matches process SAMTOOLS_INDEX
+Oct-23 20:52:37.915 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-23 20:52:37.915 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-23 20:52:37.919 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Oct-23 20:52:37.921 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=12; memory=93.5 GB; capacity=12; pollInterval=100ms; dumpInterval=5m
+Oct-23 20:52:37.922 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Oct-23 20:52:37.965 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: SAMTOOLS_INDEX
+Oct-23 20:52:37.972 [main] WARN  nextflow.Session - There's no process matching config selector: SAMPLESHEET_CHECK
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: MINIMAP2_.*
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_VIEW -- Did you mean: SAMTOOLS_INDEX?
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_SORT -- Did you mean: SAMTOOLS_INDEX?
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_FLAGSTAT
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_DEPTH -- Did you mean: SAMTOOLS_INDEX?
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: COVERAGE_PLOT
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: NANOPLOT_BAM
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: EXTRACT_MAPPED_READS
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: EXTRACT_READ_IDS
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: FAST5_SUBSET
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: MULTI_TO_SINGLE_FAST5
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_RESQUIGGLE
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_DETECT_MODIFICATIONS
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_TEXT_OUTPUT
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: F5C_INDEX
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: F5C_EVENTALIGN
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: YANOCOMP_PREPARE
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: YANOCOMP_ANALYSIS
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: XPORE_DATAPREP
+Oct-23 20:52:37.973 [main] WARN  nextflow.Session - There's no process matching config selector: XPORE_DIFFMOD
+Oct-23 20:52:37.973 [main] DEBUG nextflow.Session - Igniting dataflow network (1)
+Oct-23 20:52:37.973 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > SAMTOOLS_INDEX
+Oct-23 20:52:37.974 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_4377a6560ea26233: /home/bmorampa/new_improved/.nf-test-e508004cb3dce55c8006bd40f53c26b.nf
+  Script_81c203e8eecde16e: /home/bmorampa/new_improved/modules/local/samtools_index/tests/../main.nf
+Oct-23 20:52:37.974 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Oct-23 20:52:37.974 [main] DEBUG nextflow.Session - Session await
+Oct-23 20:52:38.060 [Task submitter] WARN  nextflow.container.DockerBuilder - Undocumented setting `docker.userEmulation` is not supported any more - please remove it from your config
+Oct-23 20:52:38.070 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-23 20:52:38.072 [Task submitter] INFO  nextflow.Session - [50/e4aae4] Submitted process > SAMTOOLS_INDEX (test_stub)
+Oct-23 20:52:38.370 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: SAMTOOLS_INDEX (test_stub); status: COMPLETED; exit: 0; error: -; workDir: /home/bmorampa/new_improved/.nf-test/tests/e508004cb3dce55c8006bd40f53c26b/work/50/e4aae4e9e8b14dc1d1bc62dee3e346]
+Oct-23 20:52:38.371 [Task monitor] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'TaskFinalizer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Oct-23 20:52:38.386 [TaskFinalizer-1] WARN  nextflow.processor.PublishDir - Process `SAMTOOLS_INDEX` publishDir path contains a variable with a null value
+Oct-23 20:52:38.388 [TaskFinalizer-1] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'PublishDir' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Oct-23 20:52:38.390 [main] DEBUG nextflow.Session - Session await > all processes finished
+Oct-23 20:52:38.469 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Oct-23 20:52:38.470 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Oct-23 20:52:38.472 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'TaskFinalizer' shutdown completed (hard=false)
+Oct-23 20:52:38.472 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'PublishDir' shutdown completed (hard=false)
+Oct-23 20:52:38.477 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=1; failedCount=0; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=0ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=2; peakMemory=12 GB; ]
+Oct-23 20:52:38.477 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
+Oct-23 20:52:38.477 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
+Oct-23 20:52:38.671 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
+Oct-23 20:52:38.714 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Oct-23 20:52:38.719 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-validation@1.1.4'
+Oct-23 20:52:38.719 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-validation
+Oct-23 20:52:38.720 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'FileTransfer' shutdown completed (hard=false)
+Oct-23 20:52:38.720 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

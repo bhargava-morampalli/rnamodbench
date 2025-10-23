@@ -1,0 +1,12 @@
+@read1_nanopore_test
+ATCGATCGATCGATCGATCGATCGATCG
++
+############################
+@read2_nanopore_test  
+GCTAGCTAGCTAGCTAGCTAGCTAGCTA
++
+############################
+@read3_nanopore_test
+TTTTTTTTTTTTTTTTTTTTTTTTTTTT
++
+############################

@@ -1,0 +1,106 @@
+nextflow_process {
+
+    name "Test Process EXTRACT_READ_IDS"
+    script "../main.nf"
+    process "EXTRACT_READ_IDS"
+    
+    tag "modules"
+    tag "extract_read_ids"
+    tag "nanopore"
+
+    test("nanopore fastq uncompressed") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test_nanopore' ],
+                    file("${projectDir}/modules/local/extract_read_ids/tests/data/test_nanopore_small.fastq", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() },
+                { assert path(process.out.read_ids[0][1]).exists() },
+                { assert path(process.out.read_ids[0][1]).readLines().size() == 3 }, // Should extract 3 read IDs
+                { assert path(process.out.read_ids[0][1]).readLines().contains("read1_nanopore_test") },
+                { assert path(process.out.read_ids[0][1]).readLines().contains("read2_nanopore_test") },
+                { assert path(process.out.read_ids[0][1]).readLines().contains("read3_nanopore_test") }
+            )
+        }
+    }
+
+    test("nanopore fastq compressed") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test_nanopore_gz' ],
+                    file("${projectDir}/modules/local/extract_read_ids/tests/data/test_nanopore.fastq.gz", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() },
+                { assert path(process.out.read_ids[0][1]).exists() },
+                { assert path(process.out.read_ids[0][1]).readLines().size() == 3 }
+            )
+        }
+    }
+
+    test("empty fastq") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'empty_test' ],
+                    file("${projectDir}/modules/local/extract_read_ids/tests/data/empty.fastq", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() },
+                { assert path(process.out.read_ids[0][1]).exists() },
+                { assert path(process.out.read_ids[0][1]).readLines().size() == 0 }
+            )
+        }
+    }
+
+    test("nanopore fastq - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test_stub' ],
+                    file("${projectDir}/modules/local/extract_read_ids/tests/data/test_nanopore_small.fastq", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() },
+                { assert path(process.out.read_ids[0][1]).exists() }
+            )
+        }
+    }
+}

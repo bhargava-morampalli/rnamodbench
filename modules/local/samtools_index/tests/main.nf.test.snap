@@ -1,0 +1,37 @@
+{
+    "Should create BAM index file": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam.bai:md5,ee5acb04501c456bf26722624058963f"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,73956177c2863ee3ed13ec5da30337b2"
+                ],
+                "bai": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam.bai:md5,ee5acb04501c456bf26722624058963f"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,73956177c2863ee3ed13ec5da30337b2"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-23T20:52:35.514900495"
+    }
+}

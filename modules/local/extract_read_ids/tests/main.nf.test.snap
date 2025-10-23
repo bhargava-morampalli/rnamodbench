@@ -1,0 +1,134 @@
+{
+    "empty fastq": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "empty_test"
+                        },
+                        "empty_test.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ],
+                "read_ids": [
+                    [
+                        {
+                            "id": "empty_test"
+                        },
+                        "empty_test.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-10-23T19:35:50.438769331"
+    },
+    "nanopore fastq compressed": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_nanopore_gz"
+                        },
+                        "test_nanopore_gz.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ],
+                "read_ids": [
+                    [
+                        {
+                            "id": "test_nanopore_gz"
+                        },
+                        "test_nanopore_gz.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-10-23T19:35:46.369864765"
+    },
+    "nanopore fastq uncompressed": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_nanopore"
+                        },
+                        "test_nanopore.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ],
+                "read_ids": [
+                    [
+                        {
+                            "id": "test_nanopore"
+                        },
+                        "test_nanopore.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-10-23T19:35:42.332951922"
+    },
+    "nanopore fastq - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_stub"
+                        },
+                        "test_stub.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ],
+                "read_ids": [
+                    [
+                        {
+                            "id": "test_stub"
+                        },
+                        "test_stub.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,467f63b11f167e694f839bca54b8ef82"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-10-23T19:35:54.486721683"
+    }
+}
