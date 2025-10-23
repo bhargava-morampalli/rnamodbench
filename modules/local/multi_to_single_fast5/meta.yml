@@ -1,0 +1,49 @@
+name: "multi_to_single_fast5"
+description: Convert multi-read fast5 files to single-read fast5 files
+keywords:
+  - nanopore
+  - fast5
+  - conversion
+  - multi-read
+  - single-read
+  - oxford nanopore
+  - ont
+tools:
+  - ont-fast5-api:
+      description: |
+        Oxford Nanopore Technologies fast5 API software.
+        A simple interface to HDF5 files of the Oxford Nanopore .fast5 file format.
+        The multi_to_single_fast5 tool converts multi-read fast5 files into single-read fast5 files,
+        which is required for certain downstream analysis tools.
+      homepage: https://github.com/nanoporetech/ont_fast5_api
+      documentation: https://github.com/nanoporetech/ont_fast5_api/blob/master/README.rst
+      licence: ["MPL-2.0"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1' ]`
+  - fast5_dir:
+      type: directory
+      description: Directory containing multi-read fast5 files
+      pattern: "*"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1' ]`
+  - fast5:
+      type: directory
+      description: Directory containing single-read fast5 files
+      pattern: "single_fast5"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"
