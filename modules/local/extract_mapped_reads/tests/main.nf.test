@@ -1,0 +1,56 @@
+nextflow_process {
+
+    name "Test Process EXTRACT_MAPPED_READS"
+    script "../main.nf"
+    process "EXTRACT_MAPPED_READS"
+
+    tag "modules"
+    tag "modules_local"
+    tag "samtools"
+    tag "extract_mapped_reads"
+
+    test("Should extract mapped reads from SAM file to FASTQ") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: false ],
+                    file("${projectDir}/modules/local/extract_mapped_reads/tests/data/test.sam", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/extract_mapped_reads/tests/data/test.sam", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.fastq },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

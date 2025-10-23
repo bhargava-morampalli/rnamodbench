@@ -30,4 +30,11 @@ process FAST5_SUBSET {
 
     echo -e '"${task.process}":\n  ont-fast5-api: \$(fast5_subset --version | sed -nE "s/fast5_subset, version (.*)/\\1/p")' > versions.yml
     """
+
+    stub:
+    """
+    mkdir -p fast5_subset
+
+    echo -e '"${task.process}":\n  ont-fast5-api: \$(fast5_subset --version | sed -nE "s/fast5_subset, version (.*)/\\1/p")' > versions.yml
+    """
 }

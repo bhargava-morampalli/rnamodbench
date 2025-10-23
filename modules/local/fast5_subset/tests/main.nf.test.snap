@@ -1,0 +1,47 @@
+{
+    "Should subset fast5 files based on read IDs": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "fast5_dir": [
+                                "batch_0.fast5:md5,32603e73a2b7ef66cd956fc74c640285"
+                            ]
+                        },
+                        [
+                            "batch0.fast5:md5,bf2565d63b14101fed626e2103f25249",
+                            "filename_mapping.txt:md5,90a306c6d3afc0b7eb602b1cfdc5f50f"
+                        ]
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,8e30481eac71d1a124d65796c7c7db3a"
+                ],
+                "fast5": [
+                    [
+                        {
+                            "id": "test",
+                            "fast5_dir": [
+                                "batch_0.fast5:md5,32603e73a2b7ef66cd956fc74c640285"
+                            ]
+                        },
+                        [
+                            "batch0.fast5:md5,bf2565d63b14101fed626e2103f25249",
+                            "filename_mapping.txt:md5,90a306c6d3afc0b7eb602b1cfdc5f50f"
+                        ]
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,8e30481eac71d1a124d65796c7c7db3a"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-23T21:53:41.27445786"
+    }
+}

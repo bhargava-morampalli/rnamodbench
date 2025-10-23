@@ -1,0 +1,14 @@
+Unable to find image 'quay.io/biocontainers/ont-fast5-api:4.1.0--pyhdfd78af_0' locally
+4.1.0--pyhdfd78af_0: Pulling from biocontainers/ont-fast5-api
+73349e34840e: Already exists
+acab339ca1e8: Already exists
+b1d75fb49525: Pulling fs layer
+b1d75fb49525: Verifying Checksum
+b1d75fb49525: Download complete
+b1d75fb49525: Pull complete
+Digest: sha256:67cc05ce27ca64b6a08a4b26032c1532ab27b4bdcfb033fe443ea1883990ec4f
+Status: Downloaded newer image for quay.io/biocontainers/ont-fast5-api:4.1.0--pyhdfd78af_0
+| 0 of 4|                                                  |  0% ETA:  --:--:--DEBUG:h5py._conv:Creating converter from 5 to 3
+DEBUG:h5py._conv:Creating converter from 3 to 5
+/ 4 of 4|###################################################|100% ETA:  0:00:00| 4 of 4|###################################################|100% Time: 0:00:00
+INFO:Fast5Filter:3 reads extracted

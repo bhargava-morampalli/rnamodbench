@@ -1,0 +1,46 @@
+name: "fast5_subset"
+description: Subset multi-read fast5 files based on a list of read IDs
+keywords:
+  - nanopore
+  - fast5
+  - subset
+  - oxford nanopore
+  - ont
+tools:
+  - ont-fast5-api:
+      description: |
+        Oxford Nanopore Technologies fast5 API software.
+        A simple interface to HDF5 files of the Oxford Nanopore .fast5 file format.
+        The fast5_subset tool extracts reads from multi-read fast5 files based on a list of read IDs.
+      homepage: https://github.com/nanoporetech/ont_fast5_api
+      documentation: https://github.com/nanoporetech/ont_fast5_api/blob/master/README.rst
+      licence: ["MPL-2.0"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information and fast5_dir path
+        e.g. `[ id:'sample1', fast5_dir:'/path/to/fast5/files' ]`
+  - read_ids:
+      type: file
+      description: Text file containing list of read IDs to extract (one per line)
+      pattern: "*.txt"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', fast5_dir:'/path/to/fast5/files' ]`
+  - fast5:
+      type: directory
+      description: Directory containing subset of fast5 files with only specified reads
+      pattern: "fast5_subset"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

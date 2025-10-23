@@ -1,0 +1,37 @@
+{
+    "Should align Oxford Nanopore reads to reference": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.sam:md5,ea0563c293c8874c60b7de4dac3211fa"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,9e9eeae0002d466d580a9d6e0d003eb1"
+                ],
+                "sam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.sam:md5,ea0563c293c8874c60b7de4dac3211fa"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,9e9eeae0002d466d580a9d6e0d003eb1"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-23T21:06:08.703354236"
+    }
+}

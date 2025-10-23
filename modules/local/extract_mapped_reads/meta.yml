@@ -1,0 +1,49 @@
+name: "extract_mapped_reads"
+description: Extract mapped reads from SAM/BAM files and convert to FASTQ format
+keywords:
+  - extract
+  - mapped
+  - reads
+  - fastq
+  - samtools
+  - nanopore
+tools:
+  - samtools:
+      description: |
+        SAMtools is a suite of programs for interacting with high-throughput sequencing data.
+        It consists of three separate repositories: Samtools (reading/writing/editing/indexing/viewing SAM/BAM/CRAM format),
+        BCFtools (reading/writing BCF2/VCF/gVCF files and calling/filtering/summarising SNP and short indel sequence variants),
+        and HTSlib (a C library for reading/writing high-throughput sequencing data formats).
+      homepage: http://www.htslib.org/
+      documentation: https://www.htslib.org/doc/samtools-fastq.html
+      doi: 10.1093/bioinformatics/btp352
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - sam:
+      type: file
+      description: SAM/BAM file containing aligned reads
+      pattern: "*.{sam,bam}"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - fastq:
+      type: file
+      description: FASTQ file containing only mapped reads
+      pattern: "*.fastq"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

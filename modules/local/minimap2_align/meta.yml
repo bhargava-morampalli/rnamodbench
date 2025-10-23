@@ -1,0 +1,52 @@
+name: "minimap2_align"
+description: Align Oxford Nanopore long reads to a reference genome using minimap2
+keywords:
+  - alignment
+  - minimap2
+  - long-reads
+  - nanopore
+  - splice
+  - RNA
+tools:
+  - minimap2:
+      description: |
+        A versatile pairwise aligner for genomic and spliced nucleotide sequences.
+        Minimap2 is particularly well-suited for aligning long reads from Oxford Nanopore
+        and PacBio sequencing technologies.
+      homepage: https://github.com/lh3/minimap2
+      documentation: https://lh3.github.io/minimap2/minimap2.html
+      doi: 10.1093/bioinformatics/bty191
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - reads:
+      type: file
+      description: Input FASTQ file (can be gzipped)
+      pattern: "*.{fastq,fq,fastq.gz,fq.gz}"
+  - reference:
+      type: file
+      description: Reference genome in FASTA format
+      pattern: "*.{fasta,fa,fna}"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - sam:
+      type: file
+      description: Alignment output in SAM format
+      pattern: "*.sam"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

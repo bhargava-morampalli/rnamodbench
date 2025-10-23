@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	09/24d240	65098	EXTRACT_MAPPED_READS (test)	COMPLETED	0	2025-10-23 21:12:25.903	315ms	0ms	70.6%	6.4 MB	220.5 MB	102.6 KB	5.1 KB

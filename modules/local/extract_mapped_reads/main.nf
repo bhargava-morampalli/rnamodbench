@@ -18,9 +18,16 @@ process EXTRACT_MAPPED_READS {
     task.ext.when == null || task.ext.when
 
     script:
+    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    samtools fastq -F4 $sam > ${prefix}.fastq
+    samtools \\
+        fastq \\
+        -F 4 \\
+        --threads ${task.cpus-1} \\
+        $args \\
+        $sam \\
+        > ${prefix}.fastq
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

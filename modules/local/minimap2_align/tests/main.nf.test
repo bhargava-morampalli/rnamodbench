@@ -1,0 +1,58 @@
+nextflow_process {
+
+    name "Test Process MINIMAP2_ALIGN"
+    script "../main.nf"
+    process "MINIMAP2_ALIGN"
+
+    tag "modules"
+    tag "modules_local"
+    tag "minimap2"
+    tag "minimap2/align"
+
+    test("Should align Oxford Nanopore reads to reference") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: false ],
+                    file("${projectDir}/modules/local/minimap2_align/tests/data/test.fastq.gz", checkIfExists: true)
+                ]
+                input[1] = file("${projectDir}/modules/local/minimap2_align/tests/data/reference.fasta", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/minimap2_align/tests/data/test.fastq.gz", checkIfExists: true)
+                ]
+                input[1] = file("${projectDir}/modules/local/minimap2_align/tests/data/reference.fasta", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.sam },
+                { assert process.out.versions }
+            )
+        }
+    }
+}
