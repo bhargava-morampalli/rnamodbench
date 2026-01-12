@@ -1,0 +1,53 @@
+# Nextflow work directory
+work/
+.nextflow/
+.nextflow.log*
+
+# nf-test directories
+.nf-test/
+
+# Results directories (test outputs)
+results/
+results_*/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+*.egg
+.pytest_cache/
+.mypy_cache/
+
+# R
+.Rproj.user/
+.Rhistory
+
+# Conda/virtual environments
+.conda/
+venv/
+env/
+.env
+
+# Test outputs
+test_samplesheet.csv
+*.log
+
+# Build artifacts
+*.tar.gz
+*.zip
+
+# Documentation builds
+docs/_build/
+site/

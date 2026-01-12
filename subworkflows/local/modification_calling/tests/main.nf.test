@@ -1,0 +1,85 @@
+nextflow_workflow {
+
+    name "Test Subworkflow MODIFICATION_CALLING"
+    script "../main.nf"
+    workflow "MODIFICATION_CALLING"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "modification_calling"
+    tag "tombo"
+    tag "yanocomp"
+    tag "nanocompore"
+    tag "xpore"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            workflow {
+                """
+                def meta_16s_native = [ id: 'native_16s', single_end: true, type: 'native', rrna: '16s', replicate: 'rep1' ]
+                def meta_16s_ivt = [ id: 'ivt_16s', single_end: true, type: 'ivt', rrna: '16s', replicate: 'rep1' ]
+                def meta_23s_native = [ id: 'native_23s', single_end: true, type: 'native', rrna: '23s', replicate: 'rep1' ]
+                def meta_23s_ivt = [ id: 'ivt_23s', single_end: true, type: 'ivt', rrna: '23s', replicate: 'rep1' ]
+
+                // Use different FAST5 directories for native and ivt to avoid filename collision
+                def stub_fast5_native = file("\${projectDir}/tests/data/fast5/native_rep1")
+                def stub_fast5_ivt = file("\${projectDir}/tests/data/fast5/ivt_rep1")
+                def stub_eventalign = file("\${projectDir}/tests/data/eventalign.txt")
+                // Use different BAM files for native and ivt to avoid filename collision
+                def stub_bam_native = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam")
+                def stub_bai_native = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam.bai")
+                def stub_bam_ivt = file("\${projectDir}/modules/local/f5c_eventalign/tests/data/test.sorted.bam")
+                def stub_bai_ivt = file("\${projectDir}/modules/local/f5c_eventalign/tests/data/test.sorted.bam.bai")
+                def ref = file("\${projectDir}/tests/data/16s_reference.fasta")
+
+                // input[0]: unified tombo_resquiggled channel [ meta, fast5 ]
+                // Use different FAST5 dirs for native vs ivt to avoid filename collision
+                input[0] = Channel.of(
+                    [ meta_16s_native, stub_fast5_native ],
+                    [ meta_16s_ivt, stub_fast5_ivt ],
+                    [ meta_23s_native, stub_fast5_native ],
+                    [ meta_23s_ivt, stub_fast5_ivt ]
+                )
+
+                // input[1]: unified eventalign channel [ meta, eventalign ]
+                input[1] = Channel.of(
+                    [ meta_16s_native, stub_eventalign ],
+                    [ meta_16s_ivt, stub_eventalign ],
+                    [ meta_23s_native, stub_eventalign ],
+                    [ meta_23s_ivt, stub_eventalign ]
+                )
+
+                // input[2]: unified eventalign_xpore channel [ meta, eventalign ]
+                input[2] = Channel.of(
+                    [ meta_16s_native, stub_eventalign ],
+                    [ meta_16s_ivt, stub_eventalign ],
+                    [ meta_23s_native, stub_eventalign ],
+                    [ meta_23s_ivt, stub_eventalign ]
+                )
+
+                // input[3]: unified bams channel [ meta, bam, bai ]
+                // Use different files for native vs ivt to avoid filename collision during staging
+                input[3] = Channel.of(
+                    [ meta_16s_native, stub_bam_native, stub_bai_native ],
+                    [ meta_16s_ivt, stub_bam_ivt, stub_bai_ivt ],
+                    [ meta_23s_native, stub_bam_native, stub_bai_native ],
+                    [ meta_23s_ivt, stub_bam_ivt, stub_bai_ivt ]
+                )
+
+                // input[4]: ref_map (Groovy map)
+                input[4] = Channel.value([ '16s': ref, '23s': ref ])
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.versions }
+            )
+        }
+    }
+}

@@ -1,0 +1,53 @@
+name: "yanocomp_analysis"
+description: Compare native and IVT samples using yanocomp GMM test to detect RNA modifications
+keywords:
+  - nanopore
+  - rna-modifications
+  - modification-detection
+  - gmm
+  - statistical-testing
+  - native-vs-ivt
+tools:
+  - yanocomp:
+      description: Yet Another Nanopore COMParison tool for detecting RNA modifications
+      homepage: https://github.com/baraaorabi/yanocomp
+      documentation: https://github.com/baraaorabi/yanocomp
+      tool_dev_url: https://github.com/baraaorabi/yanocomp
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - hdf5_native:
+      type: file
+      description: HDF5 file from yanocomp_prepare containing native sample data
+      pattern: "*.hdf5"
+  - hdf5_ivt:
+      type: file
+      description: HDF5 file from yanocomp_prepare containing in vitro transcribed (IVT) sample data
+      pattern: "*.hdf5"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - bed:
+      type: file
+      description: BED file with detected modification sites and statistics
+      pattern: "*.bed"
+  - json:
+      type: file
+      description: JSON file with per-site statistical model predictions
+      pattern: "*_sm_preds.json"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

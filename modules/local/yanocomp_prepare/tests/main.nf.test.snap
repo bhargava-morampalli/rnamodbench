@@ -1,0 +1,14 @@
+{
+    "Should prepare HDF5 from eventalign output": {
+        "content": [
+            [
+                "versions.yml:md5,71ce8032e1e1d1136ade80ef5125cddb"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-31T12:07:53.438314064"
+    }
+}

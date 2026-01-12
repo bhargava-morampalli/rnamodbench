@@ -1,0 +1,14 @@
+{
+    "Should generate coverage plot from depth file": {
+        "content": [
+            [
+                "versions.yml:md5,767583bb29e62242d57abf000b827ce0"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2025-12-07T20:19:06.414503869"
+    }
+}

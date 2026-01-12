@@ -1,0 +1,59 @@
+nextflow_process {
+
+    name "Test Process XPORE_DATAPREP"
+    script "../main.nf"
+    process "XPORE_DATAPREP"
+
+    tag "modules"
+    tag "modules_local"
+    tag "xpore_dataprep"
+    tag "rna_modifications"
+
+    test("Should prepare xpore data directory from eventalign output") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: false ],
+                    file("${projectDir}/modules/local/xpore_dataprep/tests/data/test_eventalign.txt", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.dataprep },
+                // { assert process.out.dataprep.get(0).get(1).toString().endsWith('dataprep') },
+                { assert process.out.versions },
+                { assert snapshot(process.out.versions).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/xpore_dataprep/tests/data/test_eventalign.txt", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.dataprep },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

@@ -1,0 +1,48 @@
+name: Get test shards
+description: Get a matrix of test shards to run nf-test in parallel
+inputs:
+  tags:
+    description: Comma-separated list of tags to filter tests
+    required: false
+    default: ""
+outputs:
+  shards:
+    description: JSON array of shard numbers
+    value: ${{ steps.get-shards.outputs.shards }}
+  total:
+    description: Total number of shards
+    value: ${{ steps.get-shards.outputs.total }}
+runs:
+  using: "composite"
+  steps:
+    - name: Install nf-test
+      shell: bash
+      run: |
+        wget -qO- https://get.nf-test.com | bash
+        sudo mv nf-test /usr/local/bin/
+
+    - name: Get test count and calculate shards
+      id: get-shards
+      shell: bash
+      run: |
+        # Get test count
+        if [ -n "${{ inputs.tags }}" ]; then
+          TEST_COUNT=$(nf-test list --tags "${{ inputs.tags }}" --format json 2>/dev/null | jq -r '.tests | length' || echo "1")
+        else
+          TEST_COUNT=$(nf-test list --format json 2>/dev/null | jq -r '.tests | length' || echo "1")
+        fi
+
+        # Calculate shards (max 4 shards, at least 1 test per shard)
+        if [ "$TEST_COUNT" -eq "0" ] || [ -z "$TEST_COUNT" ]; then
+          SHARD_COUNT=1
+        elif [ "$TEST_COUNT" -lt 4 ]; then
+          SHARD_COUNT=$TEST_COUNT
+        else
+          SHARD_COUNT=4
+        fi
+
+        # Generate shard array
+        SHARDS=$(seq 1 $SHARD_COUNT | jq -R . | jq -sc .)
+
+        echo "shards=$SHARDS" >> $GITHUB_OUTPUT
+        echo "total=$SHARD_COUNT" >> $GITHUB_OUTPUT

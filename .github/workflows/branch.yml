@@ -1,0 +1,22 @@
+name: nf-core branch protection
+on:
+  pull_request_target:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PRs
+        if: github.repository == 'nf-core/rnamodifications'
+        run: |
+          { [[ ${{github.event.pull_request.head.repo.full_name }} == nf-core/rnamodifications ]] && [[ $GITHUB_HEAD_REF == "dev" ]]; } || { echo "
+          ==============================================================
+          Hi there!
+          It looks like you want to open a PR against the \`master\` branch of nf-core/rnamodifications.
+          That's not allowed - PRs should be opened against \`dev\` instead (or \`master\` if you are merging a release).
+          If you're an nf-core maintainer and want to release, please open this PR against the \`master\` branch
+          from a branch called \`dev\`.
+          ==============================================================
+          " ; exit 1; }

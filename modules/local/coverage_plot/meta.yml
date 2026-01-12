@@ -1,0 +1,58 @@
+name: "coverage_plot"
+description: Generate coverage plots from samtools depth output
+keywords:
+  - coverage
+  - visualization
+  - plot
+  - depth
+  - samtools
+tools:
+  - python:
+      description: Python programming language
+      homepage: https://www.python.org/
+      documentation: https://docs.python.org/3/
+      licence: ["PSF-2.0"]
+  - pandas:
+      description: Powerful data structures for data analysis
+      homepage: https://pandas.pydata.org/
+      documentation: https://pandas.pydata.org/docs/
+      licence: ["BSD-3-Clause"]
+  - matplotlib:
+      description: Comprehensive library for creating static, animated, and interactive visualizations
+      homepage: https://matplotlib.org/
+      documentation: https://matplotlib.org/stable/contents.html
+      licence: ["PSF-2.0"]
+  - seaborn:
+      description: Statistical data visualization library based on matplotlib
+      homepage: https://seaborn.pydata.org/
+      documentation: https://seaborn.pydata.org/tutorial.html
+      licence: ["BSD-3-Clause"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - depth:
+      type: file
+      description: Depth file from samtools depth (TSV format with columns: chrom, position, depth)
+      pattern: "*.{depth,txt}"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - plot:
+      type: file
+      description: Coverage plot in PDF format
+      pattern: "*.pdf"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

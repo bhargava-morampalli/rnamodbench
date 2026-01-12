@@ -1,0 +1,20 @@
+name: yanocomp
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pip
+  - git
+  - python=3.8
+  - numpy<1.20
+  - scipy
+  - pandas>=1.1
+  - statsmodels
+  - pomegranate>=0.13.3
+  - joblib=0.17.0
+  - scikit-learn
+  - h5py=2.10.0
+  - click
+  - pip:
+     - click_log
+     - git+https://github.com/bartongroup/yanocomp.git@v0.2

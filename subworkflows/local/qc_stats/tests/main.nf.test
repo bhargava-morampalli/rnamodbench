@@ -1,0 +1,46 @@
+nextflow_workflow {
+
+    name "Test Subworkflow QC_STATS"
+    script "../main.nf"
+    workflow "QC_STATS"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "qc_stats"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            workflow {
+                """
+                def meta_16s_native = [ id: 'native_16s', single_end: true, type: 'native', rrna: '16s', replicate: 'rep1' ]
+                def meta_16s_ivt = [ id: 'ivt_16s', single_end: true, type: 'ivt', rrna: '16s', replicate: 'rep1' ]
+                def meta_23s_native = [ id: 'native_23s', single_end: true, type: 'native', rrna: '23s', replicate: 'rep1' ]
+                def meta_23s_ivt = [ id: 'ivt_23s', single_end: true, type: 'ivt', rrna: '23s', replicate: 'rep1' ]
+
+                def stub_bam = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam")
+                def stub_bai = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam.bai")
+
+                // input[0]: unified bams channel [ meta, bam, bai ]
+                input[0] = Channel.of(
+                    [ meta_16s_native, stub_bam, stub_bai ],
+                    [ meta_16s_ivt, stub_bam, stub_bai ],
+                    [ meta_23s_native, stub_bam, stub_bai ],
+                    [ meta_23s_ivt, stub_bam, stub_bai ]
+                )
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.versions },
+                { assert workflow.out.flagstat },
+                { assert workflow.out.depth }
+            )
+        }
+    }
+}

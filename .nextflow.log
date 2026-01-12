@@ -1,152 +1,113 @@
-Oct-23 16:16:38.983 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf -profile test,singularity --input test_data/samplesheet.csv --ref_16s test_data/references/16S.fa --ref_23s test_data/references/23S.fa --outdir results_stub -stub-run
-Oct-23 16:16:39.018 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.10.0
-Oct-23 16:16:39.038 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/bmorampa/new_improved/nextflow.config
-Oct-23 16:16:39.040 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
-Oct-23 16:16:39.053 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,singularity`
-Oct-23 16:16:39.474 [main] DEBUG nextflow.plugin.PluginsFacade - Using Default plugin manager
-Oct-23 16:16:39.478 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
-Oct-23 16:16:39.478 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
-Oct-23 16:16:39.479 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
-Oct-23 16:16:39.485 [main] DEBUG nextflow.plugin.PluginsFacade - Using Default plugin manager
-Oct-23 16:16:39.929 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [bih, cfc_dev, uzl_omics, ifb_core, embl_hd, denbi_qbic, alice, mjolnir_globe, uppmax, giga, incliva, ilifu, ki_luria, uge, icr_alma, rosalind_uge, lugh, mccleary, unibe_ibu, vai, czbiohub_aws, jax, roslin, tes, scw, unc_longleaf, tigem, tubingen_apg, apollo, ipop_up, vsc_calcua, pdc_kth, ceci_nic5, ccga_cau, humantechnopole, stjude, daisybio, eddie, medair, biowulf, apptainer, bi, bigpurple, adcra, cedars, pawsey_setonix, vsc_kul_uhasselt, pawsey_nimbus, ucl_myriad, utd_ganymede, charliecloud, fred_hutch, seattlechildrens, icr_davros, ceres, munin, arm, rosalind, hasta, cfc, uzh, shu_bmrc, ebi_codon_slurm, ebc, ccga_dx, crick, ku_sund_danhead, marvin, biohpc_gen, shifter, mana, mamba, york_viking, unc_lccc, wehi, awsbatch, wustl_htcf, arcc, ceci_dragon2, imperial, maestro, software_license, cannon, genotoul, nci_gadi, abims, eva_grace, janelia, nu_genomics, googlebatch, oist, sahmri, kaust, alliance_canada, mpcdf, leicester, vsc_ugent, create, sage, cambridge, jex, podman, ebi_codon, cheaha, xanadu, nyu_hpc, test, marjorie, computerome, ucd_sonic, seg_globe, mssm, sanger, dkfz, bluebear, pasteur, einstein, ethz_euler, m3c, test_full, imb, ucl_cscluster, tuos_stanage, azurebatch, seadragon, crukmi, csiro_petrichor, qmul_apocrita, docker, engaging, gis, hypatia, psmn, eva, unity, cropdiversityhpc, nygc, fgcz, conda, crg, singularity, mpcdf_viper, pe2, dirac, self_hosted_runner, tufts, uw_hyak_pedslabs, binac2, hki_genie, debug, genouest, cbe, unsw_katana, utd_juno, phoenix, gitpod, seawulf, uod_hpc, fub_curta, lovelace, uct_hpc, aws_tower, binac, fsu_draco]
-Oct-23 16:16:39.949 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/bmorampa/.nextflow/plugins; core-plugins: nf-amazon@3.4.1,nf-azure@1.20.2,nf-cloudcache@0.5.0,nf-codecommit@0.5.0,nf-console@1.3.0,nf-google@1.23.3,nf-k8s@1.2.2,nf-tower@1.17.1,nf-wave@1.16.1
-Oct-23 16:16:39.951 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
-Oct-23 16:16:39.951 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
-Oct-23 16:16:39.952 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
-Oct-23 16:16:39.957 [main] DEBUG nextflow.util.RetryConfig - Missing nextflow session - using default retry config
-Oct-23 16:16:39.970 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
-Oct-23 16:16:39.971 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-validation]
-Oct-23 16:16:39.972 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
-Oct-23 16:16:39.972 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-validation]
-Oct-23 16:16:40.622 [main] DEBUG n.plugin.HttpPluginRepository - Registry request: https://registry.nextflow.io/api/v1/plugins/dependencies?plugins=nf-validation&nextflowVersion=25.10.0
+Jan-10 20:11:01.982 [main] DEBUG nextflow.cli.Launcher - $> nextflow run /home/bmorampa/new_improved/subworkflows/local/signal_processing/main.nf --help
+Jan-10 20:11:02.070 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.10.2
+Jan-10 20:11:02.091 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/bmorampa/.nextflow/plugins; core-plugins: nf-amazon@3.4.2,nf-azure@1.20.2,nf-cloudcache@0.5.0,nf-codecommit@0.5.0,nf-console@1.3.0,nf-google@1.23.3,nf-k8s@1.2.2,nf-tower@1.17.3,nf-wave@1.16.1
+Jan-10 20:11:02.121 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Jan-10 20:11:02.122 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Jan-10 20:11:02.126 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Jan-10 20:11:02.140 [main] DEBUG nextflow.util.RetryConfig - Missing nextflow session - using default retry config
+Jan-10 20:11:02.247 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Jan-10 20:11:02.275 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/bmorampa/new_improved/nextflow.config
+Jan-10 20:11:02.278 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/new_improved/nextflow.config
+Jan-10 20:11:02.302 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Jan-10 20:11:03.727 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-schema@2.6.1, nf-wave@1.5.1]
+Jan-10 20:11:03.727 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Jan-10 20:11:03.728 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-schema@2.6.1, nf-wave@1.5.1]
+Jan-10 20:11:04.370 [main] DEBUG n.plugin.HttpPluginRepository - Registry request: https://registry.nextflow.io/api/v1/plugins/dependencies?plugins=nf-schema%402.6.1%2Cnf-wave%401.5.1&nextflowVersion=25.10.2
 - code: 200
-- body: {"plugins":[{"id":"nf-validation","downloadCount":265,"downloadGhCount":592881,"releases":[{"version":"1.1.4","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.4/download/nf-validation-1.1.4.zip","date":"2024-08-07T15:06:44.318431Z","sha512sum":"4528eb0676b3132c688831e13859939d64ef685f09e53652e858892e14e38d541e895a1fd7a398ea88de3cdcc239dca3c8d0a6dbcd85889811d8e83286ebf9e6","requires":">=22.10.0","dependsOn":[],"downloadCount":81,"downloadGhCount":85958,"status":"PUBLISHED","spec":null},{"version":"1.1.3","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.3/download/nf-validation-1.1.3.zip","date":"2023-11-21T10:34:48.682432Z","sha512sum":"673e998b83f21315b1f465d3d1609806428518955c174155a1e14a1c410ed9e7c84034b849780567a1a6254f8e6b9bdbb87b1939e5a8f754ff2268e5809bf77e","requires":">=22.10.0","dependsOn":[],"downloadCount":125,"downloadGhCount":428455,"status":"PUBLISHED","spec":null},{"version":"1.1.2","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.2/download/nf-validation-1.1.2.zip","date":"2023-11-16T12:24:24.89153Z","sha512sum":"e42d9465e2e127fc73070cc41a19e22c4299039915fc1d09cfcd5466727d5614d808e196ee8e16f183eccc84c8978995bc5e0234021ec9cc398e8265f060ef69","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":3435,"status":"PUBLISHED","spec":null},{"version":"1.1.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.1/download/nf-validation-1.1.1.zip","date":"2023-10-23T11:36:47.660915Z","sha512sum":"ea85d16ec3d707d4d8bc5e0d36c9e0c6f6b8cc96da803d00d95b0532ae9a3c146f011ae70955fc945a4ddb5ae901524285bbc7821b4069fa0dea32f0c7a56a07","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":14198,"status":"PUBLISHED","spec":null},{"version":"1.1.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.1.0/download/nf-validation-1.1.0.zip","date":"2023-10-18T09:42:16.30148Z","sha512sum":"f1ad3b09ca39cf8b0f738fda3e82dacaf9dfceafa771063f5db8d08d4a78f1b9a2c22a045a0ed5d71b9d9fcf9626921672ca1ec621eec78e6a5ec9281cd10012","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":2067,"status":"PUBLISHED","spec":null},{"version":"1.0.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/1.0.0/download/nf-validation-1.0.0.zip","date":"2023-10-12T08:52:42Z","sha512sum":"d947754cf20a750e3e94c9b6d9631bb894e3b94a3acfb846ab632997957c950e5adccd8061b8d9e12701c6cf8405c81edb5b93460afbc75abfcfe63c30786840","requires":">=22.10.0","dependsOn":[],"downloadCount":0,"downloadGhCount":3045,"status":"PUBLISHED","spec":null},{"version":"0.3.3","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.3/download/nf-validation-0.3.3.zip","date":"2023-10-10T10:35:43Z","sha512sum":"94804d119de5b25bea620494d575c16426ec601b858013bc0097e45d5e67f820ed41a2cc74ca42f3a4a5b9257169ffb03a61cce9b730ad1f9dd2bb0759c493b9","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":1553,"status":"PUBLISHED","spec":null},{"version":"0.3.2","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.2/download/nf-validation-0.3.2.zip","date":"2023-09-19T08:38:31.330492Z","sha512sum":"29aacfd66f9455eed5607701c0348dcc2ff90d988882618acbee7423740c6bb5ef17826ea690c7588ae006ca82afdbc3f0370fb9dc7d285b354bb39e06460b58","requires":">=22.10.0","dependsOn":[],"downloadCount":42,"downloadGhCount":10633,"status":"PUBLISHED","spec":null},{"version":"0.3.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.1/download/nf-validation-0.3.1.zip","date":"2023-07-12T09:07:50Z","sha512sum":"004f8e02c385daf95ebaf59b7f0613a99170893f69e0ad9bdcc262ffbcdc1b12470f679a7b60343031dfccbe75e85fce0c340974a4b98ffd2ad32fc3f3ae54e8","requires":">=22.10.0","dependsOn":[],"downloadCount":9,"downloadGhCount":17773,"status":"PUBLISHED","spec":null},{"version":"0.3.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.3.0/download/nf-validation-0.3.0.zip","date":"2023-07-10T12:50:17Z","sha512sum":"8a42ea8e6a0d9d61548bf55a22ffacd2f42d6e72e77b484a8d5fa532e50d225b04b9c5520a0503c4024df4989476a08f73bd3162f65bf9199d09db787fcfbbeb","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":828,"status":"PUBLISHED","spec":null},{"version":"0.2.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.2.1/download/nf-validation-0.2.1.zip","date":"2023-06-06T12:53:28.728085Z","sha512sum":"01166b10ddc69802ab4f528b149b78e5fded88ae6b1ee9355bf11d85571a568b061a7b2ecbd4256e2bb0e97c667ab295b89d9d2705a8c115b6ca772d1bb27844","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":23000,"status":"PUBLISHED","spec":null},{"version":"0.2.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.2.0/download/nf-validation-0.2.0.zip","date":"2023-06-06T08:03:06.923251Z","sha512sum":"304916efae3853bfb9ff422faa2124ba2ba6e38d90d7e46417b3b6951bf7477d64885a6aafcb31d55ed39b8d37b1cde009e12fa6aba2897cd1776f419f47d17c","requires":">=22.10.0","dependsOn":[],"downloadCount":1,"downloadGhCount":411,"status":"PUBLISHED","spec":null},{"version":"0.1.0","url":"https://registry.nextflow.io/api/v1/plugins/nf-validation/0.1.0/download/nf-validation-0.1.0.zip","date":"2023-05-05T13:06:08.481Z","sha512sum":"b258fce687f8f977c5cc075a9bfcd98dcddf2fb64ea590517f3267fa9778afeac5311c8e0359c0cb9717df5378c0420b0eaad3d1bac3c95c6925f35e31310f4d","requires":">=21.02.0-edge","dependsOn":[],"downloadCount":1,"downloadGhCount":1525,"status":"PUBLISHED","spec":null}],"projectUrl":"https://github.com/nextflow-io/nf-validation","provider":"nextflow","description":null}]}
-Oct-23 16:16:40.641 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-validation version: latest
-Oct-23 16:16:40.644 [main] DEBUG nextflow.plugin.PluginUpdater - Plugin nf-validation version null resolved to: 1.1.4
-Oct-23 16:16:40.647 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-validation@1.1.4' resolved
-Oct-23 16:16:40.647 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-validation@1.1.4'
-Oct-23 16:16:40.650 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-validation@1.1.4
-Oct-23 16:16:40.653 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/bmorampa/.nextflow/secrets/store.json
-Oct-23 16:16:40.654 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@274fdea6] - activable => nextflow.secret.LocalSecretsProvider@274fdea6
-Oct-23 16:16:40.655 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
-Oct-23 16:16:40.662 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [happy_galileo] DSL2 - revision: 2ad2ed28c6
-Oct-23 16:16:40.698 [main] DEBUG nextflow.Session - Session UUID: 70636cb7-87d1-4005-9b74-1b66e79924a5
-Oct-23 16:16:40.698 [main] DEBUG nextflow.Session - Run name: happy_galileo
-Oct-23 16:16:40.698 [main] DEBUG nextflow.Session - Executor pool size: 12
-Oct-23 16:16:40.703 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
-Oct-23 16:16:40.705 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
-Oct-23 16:16:40.714 [main] DEBUG nextflow.cli.CmdRun - 
-  Version: 25.10.0 build 10289
-  Created: 22-10-2025 16:26 UTC (21:56 IDT)
-  System: Linux 6.14.0-33-generic
-  Runtime: Groovy 4.0.28 on OpenJDK 64-Bit Server VM 17.0.10+7
+- body: {"plugins":[{"id":"nf-schema","downloadCount":112155,"downloadGhCount":502661,"releases":[{"version":"2.6.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-schema/2.6.1/download/nf-schema-2.6.1.zip","date":"2025-10-27T10:50:21.364829Z","sha512sum":"467832f2987f90e2d2aa8e6d8387e45d4a0406ce8b5579a71fcd506155b85491bc6e978a536d767508a8ed1a4610a60c1f0cd3d9dc226f4fea1ce2973a23d043","requires":">=25.10.0","dependsOn":[],"downloadCount":6462,"downloadGhCount":0,"status":"PUBLISHED","spec":"{\"$schema\": \"https://raw.githubusercontent.com/nextflow-io/schemas/main/plugin/v1/schema.json\", \"definitions\": [{\"spec\": {\"name\": \"validation\", \"children\": [{\"spec\": {\"name\": \"parametersSchema\", \"type\": \"CharSequence\", \"description\": \"The JSON schema file to use for parameter validation.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"defaultIgnoreParams\", \"type\": \"Set\", \"description\": \"A list of default parameters to ignore during validation. This option should only be used by pipeline developers.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"summary\", \"children\": [{\"spec\": {\"name\": \"beforeText\", \"type\": \"CharSequence\", \"description\": \"The text to show before the summary message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"afterText\", \"type\": \"CharSequence\", \"description\": \"The text to show after the summary message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"hideParams\", \"type\": \"Set\", \"description\": \"A list of parameters to hide in the summary message.\"}, \"type\": \"ConfigOption\"}], \"description\": \"Configuration scope for the parameter summary.\"}, \"type\": \"ConfigScope\"}, {\"spec\": {\"name\": \"help\", \"children\": [{\"spec\": {\"name\": \"showHidden\", \"type\": \"Boolean\", \"description\": \"Show hidden parameters in the help message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"enumLength\", \"type\": \"Integer\", \"description\": \"The maximum length in characters of the enum preview in the help message.\\nThis defaults to the length of the terminal window specified by the `COLUMNS` environment variable or 100 characters if this variable hasn't been set.\\nIf the enum preview exceeds this length, it will be truncated.\\nSet this option to -1 to disable the enum preview truncation.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"beforeText\", \"type\": \"CharSequence\", \"description\": \"The text to show before the help message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"fullParameter\", \"type\": \"CharSequence\", \"description\": \"The parameter to use to show the full help message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"afterText\", \"type\": \"CharSequence\", \"description\": \"The text to show after the help message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"enabled\", \"type\": \"Boolean\", \"description\": \"Enable the help message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"command\", \"type\": \"CharSequence\", \"description\": \"An example command of how to run the pipeline.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"showHiddenParameter\", \"type\": \"CharSequence\", \"description\": \"The parameter to use to show hidden parameters in the help message.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"shortParameter\", \"type\": \"CharSequence\", \"description\": \"The parameter to use to show the short help message.\"}, \"type\": \"ConfigOption\"}], \"description\": \"Configuration scope for the help message.\"}, \"type\": \"ConfigScope\"}, {\"spec\": {\"name\": \"monochromeLogs\", \"type\": \"Boolean\", \"description\": \"Toggle monochrome logs. In monochrome mode, the logs will not be colored.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"showHiddenParams\", \"type\": \"Boolean\", \"description\": \"Show hidden parameters in the help message. This is deprecated, please use `validation.help.showHidden` or the `--showHidden` parameter instead.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"lenientMode\", \"type\": \"Boolean\", \"description\": \"Toggle lenient mode. In lenient mode, the validation of types will be more lenient (e.g. an integer will pass as a string type).\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"logging\", \"children\": [{\"spec\": {\"name\": \"unrecognisedParams\", \"type\": \"ValidationLogger\", \"description\": \"Define the logging level of unrecognised parameters. Defaults to `warn`.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"unrecognisedHeaders\", \"type\": \"ValidationLogger\", \"description\": \"Define the logging level of unrecognised headers that are found in the samplesheets. Defaults to `warn`.\"}, \"type\": \"ConfigOption\"}], \"description\": \"Configuration scope for the logging of the validation plugin.\"}, \"type\": \"ConfigScope\"}, {\"spec\": {\"name\": \"maxErrValSize\", \"type\": \"Integer\", \"description\": \"Maximum size of the value shown in the error message. If the value is larger than this threshold, it will be truncated. Set to -1 to disable truncation.\"}, \"type\": \"ConfigOption\"}, {\"spec\": {\"name\": \"ignoreParams\", \"type\": \"Set\", \"description\": \"A list of parameters to ignore during validation.\"}, \"type\": \"ConfigOption\"}], \"description\": \"The `validation` scope allows you to configure the `nf-schema` plugin.\"}, \"type\": \"ConfigScope\"}, {\"spec\": {\"name\": \"validate\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"?\"}, {\"name\": \"arg1\", \"type\": \"String\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"validate\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"?\"}, {\"name\": \"arg1\", \"type\": \"Path\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"validate\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Map\"}, {\"name\": \"arg1\", \"type\": \"?\"}, {\"name\": \"arg2\", \"type\": \"Path\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"validate\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Map\"}, {\"name\": \"arg1\", \"type\": \"?\"}, {\"name\": \"arg2\", \"type\": \"String\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"CharSequence\"}, {\"name\": \"arg1\", \"type\": \"CharSequence\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Path\"}, {\"name\": \"arg1\", \"type\": \"CharSequence\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"CharSequence\"}, {\"name\": \"arg1\", \"type\": \"Path\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Path\"}, {\"name\": \"arg1\", \"type\": \"Path\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"CharSequence\"}, {\"name\": \"arg1\", \"type\": \"Path\"}, {\"name\": \"arg2\", \"type\": \"Map\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"CharSequence\"}, {\"name\": \"arg1\", \"type\": \"CharSequence\"}, {\"name\": \"arg2\", \"type\": \"Map\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Path\"}, {\"name\": \"arg1\", \"type\": \"CharSequence\"}, {\"name\": \"arg2\", \"type\": \"Map\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"samplesheetToList\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Path\"}, {\"name\": \"arg1\", \"type\": \"Path\"}, {\"name\": \"arg2\", \"type\": \"Map\"}], \"returnType\": \"List\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"validateParameters\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Map\"}], \"returnType\": \"void\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"validateParameters\", \"parameters\": [], \"returnType\": \"void\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsHelp\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"String\"}], \"returnType\": \"String\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsHelp\", \"parameters\": [], \"returnType\": \"String\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsHelp\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Map\"}, {\"name\": \"arg1\", \"type\": \"String\"}], \"returnType\": \"String\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsHelp\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Map\"}], \"returnType\": \"String\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsSummaryMap\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Map\"}, {\"name\": \"arg1\", \"type\": \"WorkflowMetadata\"}], \"returnType\": \"Map\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsSummaryMap\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"WorkflowMetadata\"}], \"returnType\": \"Map\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsSummaryLog\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"Map\"}, {\"name\": \"arg1\", \"type\": \"WorkflowMetadata\"}], \"returnType\": \"String\", \"description\": null}, \"type\": \"Function\"}, {\"spec\": {\"name\": \"paramsSummaryLog\", \"parameters\": [{\"name\": \"arg0\", \"type\": \"WorkflowMetadata\"}], \"returnType\": \"String\", \"description\": null}, \"type\": \"Function\"}]}","description":null}],"projectUrl":"https://github.com/nextflow-io/nf-schema","provider":"nextflow-io","description":null},{"id":"nf-wave","downloadCount":5899,"downloadGhCount":125872,"releases":[{"version":"1.5.1","url":"https://registry.nextflow.io/api/v1/plugins/nf-wave/1.5.1/download/nf-wave-1.5.1.zip","date":"2024-09-04T15:31:22.383751Z","sha512sum":"b6bc0f09c5c3d667652bde01c92c25e97909f2ea4da9914a7002e919b0213cc0e785b594fcb6ae482da8fb75c8c5a3f18dd1ae1bf989e14e43579a7b51fd820b","requires":">=24.04.4","dependsOn":[],"downloadCount":3,"downloadGhCount":211,"status":"PUBLISHED","spec":null,"description":null}],"projectUrl":"https://github.com/nextflow-io/nf-wave","provider":"nextflow-io","description":null}]}
+Jan-10 20:11:04.399 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-schema version: 2.6.1
+Jan-10 20:11:04.407 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-schema@2.6.1' resolved
+Jan-10 20:11:04.407 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-schema@2.6.1'
+Jan-10 20:11:04.411 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-schema@2.6.1
+Jan-10 20:11:04.411 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-wave version: 1.5.1
+Jan-10 20:11:04.413 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-wave@1.5.1' resolved
+Jan-10 20:11:04.413 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-wave@1.5.1'
+Jan-10 20:11:04.421 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-wave@1.5.1
+Jan-10 20:11:04.427 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/bmorampa/.nextflow/secrets/store.json
+Jan-10 20:11:04.429 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@77ea806f] - activable => nextflow.secret.LocalSecretsProvider@77ea806f
+Jan-10 20:11:04.430 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Jan-10 20:11:04.440 [main] DEBUG nextflow.cli.CmdRun - Launching `/home/bmorampa/new_improved/subworkflows/local/signal_processing/main.nf` [crazy_baekeland] DSL2 - revision: c1fe3a1cb6
+Jan-10 20:11:04.489 [main] DEBUG nextflow.Session - Session UUID: 0a423a36-bc69-4050-9d35-af6a0f9c73e6
+Jan-10 20:11:04.490 [main] DEBUG nextflow.Session - Run name: crazy_baekeland
+Jan-10 20:11:04.490 [main] DEBUG nextflow.Session - Executor pool size: 20
+Jan-10 20:11:04.496 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Jan-10 20:11:04.499 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=60; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jan-10 20:11:04.514 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 25.10.2 build 10555
+  Created: 28-11-2025 19:24 UTC 
+  System: Linux 6.14.0-1017-azure
+  Runtime: Groovy 4.0.28 on OpenJDK 64-Bit Server VM 17.0.14-internal+0-adhoc..src
   Encoding: UTF-8 (UTF-8)
-  Process: 31637@gandalf [127.0.1.1]
-  CPUs: 12 - Mem: 93.5 GB (85.1 GB) - Swap: 8 GB (8 GB)
-Oct-23 16:16:40.725 [main] DEBUG nextflow.Session - Work-dir: /home/bmorampa/new_improved/work [ext2/ext3]
-Oct-23 16:16:40.740 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
-Oct-23 16:16:40.745 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
-Oct-23 16:16:40.747 [main] DEBUG nextflow.Session - Observer factory (v2): DefaultObserverFactory
-Oct-23 16:16:40.771 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
-Oct-23 16:16:40.776 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
-Oct-23 16:16:40.809 [main] DEBUG nextflow.Session - Session start
-Oct-23 16:16:40.812 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: results_stub/pipeline_info/execution_trace_2025-10-23_16-16-39.txt
-Oct-23 16:16:40.815 [main] DEBUG nextflow.Session - Using default localLib path: /home/bmorampa/new_improved/lib
-Oct-23 16:16:40.817 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/bmorampa/new_improved/lib
-Oct-23 16:16:40.970 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Oct-23 16:16:41.000 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
-  Script_bab76c7d166522ac: /home/bmorampa/new_improved/main.nf
-Oct-23 16:16:41.007 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=0; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=0ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=0; peakCpus=0; peakMemory=0; ]
-Oct-23 16:16:41.016 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
-Oct-23 16:16:41.223 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
-Oct-23 16:16:41.245 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
-Oct-23 16:16:41.251 [main] ERROR nextflow.cli.Launcher - Module compilation error
-- file : /home/bmorampa/new_improved/workflows/rnamodifications.nf
-- cause: Unexpected input: '{' @ line 11, column 27.
-   workflow RNAMODIFICATIONS {
-                             ^
+  Process: 14487@nextflow-pipeline [10.0.0.4]
+  CPUs: 20 - Mem: 157.4 GB (151.3 GB) - Swap: 0 (0)
+Jan-10 20:11:04.528 [main] DEBUG nextflow.Session - Work-dir: /home/bmorampa/new_improved/work [ext2/ext3]
+Jan-10 20:11:04.528 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /home/bmorampa/new_improved/subworkflows/local/signal_processing/bin
+Jan-10 20:11:04.536 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Jan-10 20:11:04.544 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
+Jan-10 20:11:04.546 [main] DEBUG nextflow.Session - Observer factory (v2): DefaultObserverFactory
+Jan-10 20:11:04.559 [main] DEBUG nextflow.Session - Observer factory (v2): ValidationObserverFactory
+Jan-10 20:11:04.572 [main] DEBUG nextflow.Session - Observer factory: WaveFactory
+Jan-10 20:11:04.608 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Jan-10 20:11:04.617 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 21; maxThreads: 1000
+Jan-10 20:11:04.669 [main] DEBUG nextflow.Session - Session start
+Jan-10 20:11:04.674 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: ./results/pipeline_info/execution_trace_2026-01-10_20-11-03.txt
+Jan-10 20:11:04.678 [main] DEBUG n.validation.config.ValidationConfig - Set `validation.lenientMode` to false
+Jan-10 20:11:04.679 [main] DEBUG n.validation.config.ValidationConfig - Set `validation.monochromeLogs` to false
+Jan-10 20:11:04.680 [main] DEBUG n.validation.config.ValidationConfig - Set `validation.parametersSchema` to nextflow_schema.json
+Jan-10 20:11:04.682 [main] DEBUG n.validation.config.HelpConfig - Set `validation.help.enabled` to true
+Jan-10 20:11:04.683 [main] DEBUG n.validation.config.HelpConfig - Set `validation.help.showHidden` to false
+Jan-10 20:11:04.690 [main] DEBUG n.validation.config.HelpConfig - Set `validation.help.command` to nextflow run nf-core/rnamodifications --input samplesheet.csv --outdir results --references references.csv
+Jan-10 20:11:04.692 [main] DEBUG n.validation.config.SummaryConfig - Set `validation.summary.beforeText` to 
+Jan-10 20:11:04.692 [main] DEBUG n.validation.config.SummaryConfig - Set `validation.summary.afterText` to 
+Jan-10 20:11:04.716 [main] DEBUG n.validation.help.HelpObserver - Printing out the short help message
+Jan-10 20:11:04.741 [main] INFO  n.validation.help.HelpObserver - Typical pipeline command:
 
-1 error
+  [0;36mnextflow run nf-core/rnamodifications --input samplesheet.csv --outdir results --references references.csv[0m
 
-NOTE: If this is the beginning of a process or workflow, there may be a syntax error in the body, such as a missing or extra comma, for which a more specific error message could not be produced.
-nextflow.exception.ScriptCompilationException: Module compilation error
-- file : /home/bmorampa/new_improved/workflows/rnamodifications.nf
-- cause: Unexpected input: '{' @ line 11, column 27.
-   workflow RNAMODIFICATIONS {
-                             ^
+--help                         [2m[boolean, string] [0mShow the help message for all top level parameters. When a parameter is given to `--help`, the full 
+help message of that parameter will be printed. [2m[0m 
+--helpFull                     [2m[boolean]         [0mShow the help message for all non-hidden parameters. [2m[0m
+--showHidden                   [2m[boolean]         [0mShow all hidden parameters in the help message. This needs to be used in combination with `--help` 
+or `--helpFull`. [2m[0m 
 
-1 error
+[4m[1mInput/output options[0m
+  --input                      [2m[string] [0mPath to comma-separated file containing information about the samples in the experiment. [2m[0m
+  --outdir                     [2m[string] [0mThe output directory where the results will be saved. You have to use absolute paths to storage on 
+Cloud infrastructure. [2m[0m 
+  --email                      [2m[string] [0mEmail address for completion summary. [2m[0m
 
-NOTE: If this is the beginning of a process or workflow, there may be a syntax error in the body, such as a missing or extra comma, for which a more specific error message could not be produced.
-	at nextflow.script.parser.v1.ScriptLoaderV1.parse0(ScriptLoaderV1.groovy:204)
-	at nextflow.script.parser.v1.ScriptLoaderV1.parse(ScriptLoaderV1.groovy:215)
-	at nextflow.script.parser.v1.ScriptLoaderV1.runScript(ScriptLoaderV1.groovy:230)
-	at nextflow.script.IncludeDef.memoizedMethodPriv$loadModuleV1PathMapSession(IncludeDef.groovy:166)
-	at nextflow.script.IncludeDef.access$1(IncludeDef.groovy)
-	at nextflow.script.IncludeDef$__clinit__closure3.doCall(IncludeDef.groovy)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
-	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:343)
-	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:328)
-	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:280)
-	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1007)
-	at groovy.lang.Closure.call(Closure.java:433)
-	at org.codehaus.groovy.runtime.memoize.Memoize$MemoizeFunction.lambda$call$0(Memoize.java:137)
-	at org.codehaus.groovy.runtime.memoize.ConcurrentCommonCache.getAndPut(ConcurrentCommonCache.java:137)
-	at org.codehaus.groovy.runtime.memoize.ConcurrentCommonCache.getAndPut(ConcurrentCommonCache.java:113)
-	at org.codehaus.groovy.runtime.memoize.Memoize$MemoizeFunction.call(Memoize.java:136)
-	at nextflow.script.IncludeDef.loadModuleV1(IncludeDef.groovy)
-	at nextflow.script.IncludeDef.load0(IncludeDef.groovy:113)
-	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
-	at Script_bab76c7d166522ac.runScript(Script_bab76c7d166522ac:23)
-	at nextflow.script.BaseScript.run0(BaseScript.groovy:218)
-	at nextflow.script.BaseScript.run(BaseScript.groovy:260)
-	at nextflow.script.parser.v1.ScriptLoaderV1.runScript(ScriptLoaderV1.groovy:246)
-	at nextflow.script.parser.v1.ScriptLoaderV1.runScript(ScriptLoaderV1.groovy)
-	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:246)
-	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:139)
-	at nextflow.cli.CmdRun.run(CmdRun.groovy:428)
-	at nextflow.cli.Launcher.run(Launcher.groovy:515)
-	at nextflow.cli.Launcher.main(Launcher.groovy:675)
-Caused by: org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
-Script_6ed7862c95ee84ce: 11: Unexpected input: '{' @ line 11, column 27.
-   workflow RNAMODIFICATIONS {
-                             ^
+[4m[1mReference genome options[0m
+  --references                 [2m[string] [0mPath to CSV file mapping target names to reference FASTA files. Format: target,reference (e.g., 
+16s,/path/to/16s.fa) [2m[0m 
 
-1 error
+[4m[1mMapping options[0m
+  --minimap2_args              [2m[string] [0mAdditional arguments for minimap2. [2m[default: -ax splice -uf -k14 --secondary=no] [0m
 
-	at org.codehaus.groovy.control.ErrorCollector.failIfErrors(ErrorCollector.java:292)
-	at org.codehaus.groovy.control.ErrorCollector.addFatalError(ErrorCollector.java:148)
-	at org.apache.groovy.parser.antlr4.AstBuilder.collectSyntaxError(AstBuilder.java:4739)
-	at org.apache.groovy.parser.antlr4.AstBuilder.access$100(AstBuilder.java:169)
-	at org.apache.groovy.parser.antlr4.AstBuilder$3.syntaxError(AstBuilder.java:4750)
-	at groovyjarjarantlr4.v4.runtime.ProxyErrorListener.syntaxError(ProxyErrorListener.java:44)
-	at groovyjarjarantlr4.v4.runtime.Parser.notifyErrorListeners(Parser.java:543)
-	at groovyjarjarantlr4.v4.runtime.DefaultErrorStrategy.notifyErrorListeners(DefaultErrorStrategy.java:154)
-	at org.apache.groovy.parser.antlr4.internal.DescriptiveErrorStrategy.reportInputMismatch(DescriptiveErrorStrategy.java:104)
-	at org.apache.groovy.parser.antlr4.internal.DescriptiveErrorStrategy.recover(DescriptiveErrorStrategy.java:55)
-	at org.apache.groovy.parser.antlr4.internal.DescriptiveErrorStrategy.recoverInline(DescriptiveErrorStrategy.java:68)
-	at groovyjarjarantlr4.v4.runtime.Parser.match(Parser.java:213)
-	at org.apache.groovy.parser.antlr4.GroovyParser.compilationUnit(GroovyParser.java:368)
-	at org.apache.groovy.parser.antlr4.AstBuilder.buildCST(AstBuilder.java:243)
-	at org.apache.groovy.parser.antlr4.AstBuilder.buildCST(AstBuilder.java:221)
-	at org.apache.groovy.parser.antlr4.AstBuilder.buildAST(AstBuilder.java:262)
-	at org.apache.groovy.parser.antlr4.Antlr4ParserPlugin.buildAST(Antlr4ParserPlugin.java:58)
-	at org.codehaus.groovy.control.SourceUnit.buildAST(SourceUnit.java:256)
-	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
-	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
-	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
-	at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:631)
-	at groovy.lang.GroovyClassLoader.doParseClass(GroovyClassLoader.java:365)
-	at groovy.lang.GroovyClassLoader.lambda$parseClass$2(GroovyClassLoader.java:314)
-	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.compute(StampedCommonCache.java:163)
-	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.getAndPut(StampedCommonCache.java:154)
-	at groovy.lang.GroovyClassLoader.parseClass(GroovyClassLoader.java:314)
-	at groovy.lang.GroovyShell.parseClass(GroovyShell.java:572)
-	at groovy.lang.GroovyShell.parse(GroovyShell.java:585)
-	at groovy.lang.GroovyShell.parse(GroovyShell.java:639)
-	at groovy.lang.GroovyShell.parse(GroovyShell.java:643)
-	at nextflow.script.parser.v1.ScriptLoaderV1.parse0(ScriptLoaderV1.groovy:183)
-	... 31 common frames omitted
+[4m[1mSignal processing options[0m
+  --tombo_resquiggle_args      [2m[string] [0mAdditional arguments for tombo resquiggle. [2m[default: --rna --overwrite --num-most-common-errors 
+5] [0m 
+  --tombo_compare_method       [2m[string] [0mMethod for tombo comparison. [2m (accepted: de_novo, level_sample_compare) [default: de_novo] [0m
+  --f5c_eventalign_args        [2m[string] [0mAdditional arguments for f5c eventalign. [2m[default: --rna --scale-events --signal-index 
+--print-read-names --samples] [0m 
+
+[4m[1mModification calling options[0m
+  --yanocomp_fdr_threshold     [2m[number]  [0mFDR threshold for yanocomp analysis. [2m[default: 1.0] [0m
+  --yanocomp_min_ks            [2m[number]  [0mMinimum KS statistic for yanocomp analysis. [2m[default: 0.0] [0m
+  --xpore_pvalue_threshold     [2m[number]  [0mP-value threshold for xpore analysis. [2m[default: 0.05] [0m
+  --xpore_diffmod_threshold    [2m[number]  [0mDifferential modification threshold for xpore analysis. [2m[default: 0.1] [0m
+  --nanocompore_min_coverage   [2m[integer] [0mMinimum coverage per position for nanocompore. [2m[default: 1] [0m
+  --eligos_min_depth           [2m[integer] [0mMinimum read depth for ELIGOS analysis. [2m[default: 5] [0m
+  --eligos_max_depth           [2m[integer] [0mMaximum read depth for ELIGOS analysis. [2m[default: 10000] [0m
+  --eligos_pval_thr            [2m[number]  [0mP-value threshold for ELIGOS (1.0 = no filtering). [2m[default: 1.0] [0m
+  --eligos_oddR_thr            [2m[number]  [0mOdds ratio threshold for ELIGOS (0 = no filtering). [2m[default: 0] [0m
+  --eligos_esb_thr             [2m[number]  [0mESB threshold for ELIGOS (0 = no filtering). [2m[default: 0] [0m
+  --epinano_zscore_threshold   [2m[number]  [0mZ-score threshold for EpiNano-Error outlier detection. [2m[default: 2.0] [0m
+  --epinano_coverage_threshold [2m[integer] [0mMinimum coverage per position for EpiNano-Error. [2m[default: 5] [0m
+  --epinano_error_threshold    [2m[number]  [0mError rate difference threshold for EpiNano-Error. [2m[default: 0.1] [0m
+  --differr_fdr_threshold      [2m[number]  [0mFDR threshold for DiffErr significant sites. [2m[default: 0.05] [0m
+  --drummer_pval_threshold     [2m[number]  [0mP-value threshold for DRUMMER significant sites. [2m[default: 0.05] [0m
+  --drummer_odds_ratio         [2m[number]  [0mMinimum odds ratio for DRUMMER significant sites. [2m[default: 1.5] [0m
+
+ [2m!! Hiding 25 param(s), use the `--showHidden` parameter to show them !![0m
+-[2m----------------------------------------------------[0m-
+

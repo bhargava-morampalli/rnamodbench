@@ -1,0 +1,14 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - conda-forge::python>=3.8
+  - conda-forge::numpy
+  - conda-forge::scipy
+  - conda-forge::pandas
+  - bioconda::pysam
+  - bioconda::samtools=1.17
+  - conda-forge::h5py
+  - conda-forge::git
+  - conda-forge::pip

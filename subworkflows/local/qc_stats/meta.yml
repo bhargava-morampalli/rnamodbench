@@ -1,0 +1,46 @@
+name: "qc_stats"
+description: Generate mapping statistics, depth, coverage plots, and NanoPlot QC for BAM files
+keywords:
+  - qc
+  - quality-control
+  - statistics
+  - coverage
+  - nanoplot
+components:
+  - samtools_flagstat
+  - samtools_depth
+  - coverage_plot
+  - nanoplot_bam
+input:
+  - bams:
+      type: tuple
+      description: |
+        Channel of BAM files with indices
+        Structure: [ val(meta), path(bam), path(bai) ]
+output:
+  - flagstat:
+      type: tuple
+      description: |
+        Samtools flagstat output
+        Structure: [ val(meta), path(flagstat) ]
+  - depth:
+      type: tuple
+      description: |
+        Per-position depth files
+        Structure: [ val(meta), path(depth) ]
+  - plots:
+      type: tuple
+      description: |
+        Coverage plot files
+        Structure: [ val(meta), path(plot) ]
+  - nanoplot:
+      type: tuple
+      description: |
+        NanoPlot statistics output
+        Structure: [ val(meta), path(stats) ]
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

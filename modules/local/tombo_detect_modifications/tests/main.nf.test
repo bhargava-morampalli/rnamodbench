@@ -1,0 +1,65 @@
+nextflow_process {
+
+    name "Test Process TOMBO_DETECT_MODIFICATIONS"
+    script "../main.nf"
+    process "TOMBO_DETECT_MODIFICATIONS"
+
+    tag "modules"
+    tag "modules_local"
+    tag "tombo"
+    tag "tombo/detect_modifications"
+    tag "nanopore"
+
+    test("Should detect modifications from resquiggled FAST5 files") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    'test',
+                    ['native', 'ivt'],
+                    [
+                        file("${projectDir}/modules/local/tombo_detect_modifications/tests/data/native_fast5", checkIfExists: true),
+                        file("${projectDir}/modules/local/tombo_detect_modifications/tests/data/ivt_fast5", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    'test_stub',
+                    ['native', 'ivt'],
+                    [
+                        file("${projectDir}/modules/local/tombo_detect_modifications/tests/data/native_fast5", checkIfExists: true),
+                        file("${projectDir}/modules/local/tombo_detect_modifications/tests/data/ivt_fast5", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.stats },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

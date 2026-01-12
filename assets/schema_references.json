@@ -1,0 +1,24 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/nf-core/rnamodifications/master/assets/schema_references.json",
+    "title": "nf-core/rnamodifications pipeline - params.references schema",
+    "description": "Schema for the file provided with params.references - maps target names to reference FASTA files",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "target": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_]+[sS]?$",
+                "errorMessage": "Target name must be provided (e.g., 16s, 23s, 5s, 18s, 28s)"
+            },
+            "reference": {
+                "type": "string",
+                "format": "file-path",
+                "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
+                "errorMessage": "Reference FASTA file must be provided with extension .fa, .fasta, .fna (optionally .gz)"
+            }
+        },
+        "required": ["target", "reference"]
+    }
+}

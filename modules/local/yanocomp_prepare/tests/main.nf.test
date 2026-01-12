@@ -1,0 +1,37 @@
+nextflow_process {
+
+    name "Test Process YANOCOMP_PREPARE"
+    script "../main.nf"
+    process "YANOCOMP_PREPARE"
+
+    tag "modules"
+    tag "modules_local"
+    tag "yanocomp_prepare"
+    tag "rna_modifications"
+
+    // Integration test disabled due to missing container (using python:3.9 placeholder)
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/yanocomp_prepare/tests/data/test_eventalign.txt", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.hdf5 },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

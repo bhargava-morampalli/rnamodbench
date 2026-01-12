@@ -1,0 +1,42 @@
+name: "generate_error_report"
+description: Generates an HTML and CSV error summary report from pipeline execution logs
+keywords:
+  - error
+  - report
+  - summary
+  - logging
+tools:
+  - python:
+      description: |
+        Python script that parses Nextflow execution logs and generates
+        a summary report of failed processes and error messages.
+      homepage: https://www.python.org/
+      documentation: https://docs.python.org/
+      licence: ["PSF-2.0"]
+
+input:
+  - - outdir:
+        type: directory
+        description: Pipeline output directory containing execution logs
+        pattern: "*"
+  - - logs:
+        type: file
+        description: Nextflow log files
+        pattern: "*.log"
+
+output:
+  - html:
+      - "error_summary.html":
+          type: file
+          description: HTML error summary report
+          pattern: "*.html"
+  - csv:
+      - "error_summary.csv":
+          type: file
+          description: CSV error summary report
+          pattern: "*.csv"
+
+authors:
+  - "@bmorampa"
+maintainers:
+  - "@bmorampa"

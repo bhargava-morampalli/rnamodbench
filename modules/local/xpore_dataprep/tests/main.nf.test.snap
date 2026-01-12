@@ -1,0 +1,14 @@
+{
+    "Should prepare xpore data directory from eventalign output": {
+        "content": [
+            [
+                "versions.yml:md5,a493704744841afd3fbfdb4171fe5e0f"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-31T12:58:07.246350482"
+    }
+}

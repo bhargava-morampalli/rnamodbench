@@ -1,0 +1,60 @@
+name: differr
+description: Detect RNA modifications by identifying sites with differential error rates between native and control samples
+keywords:
+  - rna modification
+  - m6A
+  - nanopore
+  - direct rna sequencing
+  - differential error
+tools:
+  - differr:
+      description: Scripts for identifying sites with differential error rates in mapped nanopore DRS data
+      homepage: https://github.com/bartongroup/differr_nanopore_DRS
+      documentation: https://github.com/bartongroup/differr_nanopore_DRS/blob/master/README.md
+      licence: ["MIT"]
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - native_bam:
+      type: file
+      description: Sorted BAM file from native RNA sample (modified)
+      pattern: "*.bam"
+  - native_bai:
+      type: file
+      description: BAM index file for native sample
+      pattern: "*.bai"
+  - ivt_bam:
+      type: file
+      description: Sorted BAM file from IVT (control/unmodified) sample
+      pattern: "*.bam"
+  - ivt_bai:
+      type: file
+      description: BAM index file for IVT sample
+      pattern: "*.bai"
+  - reference:
+      type: file
+      description: Reference FASTA file
+      pattern: "*.{fa,fasta}"
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - bed:
+      type: file
+      description: BED file with positions showing significantly altered error rates, including odds ratios and p-values
+      pattern: "*_differr.bed"
+  - hdf5:
+      type: file
+      description: Optional HDF5 file with per-reference basecall data
+      pattern: "*_differr.hdf5"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

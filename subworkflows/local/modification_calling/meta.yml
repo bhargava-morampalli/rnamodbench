@@ -1,0 +1,84 @@
+name: "modification_calling"
+description: Perform RNA modification calling using multiple tools (Tombo, Yanocomp, Nanocompore, Xpore, ELIGOS, EpiNano, DiffErr, DRUMMER, JACUSA2)
+keywords:
+  - modification
+  - rna
+  - nanopore
+  - epitranscriptome
+  - tombo
+  - nanocompore
+  - xpore
+components:
+  - tombo_detect_modifications
+  - tombo_text_output
+  - yanocomp_prepare
+  - yanocomp_analysis
+  - nanocompore_eventalign_collapse
+  - nanocompore_sampcomp
+  - xpore_dataprep
+  - xpore_diffmod
+  - eligos_pair_diff_mod
+  - epinano_error
+  - differr
+  - drummer
+  - jacusa2
+input:
+  - tombo_resquiggled:
+      type: tuple
+      description: |
+        Resquiggled FAST5 files
+        Structure: [ val(meta), path(fast5) ]
+  - eventalign:
+      type: tuple
+      description: |
+        Eventalign output for nanocompore/yanocomp
+        Structure: [ val(meta), path(eventalign) ]
+  - eventalign_xpore:
+      type: tuple
+      description: |
+        Eventalign output for xpore
+        Structure: [ val(meta), path(eventalign) ]
+  - bams:
+      type: tuple
+      description: |
+        Mapped BAM files with indices
+        Structure: [ val(meta), path(bam), path(bai) ]
+  - ref_map:
+      type: map
+      description: |
+        Map of target to reference file
+        Example: { 'target': ref_file }
+output:
+  - tombo_bed:
+      type: tuple
+      description: Tombo modification BED output
+  - yanocomp_bed:
+      type: tuple
+      description: Yanocomp modification BED output
+  - nanocompore_results:
+      type: tuple
+      description: Nanocompore comparison results
+  - xpore_table:
+      type: tuple
+      description: Xpore differential modification table
+  - eligos_results:
+      type: tuple
+      description: ELIGOS differential modification results
+  - epinano_results:
+      type: tuple
+      description: EpiNano error analysis results
+  - differr_bed:
+      type: tuple
+      description: DiffErr differential error BED output
+  - drummer_results:
+      type: tuple
+      description: DRUMMER analysis results
+  - jacusa2_bed:
+      type: tuple
+      description: JACUSA2 modification BED output
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

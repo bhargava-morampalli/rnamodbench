@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/nf-core/rnamodifications/master/assets/schema_input.json",
     "title": "nf-core/rnamodifications pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
@@ -36,8 +36,14 @@
                 "format": "directory-path",
                 "pattern": "^\\S+$",
                 "errorMessage": "FAST5 directory path must be provided and cannot contain spaces"
+            },
+            "target": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_]+[sS]?$",
+                "errorMessage": "Target rRNA must be provided (e.g., 16s, 23s, 5s, 18s, 28s)",
+                "meta": ["rrna"]
             }
         },
-        "required": ["sample", "fastq", "type", "replicate", "fast5_dir"]
+        "required": ["sample", "fastq", "type", "replicate", "fast5_dir", "target"]
     }
 }

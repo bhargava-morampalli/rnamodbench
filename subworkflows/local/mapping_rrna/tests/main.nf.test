@@ -1,0 +1,53 @@
+nextflow_workflow {
+
+    name "Test Subworkflow MAPPING_RRNA"
+    script "../main.nf"
+    workflow "MAPPING_RRNA"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "mapping_rrna"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            workflow {
+                """
+                // Unified reads channel with meta.rrna set
+                def meta_16s_native = [ id: 'native_16s', single_end: true, type: 'native', replicate: 'rep1', rrna: '16s' ]
+                def meta_16s_ivt = [ id: 'ivt_16s', single_end: true, type: 'ivt', replicate: 'rep1', rrna: '16s' ]
+                def meta_23s_native = [ id: 'native_23s', single_end: true, type: 'native', replicate: 'rep1', rrna: '23s' ]
+                def meta_23s_ivt = [ id: 'ivt_23s', single_end: true, type: 'ivt', replicate: 'rep1', rrna: '23s' ]
+
+                def stub_fastq = file("\${projectDir}/modules/local/minimap2_align/tests/data/test.fastq.gz")
+                def stub_ref = file("\${projectDir}/modules/local/minimap2_align/tests/data/reference.fasta")
+
+                // input[0]: unified reads channel
+                input[0] = Channel.of(
+                    [ meta_16s_native, stub_fastq ],
+                    [ meta_16s_ivt, stub_fastq ],
+                    [ meta_23s_native, stub_fastq ],
+                    [ meta_23s_ivt, stub_fastq ]
+                )
+
+                // input[1]: references channel [ target, ref_file ]
+                input[1] = Channel.of(
+                    [ '16s', stub_ref ],
+                    [ '23s', stub_ref ]
+                )
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.versions },
+                { assert workflow.out.mapped_bams },
+                { assert workflow.out.mapped_fastqs }
+            )
+        }
+    }
+}

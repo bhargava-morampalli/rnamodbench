@@ -1,0 +1,31 @@
+{
+    "Should detect modifications from resquiggled FAST5 files": {
+        "content": [
+            {
+                "0": [
+                    [
+                        "test",
+                        "test.tombo.stats:md5,55f50645b7a0ea9dfc2a36d679714ad4"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,2c0996bedfbe7d8653482568e0bfd0ad"
+                ],
+                "stats": [
+                    [
+                        "test",
+                        "test.tombo.stats:md5,55f50645b7a0ea9dfc2a36d679714ad4"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,2c0996bedfbe7d8653482568e0bfd0ad"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2025-12-07T20:37:20.872073831"
+    }
+}

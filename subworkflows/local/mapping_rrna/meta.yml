@@ -1,0 +1,43 @@
+name: "mapping_rrna"
+description: Map reads to designated rRNA references based on target specified in samplesheet
+keywords:
+  - mapping
+  - alignment
+  - minimap2
+  - rrna
+  - bam
+components:
+  - minimap2_align
+  - samtools_view
+  - samtools_sort
+  - samtools_index
+  - extract_mapped_reads
+input:
+  - reads:
+      type: tuple
+      description: |
+        Channel of reads with metadata
+        Structure: [ val(meta), path(fastq) ]
+        meta must contain: id, type, rrna, replicate, fast5_dir
+  - references:
+      type: tuple
+      description: |
+        Channel mapping targets to reference files
+        Structure: [ val(target), path(reference) ]
+output:
+  - mapped_bams:
+      type: tuple
+      description: |
+        Sorted, indexed BAM files
+        Structure: [ val(meta), path(bam), path(bai) ]
+  - mapped_fastqs:
+      type: tuple
+      description: |
+        Extracted mapped reads as FASTQ
+        Structure: [ val(meta), path(fastq) ]
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

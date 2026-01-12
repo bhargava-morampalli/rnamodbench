@@ -1,0 +1,62 @@
+nextflow_workflow {
+
+    name "Test Subworkflow SIGNAL_PROCESSING"
+    script "../main.nf"
+    workflow "SIGNAL_PROCESSING"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "signal_processing"
+    tag "f5c"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            workflow {
+                """
+                def meta_16s_native = [ id: 'native_16s', single_end: true, type: 'native', rrna: '16s', replicate: 'rep1' ]
+                def meta_16s_ivt = [ id: 'ivt_16s', single_end: true, type: 'ivt', rrna: '16s', replicate: 'rep1' ]
+                def meta_23s_native = [ id: 'native_23s', single_end: true, type: 'native', rrna: '23s', replicate: 'rep1' ]
+                def meta_23s_ivt = [ id: 'ivt_23s', single_end: true, type: 'ivt', rrna: '23s', replicate: 'rep1' ]
+
+                def stub_fastq = file("\${projectDir}/tests/data/native_rep1.fastq.gz")
+                def stub_bam = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam")
+                def stub_bai = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam.bai")
+                def stub_fast5 = file("\${projectDir}/tests/data/fast5/native_rep1")
+                def ref = file("\${projectDir}/tests/data/16s_reference.fasta")
+
+                // input[0]: unified single_fast5 channel [ meta, fast5 ]
+                input[0] = Channel.of(
+                    [ meta_16s_native, stub_fast5 ],
+                    [ meta_16s_ivt, stub_fast5 ],
+                    [ meta_23s_native, stub_fast5 ],
+                    [ meta_23s_ivt, stub_fast5 ]
+                )
+
+                // input[1]: unified f5c_ready channel [ meta, fastq, bam, bai, fast5 ]
+                input[1] = Channel.of(
+                    [ meta_16s_native, stub_fastq, stub_bam, stub_bai, stub_fast5 ],
+                    [ meta_16s_ivt, stub_fastq, stub_bam, stub_bai, stub_fast5 ],
+                    [ meta_23s_native, stub_fastq, stub_bam, stub_bai, stub_fast5 ],
+                    [ meta_23s_ivt, stub_fastq, stub_bam, stub_bai, stub_fast5 ]
+                )
+
+                // input[2]: ref_map (Groovy map)
+                input[2] = Channel.value([ '16s': ref, '23s': ref ])
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.versions },
+                { assert workflow.out.tombo_resquiggled },
+                { assert workflow.out.eventalign },
+                { assert workflow.out.eventalign_xpore }
+            )
+        }
+    }
+}

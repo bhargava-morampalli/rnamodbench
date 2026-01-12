@@ -1,0 +1,53 @@
+nextflow_pipeline {
+
+    name "Test Pipeline RNAMODIFICATIONS"
+    script "main.nf"
+    tag "pipeline"
+    tag "stub"
+
+    test("Should run successfully in stub mode") {
+        
+        options "-stub"
+
+        when {
+            // Create a samplesheet with absolute paths to test data
+            def sheet = file("test_samplesheet.csv")
+            def fastq_native = file("${projectDir}/tests/data/native_rep1.fastq.gz")
+            def fastq_ivt = file("${projectDir}/tests/data/ivt_rep1.fastq.gz")
+            def fast5_native = file("${projectDir}/tests/data/fast5/native_rep1")
+            def fast5_ivt = file("${projectDir}/tests/data/fast5/ivt_rep1")
+
+            // Header: sample,fastq,type,replicate,fast5_dir,target
+            // Each target (16s, 23s) requires both native and IVT samples
+            sheet.text = """sample,fastq,type,replicate,fast5_dir,target
+native_16s_rep1,${fastq_native},native,rep1,${fast5_native},16s
+ivt_16s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},16s
+native_23s_rep1,${fastq_native},native,rep1,${fast5_native},23s
+ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
+"""
+
+            params {
+                input = sheet.getAbsolutePath().toString()
+                outdir = "$outputDir"
+                references = "${projectDir}/tests/data/references.csv"
+                validate_params = false
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.trace.succeeded().size() > 0
+
+            // Snapshot versions.yml file
+            def versionsFile = path("$outputDir").resolve("pipeline_info").list()
+                .find { it.name.endsWith("versions.yml") }
+            assertAll(
+                { assert workflow.success },
+                { assert versionsFile != null : "versions.yml file should exist" },
+                { assert snapshot(versionsFile).match("versions.yml") }
+            )
+        }
+
+    }
+
+}

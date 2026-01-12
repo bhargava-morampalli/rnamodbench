@@ -1,7 +1,0 @@
-| 0 of 1|                                                  |  0% ETA:  --:--:--ERROR:ont_fast5_api.conversion_tools.multi_to_single_fast5:"Can't open attribute (can't locate attribute: 'read_number')"
-	Failed to copy read 'read_aaaabbbb-1111-2222-3333-444444444444' from multi_fast5/multi_read_batch.fast5
-ERROR:ont_fast5_api.conversion_tools.multi_to_single_fast5:"Can't open attribute (can't locate attribute: 'read_number')"
-	Failed to copy read 'read_ccccdddd-5555-6666-7777-888888888888' from multi_fast5/multi_read_batch.fast5
-ERROR:ont_fast5_api.conversion_tools.multi_to_single_fast5:"Can't open attribute (can't locate attribute: 'read_number')"
-	Failed to copy read 'read_eeeeffff-9999-aaaa-bbbb-cccccccccccc' from multi_fast5/multi_read_batch.fast5
-/ 1 of 1|###################################################|100% ETA:  0:00:00| 1 of 1|###################################################|100% Time: 0:00:00

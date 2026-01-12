@@ -3,9 +3,7 @@ process EXTRACT_READ_IDS {
     label 'process_low'
 
     conda "bioconda::seqkit=2.3.1"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/seqkit:2.3.1--h9ee0642_0' :
-        'biocontainers/seqkit:2.3.1--h9ee0642_0' }"
+    container "quay.io/biocontainers/seqkit:2.3.1--h9ee0642_0"
 
     input:
     tuple val(meta), path(fastq)

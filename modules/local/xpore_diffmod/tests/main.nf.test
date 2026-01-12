@@ -1,0 +1,67 @@
+nextflow_process {
+
+    name "Test Process XPORE_DIFFMOD"
+    script "../main.nf"
+    process "XPORE_DIFFMOD"
+
+    tag "modules"
+    tag "modules_local"
+    tag "xpore_diffmod"
+    tag "rna_modifications"
+
+    test("Should detect differential modifications between native and IVT") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    'test',
+                    ['native', 'ivt'],
+                    [
+                        file("${projectDir}/modules/local/xpore_diffmod/tests/data/native_dataprep", checkIfExists: true),
+                        file("${projectDir}/modules/local/xpore_diffmod/tests/data/ivt_dataprep", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.diffmod },
+                { assert process.out.diffmod.get(0).get(1).toString().endsWith('diffmod') },
+                { assert process.out.versions },
+                { assert snapshot(process.out.versions).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    'test_stub',
+                    ['native', 'ivt'],
+                    [
+                        file("${projectDir}/modules/local/xpore_diffmod/tests/data/native_dataprep", checkIfExists: true),
+                        file("${projectDir}/modules/local/xpore_diffmod/tests/data/ivt_dataprep", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.diffmod },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

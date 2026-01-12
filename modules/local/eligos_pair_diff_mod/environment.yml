@@ -1,0 +1,19 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - samtools
+  - minimap2
+  - bedtools
+  - pandas
+  - numpy
+  - pysam
+  - pybedtools
+  - tqdm
+  - rpy2
+  - r-base=4.1
+  - pip:
+    - eligos2

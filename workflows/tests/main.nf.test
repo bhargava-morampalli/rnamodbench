@@ -1,0 +1,29 @@
+nextflow_workflow {
+
+    name "Test Workflow RNAMODIFICATIONS"
+    script "../rnamodifications.nf"
+    workflow "RNAMODIFICATIONS"
+
+    tag "workflows"
+    tag "rnamodifications"
+    tag "pipeline"
+
+    test("Should work in stub mode for complete pipeline") {
+
+        options "-stub"
+
+        when {
+            params {
+                input = "${projectDir}/workflows/tests/data/samplesheet.csv"
+                outdir = "${outputDir}"
+                references = "${projectDir}/tests/data/references.csv"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success }
+            )
+        }
+    }
+}

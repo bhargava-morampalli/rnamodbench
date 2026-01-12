@@ -1,0 +1,47 @@
+nextflow_process {
+
+    name "Test Process NANOCOMPORE_SAMPCOMP"
+    script "../main.nf"
+    process "NANOCOMPORE_SAMPCOMP"
+
+    tag "modules"
+    tag "modules_local"
+    tag "nanocompore_sampcomp"
+    tag "rna_modifications"
+
+    // Integration test disabled
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    'test_stub',
+                    'native',
+                    'ivt',
+                    [
+                        file("${projectDir}/modules/local/nanocompore_sampcomp/tests/data/native_rep1.tsv", checkIfExists: true),
+                        file("${projectDir}/modules/local/nanocompore_sampcomp/tests/data/native_rep1.tsv.idx", checkIfExists: true)
+                    ],
+                    [
+                        file("${projectDir}/modules/local/nanocompore_sampcomp/tests/data/ivt_rep1.tsv", checkIfExists: true),
+                        file("${projectDir}/modules/local/nanocompore_sampcomp/tests/data/ivt_rep1.tsv.idx", checkIfExists: true)
+                    ],
+                    file("${projectDir}/modules/local/nanocompore_sampcomp/tests/data/genome.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.results },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

@@ -1,0 +1,42 @@
+nextflow_process {
+
+    name "Test Process GENERATE_ERROR_REPORT"
+    script "../main.nf"
+    process "GENERATE_ERROR_REPORT"
+
+    tag "modules"
+    tag "modules_local"
+    tag "reporting"
+    tag "error_report"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                // Create mock output directory and log files for testing
+                def mockOutdir = file("\${workDir}/mock_outdir")
+                mockOutdir.mkdirs()
+                def mockPipelineInfo = new File(mockOutdir.toString(), "pipeline_info")
+                mockPipelineInfo.mkdirs()
+
+                def mockLog = file("\${workDir}/mock.log")
+                mockLog.text = "Mock log content"
+
+                input[0] = mockOutdir
+                input[1] = mockLog
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.html },
+                { assert process.out.csv }
+            )
+        }
+    }
+}

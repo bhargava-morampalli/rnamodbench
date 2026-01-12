@@ -1,0 +1,35 @@
+name: "input_check"
+description: Parse and validate input samplesheet, split reads by type (native/IVT)
+keywords:
+  - samplesheet
+  - validation
+  - input
+components: []
+input:
+  - samplesheet:
+      type: file
+      description: CSV samplesheet with sample, fastq, type, replicate, fast5_dir columns
+      pattern: "*.csv"
+output:
+  - native_reads:
+      type: tuple
+      description: |
+        Channel of native sample reads
+        Structure: [ val(meta), path(fastq) ]
+  - ivt_reads:
+      type: tuple
+      description: |
+        Channel of IVT sample reads
+        Structure: [ val(meta), path(fastq) ]
+  - native_fast5:
+      type: directory
+      description: Path to FAST5 directory for native samples
+  - ivt_fast5:
+      type: directory
+      description: Path to FAST5 directory for IVT samples
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

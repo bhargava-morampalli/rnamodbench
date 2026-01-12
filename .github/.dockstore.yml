@@ -1,0 +1,6 @@
+version: 1.2
+workflows:
+  - subclass: nfl
+    primaryDescriptorPath: /main.nf
+    name: nf-core/rnamodifications
+    publish: true

@@ -1,0 +1,44 @@
+name: "tombo_text_output"
+description: Convert Tombo statistics to text/CSV format for downstream analysis
+keywords:
+  - tombo
+  - statistics
+  - text
+  - csv
+  - nanopore
+  - modifications
+tools:
+  - tombo:
+      description: |
+        Tombo is a suite of tools primarily for the identification of modified nucleotides
+        from raw nanopore sequencing data. This module exports Tombo statistics to
+        tab-delimited text format for easier parsing and visualization.
+      homepage: https://github.com/nanoporetech/tombo
+      documentation: https://nanoporetech.github.io/tombo/
+      tool_dev_url: https://github.com/nanoporetech/tombo
+      licence: ["mpl-2.0"]
+
+input:
+  - key:
+      type: string
+      description: Sample identifier/key (should include rRNA type prefix like '16s' or '23s')
+  - statistic:
+      type: file
+      description: Tombo statistics file from detect_modifications
+      pattern: "*.tombo.stats"
+
+output:
+  - key:
+      type: string
+      description: Sample identifier/key
+  - bed:
+      type: file
+      description: CSV file containing regional statistics from Tombo
+      pattern: "*.csv"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

@@ -1,0 +1,59 @@
+nextflow_process {
+
+    name "Test Process TOMBO_RESQUIGGLE"
+    script "../main.nf"
+    process "TOMBO_RESQUIGGLE"
+
+    tag "modules"
+    tag "modules_local"
+    tag "tombo"
+    tag "tombo/resquiggle"
+    tag "nanopore"
+
+    test("Should resquiggle nanopore FAST5 files with tombo") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: true ],
+                    file("${projectDir}/modules/local/tombo_resquiggle/tests/data/fast5/100read_fast5", checkIfExists: true),
+                    file("${projectDir}/modules/local/tombo_resquiggle/tests/data/genome.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: true ],
+                    file("${projectDir}/modules/local/tombo_resquiggle/tests/data/fast5/100read_fast5", checkIfExists: true),
+                    file("${projectDir}/modules/local/tombo_resquiggle/tests/data/genome.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.resquiggled },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

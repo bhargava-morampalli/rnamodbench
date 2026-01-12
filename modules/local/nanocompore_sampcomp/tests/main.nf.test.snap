@@ -1,0 +1,14 @@
+{
+    "Should compare native and IVT samples for RNA modifications": {
+        "content": [
+            [
+                
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-31T17:57:20.178016613"
+    }
+}

@@ -1,0 +1,59 @@
+nextflow_process {
+
+    name "Test Process COVERAGE_PLOT"
+    script "../main.nf"
+    process "COVERAGE_PLOT"
+
+    tag "modules"
+    tag "modules_local"
+    tag "coverage_plot"
+    tag "visualization"
+
+    test("Should generate coverage plot from depth file") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: false ],
+                    file("${projectDir}/modules/local/coverage_plot/tests/data/test.depth", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.plot },
+                { assert process.out.plot.get(0).get(1).toString().endsWith('.pdf') },
+                { assert process.out.versions },
+                { assert snapshot(process.out.versions).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/coverage_plot/tests/data/test.depth", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.plot },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

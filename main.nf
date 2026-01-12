@@ -13,9 +13,6 @@ include { RNAMODIFICATIONS } from './workflows/rnamodifications'
 // WORKFLOW: Run main nf-core/rnamodifications analysis pipeline
 //
 workflow NFCORE_RNAMODIFICATIONS {
-    // Initialise workflow
-    WorkflowMain.initialise(workflow, params, log)
-
     RNAMODIFICATIONS ()
 }
 

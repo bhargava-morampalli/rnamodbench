@@ -1,0 +1,57 @@
+nextflow_process {
+
+    name "Test Process TOMBO_TEXT_OUTPUT"
+    script "../main.nf"
+    process "TOMBO_TEXT_OUTPUT"
+
+    tag "modules"
+    tag "modules_local"
+    tag "tombo"
+    tag "tombo/text_output"
+    tag "nanopore"
+
+    test("Should convert tombo stats to CSV format") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    '16s_test',
+                    file("${projectDir}/modules/local/tombo_text_output/tests/data/16s_test.tombo.stats", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    '16s_test_stub',
+                    file("${projectDir}/modules/local/tombo_text_output/tests/data/16s_test.tombo.stats", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.bed },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

@@ -1,0 +1,22 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - conda-forge::python>=3.8
+  - conda-forge::numpy
+  - conda-forge::scipy
+  - conda-forge::pandas
+  - bioconda::pysam
+  - bioconda::samtools=1.17
+  - conda-forge::openjdk>=11
+  - conda-forge::r-base>=4.0
+  - conda-forge::r-optparse
+  - conda-forge::r-ggplot2
+  - conda-forge::r-data.table
+  - conda-forge::r-outliers
+  - conda-forge::r-reshape2
+  - conda-forge::r-car
+  - conda-forge::r-ggrepel
+  - conda-forge::r-tidyverse
+  - conda-forge::git

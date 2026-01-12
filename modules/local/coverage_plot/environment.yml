@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+dependencies:
+  # renovate: datasource=conda depName=conda-forge/python
+  - conda-forge::python=3.9
+  # renovate: datasource=conda depName=conda-forge/pandas
+  - conda-forge::pandas=1.3.4
+  # renovate: datasource=conda depName=conda-forge/matplotlib
+  - conda-forge::matplotlib=3.4.3
+  # renovate: datasource=conda depName=conda-forge/seaborn
+  - conda-forge::seaborn=0.11.2

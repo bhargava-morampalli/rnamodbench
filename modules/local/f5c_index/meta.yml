@@ -1,0 +1,56 @@
+name: "f5c_index"
+description: Index nanopore FAST5 files for methylation calling with f5c
+keywords:
+  - index
+  - nanopore
+  - fast5
+  - f5c
+  - methylation
+  - basecalling
+tools:
+  - f5c:
+      description: |
+        f5c is an optimised re-implementation of the call-methylation and eventalign
+        modules in Nanopolish. Given a set of basecalled Nanopore reads and the raw signals,
+        f5c call-methylation detects methylated cytosine and f5c eventalign aligns raw
+        nanopore signals (events) to the reference k-mers. f5c supports the latest nanopore
+        R10.4.1 chemistry.
+      homepage: https://github.com/hasindu2008/f5c
+      documentation: https://hasindu2008.github.io/f5c/docs/overview
+      tool_dev_url: https://github.com/hasindu2008/f5c
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - fast5_dir:
+      type: directory
+      description: Directory containing FAST5 files from Oxford Nanopore sequencing
+      pattern: "*/"
+  - fastq:
+      type: file
+      description: Basecalled FASTQ file from Oxford Nanopore sequencing
+      pattern: "*.{fastq,fq,fastq.gz,fq.gz}"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - indexed:
+      type: tuple
+      description: |
+        Tuple containing meta, fastq file, index files (.index, .index.readdb,
+        .index.gzi, .index.fai), and fast5 directory for downstream f5c analysis
+      pattern: "*"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

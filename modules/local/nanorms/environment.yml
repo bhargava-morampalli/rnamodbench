@@ -1,0 +1,16 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - conda-forge::git
+  - conda-forge::r-base>=4.0
+  - conda-forge::r-tidyverse
+  - conda-forge::r-optparse
+  - conda-forge::r-ggplot2
+  - conda-forge::python>=3.8
+  - conda-forge::scikit-learn
+  - conda-forge::numpy
+  - conda-forge::scipy
+  - conda-forge::pandas
+  - bioconda::bedtools

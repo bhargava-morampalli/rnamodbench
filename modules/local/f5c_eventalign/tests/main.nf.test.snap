@@ -1,0 +1,37 @@
+{
+    "Should perform eventalign on nanopore data with f5c index": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_eventalign.txt:md5,b8975bae84ddeff211637f487fcb9226"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,fc2ab5950ea2c08672431ef59f9d9583"
+                ],
+                "eventalign": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_eventalign.txt:md5,b8975bae84ddeff211637f487fcb9226"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,fc2ab5950ea2c08672431ef59f9d9583"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-31T02:17:05.894497125"
+    }
+}

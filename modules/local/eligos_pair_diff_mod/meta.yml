@@ -1,0 +1,56 @@
+name: eligos_pair_diff_mod
+description: Detect RNA modifications by comparing error rates between native and control (IVT) samples using ELIGOS2
+keywords:
+  - rna modification
+  - epitranscriptome
+  - nanopore
+  - direct rna sequencing
+  - differential modification
+tools:
+  - eligos2:
+      description: Epitranscriptional Landscape Inferring from Glitches of ONT Signals
+      homepage: https://gitlab.com/piroonj/eligos2
+      documentation: https://gitlab.com/piroonj/eligos2/-/blob/master/README.md
+      licence: ["MIT"]
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - native_bam:
+      type: file
+      description: Sorted BAM file from native RNA sample
+      pattern: "*.bam"
+  - native_bai:
+      type: file
+      description: BAM index file for native sample
+      pattern: "*.bai"
+  - ivt_bam:
+      type: file
+      description: Sorted BAM file from IVT (control) sample
+      pattern: "*.bam"
+  - ivt_bai:
+      type: file
+      description: BAM index file for IVT sample
+      pattern: "*.bai"
+  - reference:
+      type: file
+      description: Reference FASTA file (BED regions are automatically generated from the FASTA index)
+      pattern: "*.{fa,fasta}"
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - results:
+      type: directory
+      description: Directory containing ELIGOS2 results including TSV files with p-values, odds ratios, and ESB values
+      pattern: "*_eligos"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

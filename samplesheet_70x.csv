@@ -1,0 +1,7 @@
+sample,fastq,type,replicate,fast5_dir
+native_rep1,/home/bmorampa/70x/native/k12_native_bc1_70x.fastq,native,rep1,/home/bmorampa/k12_native_fast5
+native_rep2,/home/bmorampa/70x/native/k12_native_bc2_70x.fastq,native,rep2,/home/bmorampa/k12_native_fast5
+native_rep3,/home/bmorampa/70x/native/k12_native_bc3_70x.fastq,native,rep3,/home/bmorampa/k12_native_fast5
+ivt_rep1,/home/bmorampa/70x/ivt/k12_ivt_bc1_70x.fastq,ivt,rep1,/home/bmorampa/k12_ivt_fast5
+ivt_rep2,/home/bmorampa/70x/ivt/k12_ivt_bc2_70x.fastq,ivt,rep2,/home/bmorampa/k12_ivt_fast5
+ivt_rep3,/home/bmorampa/70x/ivt/k12_ivt_bc3_70x.fastq,ivt,rep3,/home/bmorampa/k12_ivt_fast5

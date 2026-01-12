@@ -1,0 +1,44 @@
+nextflow_process {
+
+    name "Test Process NANORMS"
+    script "../main.nf"
+    process "NANORMS"
+
+    tag "modules"
+    tag "modules_local"
+    tag "nanorms"
+    tag "rna_modifications"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                def meta = [id: 'test_16s_rep1', rrna: '16s', replicate: 'rep1']
+
+                def native_eventalign = file("native_eventalign.txt")
+                native_eventalign.text = "stub"
+                def ivt_eventalign = file("ivt_eventalign.txt")
+                ivt_eventalign.text = "stub"
+
+                input[0] = [
+                    meta,
+                    native_eventalign,
+                    ivt_eventalign,
+                    file("\${projectDir}/test_data/references/16S.fa", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.results },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

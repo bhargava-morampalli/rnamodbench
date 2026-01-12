@@ -1,0 +1,3 @@
+target,reference
+16s,tests/data/16s_reference.fasta
+23s,tests/data/23s_reference.fasta

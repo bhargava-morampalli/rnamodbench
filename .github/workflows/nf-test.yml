@@ -1,0 +1,67 @@
+name: nf-test
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+      - master
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  NXF_ANSI_LOG: false
+  NXF_SINGULARITY_CACHEDIR: ${{ github.workspace }}/.singularity
+  NXF_SINGULARITY_LIBRARYDIR: ${{ github.workspace }}/.singularity
+  NFT_VER: "0.9.2"
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  get-shards:
+    name: Get test shards
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-shards.outputs.shards }}
+      total: ${{ steps.get-shards.outputs.total }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/get-shards
+        id: get-shards
+        with:
+          tags: "pipeline,stub"
+
+  nf-test:
+    name: Test (Shard ${{ matrix.shard }}/${{ needs.get-shards.outputs.total }}, NF ${{ matrix.NXF_VER }})
+    needs: [get-shards]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.get-shards.outputs.matrix) }}
+        NXF_VER:
+          - "25.04.0"
+          - ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/nf-test
+        with:
+          shard: ${{ matrix.shard }}
+          total: ${{ needs.get-shards.outputs.total }}
+          nxf-version: ${{ matrix.NXF_VER || 'latest-stable' }}
+
+  nf-test-all:
+    name: nf-test summary
+    if: always()
+    needs: [nf-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check test status
+        run: |
+          if [[ "${{ needs.nf-test.result }}" != "success" ]]; then
+            exit 1
+          fi

@@ -1,0 +1,19 @@
+name: Feature Request
+description: Suggest an idea for the nf-core/rnamodifications pipeline
+labels: enhancement
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of feature
+      description: Please describe your suggestion for a new feature
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: |
+        Is your feature request related to a problem? If so, please describe.
+        Ex. I'm always frustrated when [...]

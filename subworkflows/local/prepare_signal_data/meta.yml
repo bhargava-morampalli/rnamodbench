@@ -1,0 +1,45 @@
+name: "prepare_signal_data"
+description: Prepare signal-level data for downstream analysis (Tombo, f5c, Yanocomp, Xpore)
+keywords:
+  - signal
+  - fast5
+  - nanopore
+  - preparation
+components:
+  - extract_read_ids
+  - fast5_subset
+  - multi_to_single_fast5
+input:
+  - mapped_fastqs:
+      type: tuple
+      description: |
+        Channel of mapped FASTQ files
+        Structure: [ val(meta), path(fastq) ]
+  - mapped_bams:
+      type: tuple
+      description: |
+        Channel of mapped BAM files with indices
+        Structure: [ val(meta), path(bam), path(bai) ]
+  - native_fast5_dir:
+      type: directory
+      description: FAST5 directory for native samples
+  - ivt_fast5_dir:
+      type: directory
+      description: FAST5 directory for IVT samples
+output:
+  - single_fast5:
+      type: tuple
+      description: |
+        Single-read FAST5 files for Tombo
+        Structure: [ val(meta), path(fast5) ]
+  - f5c_ready:
+      type: tuple
+      description: |
+        Data ready for f5c processing
+        Structure: [ val(meta), path(fastq), path(bam), path(bai), path(fast5) ]
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

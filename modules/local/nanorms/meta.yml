@@ -1,0 +1,50 @@
+name: nanorms
+description: Predict RNA modification stoichiometry using paired sample comparison with machine learning
+keywords:
+  - rna modification
+  - pseudouridine
+  - 2-O-methylation
+  - nanopore
+  - direct rna sequencing
+  - stoichiometry
+  - machine learning
+tools:
+  - nanorms:
+      description: Prediction of RNA modifications and their stoichiometry from per-read features
+      homepage: https://github.com/novoalab/nanoRMS
+      documentation: https://github.com/novoalab/nanoRMS/blob/master/README.md
+      licence: ["MIT"]
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - native_eventalign:
+      type: file
+      description: Eventalign output file from native RNA sample (modified)
+      pattern: "*.txt"
+  - ivt_eventalign:
+      type: file
+      description: Eventalign output file from IVT (control/unmodified) sample
+      pattern: "*.txt"
+  - reference:
+      type: file
+      description: Reference FASTA file
+      pattern: "*.{fa,fasta}"
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - results:
+      type: directory
+      description: Directory containing nanoRMS results with modification frequencies and stoichiometry
+      pattern: "*_nanorms"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

@@ -1,2 +1,0 @@
-task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
-1	8b/fdc25a	60870	SAMTOOLS_DEPTH (test_stub)	COMPLETED	0	2025-10-23 20:40:22.475	299ms	0ms	141.2%	3.3 MB	5.4 MB	94.3 KB	4.7 KB

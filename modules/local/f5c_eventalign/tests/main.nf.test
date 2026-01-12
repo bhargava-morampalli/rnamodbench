@@ -1,0 +1,73 @@
+nextflow_process {
+
+    name "Test Process F5C_EVENTALIGN"
+    script "../main.nf"
+    process "F5C_EVENTALIGN"
+
+    tag "modules"
+    tag "modules_local"
+    tag "f5c"
+    tag "f5c/eventalign"
+    tag "nanopore"
+
+    test("Should perform eventalign on nanopore data with f5c index") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: true ],
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index.readdb", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index.gzi", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index.fai", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.sorted.bam", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.sorted.bam.bai", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/fast5/100read_fast5", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/genome.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: true ],
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index.readdb", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index.gzi", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.fastq.gz.index.fai", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.sorted.bam", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/test.sorted.bam.bai", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/fast5/100read_fast5", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_eventalign/tests/data/genome.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.eventalign },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

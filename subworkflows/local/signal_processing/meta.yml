@@ -1,0 +1,51 @@
+name: "signal_processing"
+description: Run f5c eventalign and Tombo resquiggle on signal-level data
+keywords:
+  - signal
+  - eventalign
+  - resquiggle
+  - f5c
+  - tombo
+components:
+  - f5c_index
+  - f5c_eventalign
+  - f5c_eventalign_xpore
+  - tombo_resquiggle
+input:
+  - single_fast5:
+      type: tuple
+      description: |
+        Single-read FAST5 files
+        Structure: [ val(meta), path(fast5) ]
+  - f5c_ready:
+      type: tuple
+      description: |
+        Data ready for f5c processing
+        Structure: [ val(meta), path(fastq), path(bam), path(bai), path(fast5) ]
+  - ref_map:
+      type: map
+      description: |
+        Map of target to reference file
+        Example: { '16s': ref_file, '23s': ref_file }
+output:
+  - eventalign:
+      type: tuple
+      description: |
+        Eventalign output for nanocompore/yanocomp (read_name column)
+        Structure: [ val(meta), path(eventalign) ]
+  - eventalign_xpore:
+      type: tuple
+      description: |
+        Eventalign output for xpore (read_index column)
+        Structure: [ val(meta), path(eventalign) ]
+  - tombo_resquiggled:
+      type: tuple
+      description: |
+        Resquiggled FAST5 files
+        Structure: [ val(meta), path(fast5) ]
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

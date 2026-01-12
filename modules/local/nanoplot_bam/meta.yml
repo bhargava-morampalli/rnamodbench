@@ -1,0 +1,52 @@
+name: "nanoplot_bam"
+description: Extract statistics from BAM files and save as feather format for NanoPlot visualization
+keywords:
+  - nanopore
+  - long-read
+  - bam
+  - statistics
+  - visualization
+  - quality-control
+tools:
+  - nanoplot:
+      description: Plotting suite for long read sequencing data and alignments
+      homepage: https://github.com/wdecoster/NanoPlot
+      documentation: https://github.com/wdecoster/NanoPlot
+      tool_dev_url: https://github.com/wdecoster/NanoPlot
+      doi: "10.1093/bioinformatics/bty149"
+      licence: ["MIT"]
+  - nanoget:
+      description: Functions to extract information from Oxford Nanopore sequencing data
+      homepage: https://github.com/wdecoster/nanoget
+      documentation: https://github.com/wdecoster/nanoget
+      tool_dev_url: https://github.com/wdecoster/nanoget
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - bam:
+      type: file
+      description: Sorted BAM file from Oxford Nanopore sequencing alignment
+      pattern: "*.bam"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - stats:
+      type: file
+      description: Statistics extracted from BAM file in feather format (Apache Arrow)
+      pattern: "*.feather"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

@@ -1,0 +1,65 @@
+nextflow_workflow {
+
+    name "Test Subworkflow PREPARE_SIGNAL_DATA"
+    script "../main.nf"
+    workflow "PREPARE_SIGNAL_DATA"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "prepare_signal_data"
+    tag "tombo"
+    tag "f5c"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            workflow {
+                """
+                def meta_16s_native = [ id: 'native_16s', single_end: true, type: 'native', rrna: '16s', replicate: 'rep1' ]
+                def meta_16s_ivt = [ id: 'ivt_16s', single_end: true, type: 'ivt', rrna: '16s', replicate: 'rep1' ]
+                def meta_23s_native = [ id: 'native_23s', single_end: true, type: 'native', rrna: '23s', replicate: 'rep1' ]
+                def meta_23s_ivt = [ id: 'ivt_23s', single_end: true, type: 'ivt', rrna: '23s', replicate: 'rep1' ]
+
+                def stub_fastq = file("\${projectDir}/tests/data/native_rep1.fastq.gz")
+                def stub_bam = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam")
+                def stub_bai = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam.bai")
+                def stub_fast5_native = file("\${projectDir}/tests/data/fast5/native_rep1")
+                def stub_fast5_ivt = file("\${projectDir}/tests/data/fast5/ivt_rep1")
+
+                // input[0]: unified mapped_fastqs channel [ meta, fastq ]
+                input[0] = Channel.of(
+                    [ meta_16s_native, stub_fastq ],
+                    [ meta_16s_ivt, stub_fastq ],
+                    [ meta_23s_native, stub_fastq ],
+                    [ meta_23s_ivt, stub_fastq ]
+                )
+
+                // input[1]: unified mapped_bams channel [ meta, bam, bai ]
+                input[1] = Channel.of(
+                    [ meta_16s_native, stub_bam, stub_bai ],
+                    [ meta_16s_ivt, stub_bam, stub_bai ],
+                    [ meta_23s_native, stub_bam, stub_bai ],
+                    [ meta_23s_ivt, stub_bam, stub_bai ]
+                )
+
+                // input[2]: native_fast5_dir
+                input[2] = stub_fast5_native
+
+                // input[3]: ivt_fast5_dir
+                input[3] = stub_fast5_ivt
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.versions },
+                { assert workflow.out.single_fast5 },
+                { assert workflow.out.f5c_ready }
+            )
+        }
+    }
+}

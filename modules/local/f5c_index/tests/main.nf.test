@@ -1,0 +1,59 @@
+nextflow_process {
+
+    name "Test Process F5C_INDEX"
+    script "../main.nf"
+    process "F5C_INDEX"
+
+    tag "modules"
+    tag "modules_local"
+    tag "f5c"
+    tag "f5c/index"
+    tag "nanopore"
+
+    test("Should create f5c index files for nanopore data") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: true ],
+                    file("${projectDir}/modules/local/f5c_index/tests/data/fast5/100read_fast5", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_index/tests/data/test.fastq.gz", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: true ],
+                    file("${projectDir}/modules/local/f5c_index/tests/data/fast5/100read_fast5", checkIfExists: true),
+                    file("${projectDir}/modules/local/f5c_index/tests/data/test.fastq.gz", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.indexed },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

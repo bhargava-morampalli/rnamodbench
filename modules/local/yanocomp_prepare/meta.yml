@@ -1,0 +1,44 @@
+name: "yanocomp_prepare"
+description: Prepare f5c eventalign output for yanocomp analysis by converting to HDF5 format
+keywords:
+  - nanopore
+  - rna-modifications
+  - eventalign
+  - hdf5
+  - methylation
+tools:
+  - yanocomp:
+      description: Yet Another Nanopore COMParison tool for detecting RNA modifications
+      homepage: https://github.com/baraaorabi/yanocomp
+      documentation: https://github.com/baraaorabi/yanocomp
+      tool_dev_url: https://github.com/baraaorabi/yanocomp
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - eventalign:
+      type: file
+      description: Output from f5c eventalign containing per-read event-level signal data
+      pattern: "*.txt"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
+  - hdf5:
+      type: file
+      description: HDF5 file containing processed eventalign data ready for comparison
+      pattern: "*.hdf5"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bhargava-morampalli"

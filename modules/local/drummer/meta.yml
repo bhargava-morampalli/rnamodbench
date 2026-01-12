@@ -1,0 +1,57 @@
+name: drummer
+description: Detect RNA modifications at nucleotide-level resolution through comparative analysis of basecall errors
+keywords:
+  - rna modification
+  - m6A
+  - nanopore
+  - direct rna sequencing
+  - basecall errors
+  - isoform analysis
+tools:
+  - drummer:
+      description: Detection of RNA modifications in nanopore direct RNA sequencing datasets
+      homepage: https://github.com/DepledgeLab/DRUMMER
+      documentation: https://github.com/DepledgeLab/DRUMMER/blob/master/README.md
+      licence: ["MIT"]
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - native_bam:
+      type: file
+      description: Sorted BAM file from native RNA sample (modifications present)
+      pattern: "*.bam"
+  - native_bai:
+      type: file
+      description: BAM index file for native sample
+      pattern: "*.bai"
+  - ivt_bam:
+      type: file
+      description: Sorted BAM file from IVT (control, modifications absent) sample
+      pattern: "*.bam"
+  - ivt_bai:
+      type: file
+      description: BAM index file for IVT sample
+      pattern: "*.bai"
+  - reference:
+      type: file
+      description: Reference FASTA file
+      pattern: "*.{fa,fasta}"
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - results:
+      type: directory
+      description: Directory containing DRUMMER results including summary.txt with candidate modification sites
+      pattern: "*_drummer"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

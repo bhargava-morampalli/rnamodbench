@@ -1,0 +1,11 @@
+To: $email
+Subject: $subject
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="nfcore-rnamod"
+
+--nfcore-rnamod
+Content-Type: text/html; charset=utf-8
+
+$email_html
+
+--nfcore-rnamod--

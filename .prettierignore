@@ -1,0 +1,30 @@
+# Ignore generated files
+work/
+.nextflow/
+.nf-test/
+results/
+results_*/
+
+# Nextflow files (handled differently)
+*.nf
+*.config
+
+# Binary files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.fast5
+*.bam
+*.bai
+*.sam
+*.gz
+
+# Email templates (contain special formatting)
+assets/email_template.html
+assets/email_template.txt
+assets/sendmail_template.txt
+
+# Auto-generated
+nextflow_schema.json

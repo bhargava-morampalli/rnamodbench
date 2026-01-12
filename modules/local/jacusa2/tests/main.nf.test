@@ -1,0 +1,50 @@
+nextflow_process {
+
+    name "Test Process JACUSA2"
+    script "../main.nf"
+    process "JACUSA2"
+
+    tag "modules"
+    tag "modules_local"
+    tag "jacusa2"
+    tag "rna_modifications"
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                def meta = [id: 'test_16s_rep1', rrna: '16s', replicate: 'rep1']
+
+                def native_bam = file("native.bam")
+                native_bam.text = "stub"
+                def native_bai = file("native.bam.bai")
+                native_bai.text = "stub"
+                def ivt_bam = file("ivt.bam")
+                ivt_bam.text = "stub"
+                def ivt_bai = file("ivt.bam.bai")
+                ivt_bai.text = "stub"
+
+                input[0] = [
+                    meta,
+                    native_bam,
+                    native_bai,
+                    ivt_bam,
+                    ivt_bai,
+                    file("\${projectDir}/test_data/references/16S.fa", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.bed },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

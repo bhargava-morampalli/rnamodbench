@@ -1,0 +1,77 @@
+name: "f5c_eventalign_xpore"
+description: Run f5c eventalign with output format compatible with xpore (read_index column)
+keywords:
+  - f5c
+  - eventalign
+  - xpore
+  - nanopore
+  - RNA modifications
+tools:
+  - f5c:
+      description: Ultra-fast methylation calling and event alignment tool for nanopore sequencing data
+      homepage: https://github.com/hasindu2008/f5c
+      documentation: https://hasindu2008.github.io/f5c/docs/commands
+      tool_dev_url: https://github.com/hasindu2008/f5c
+      licence: ["MIT"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', single_end:false ]
+  - fastq:
+      type: file
+      description: FASTQ file containing reads
+      pattern: "*.{fastq,fastq.gz,fq,fq.gz}"
+  - fastq_idx:
+      type: file
+      description: f5c index file for the FASTQ
+      pattern: "*.index"
+  - readdb:
+      type: file
+      description: f5c read database file
+      pattern: "*.readdb"
+  - gzi:
+      type: file
+      description: f5c gzip index file
+      pattern: "*.gzi"
+  - fai:
+      type: file
+      description: f5c FASTA index file
+      pattern: "*.fai"
+  - bam:
+      type: file
+      description: BAM file with reads aligned to reference
+      pattern: "*.bam"
+  - bai:
+      type: file
+      description: BAM index file
+      pattern: "*.bai"
+  - fast5:
+      type: directory
+      description: Directory containing FAST5 files
+  - reference:
+      type: file
+      description: Reference FASTA file
+      pattern: "*.{fa,fasta}"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', single_end:false ]
+  - eventalign:
+      type: file
+      description: Eventalign output file with read_index column (xpore compatible)
+      pattern: "*_eventalign_xpore.txt"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@bmorampa"
+maintainers:
+  - "@bmorampa"

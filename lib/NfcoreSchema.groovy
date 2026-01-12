@@ -14,13 +14,13 @@ class NfcoreSchema {
     public static void validateParameters(workflow, params, log) {
         // If no schema is present, we can't validate
         def schema_path = "${workflow.projectDir}/nextflow_schema.json"
-        if (!file(schema_path).exists()) {
+        if (!new File(schema_path).exists()) {
             log.warn "Could not find pipeline schema file: ${schema_path}"
             return
         }
 
         // Parse the schema
-        def schema = new JsonSlurper().parseText(file(schema_path).text)
+        def schema = new JsonSlurper().parseText(new File(schema_path).text)
         def schema_params = []
         schema.definitions.each { key, val ->
             if(val.properties) {

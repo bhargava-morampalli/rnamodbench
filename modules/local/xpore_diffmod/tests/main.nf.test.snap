@@ -1,0 +1,14 @@
+{
+    "Should detect differential modifications between native and IVT": {
+        "content": [
+            [
+                "versions.yml:md5,2cef67ee608c8bdd77f99b8f200537f4"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-10-31T13:00:38.241814143"
+    }
+}

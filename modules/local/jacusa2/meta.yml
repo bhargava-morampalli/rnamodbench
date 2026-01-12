@@ -1,0 +1,57 @@
+name: jacusa2
+description: Detect RNA modifications by scoring mismatches and INDELs between native and control samples using JACUSA2
+keywords:
+  - rna modification
+  - m6A
+  - nanopore
+  - direct rna sequencing
+  - snv detection
+  - mismatch analysis
+tools:
+  - jacusa2:
+      description: JAVA framework for accurate SNV assessment and RNA modification detection
+      homepage: https://github.com/dieterich-lab/JACUSA2
+      documentation: https://github.com/dieterich-lab/JACUSA2/blob/master/README.md
+      licence: ["GPL-3.0"]
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - native_bam:
+      type: file
+      description: Sorted BAM file from native RNA sample (modified)
+      pattern: "*.bam"
+  - native_bai:
+      type: file
+      description: BAM index file for native sample
+      pattern: "*.bai"
+  - ivt_bam:
+      type: file
+      description: Sorted BAM file from IVT (control/unmodified) sample
+      pattern: "*.bam"
+  - ivt_bai:
+      type: file
+      description: BAM index file for IVT sample
+      pattern: "*.bai"
+  - reference:
+      type: file
+      description: Reference FASTA file
+      pattern: "*.{fa,fasta}"
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+  - bed:
+      type: file
+      description: BED-like file with variant calls and scores for modification detection
+      pattern: "*_jacusa2.bed"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+authors:
+  - "@bmorampa"

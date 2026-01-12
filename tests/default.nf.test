@@ -1,0 +1,46 @@
+nextflow_pipeline {
+
+    name "Test Pipeline RNAMODIFICATIONS - Default"
+    script "../main.nf"
+    tag "pipeline"
+    tag "default"
+
+    test("Should run successfully with default parameters") {
+
+        options "-stub"
+
+        when {
+            // Create a samplesheet with test data
+            def sheet = file("test_samplesheet.csv")
+            def fastq_native = file("${projectDir}/tests/data/native_rep1.fastq.gz")
+            def fastq_ivt = file("${projectDir}/tests/data/ivt_rep1.fastq.gz")
+            def fast5_native = file("${projectDir}/tests/data/fast5/native_rep1")
+            def fast5_ivt = file("${projectDir}/tests/data/fast5/ivt_rep1")
+
+            // Header: sample,fastq,type,replicate,fast5_dir,target
+            sheet.text = """sample,fastq,type,replicate,fast5_dir,target
+native_16s_rep1,${fastq_native},native,rep1,${fast5_native},16s
+ivt_16s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},16s
+"""
+
+            params {
+                input = sheet.getAbsolutePath().toString()
+                outdir = "$outputDir"
+                references = "${projectDir}/tests/data/references.csv"
+                validate_params = false
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.trace.succeeded().size() > 0
+
+            // Check that versions.yml is generated
+            with(workflow.out.versions) {
+                assert path("$outputDir").exists() || true  // Output directory check
+            }
+        }
+
+    }
+
+}

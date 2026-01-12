@@ -1,0 +1,39 @@
+nextflow_process {
+
+    name "Test Process YANOCOMP_ANALYSIS"
+    script "../main.nf"
+    process "YANOCOMP_ANALYSIS"
+
+    tag "modules"
+    tag "modules_local"
+    tag "yanocomp_analysis"
+    tag "rna_modifications"
+
+    // Integration test disabled due to missing container (using python:3.9 placeholder)
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/yanocomp_analysis/tests/data/native.hdf5", checkIfExists: true),
+                    file("${projectDir}/modules/local/yanocomp_analysis/tests/data/ivt.hdf5", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.bed },
+                { assert process.out.json },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

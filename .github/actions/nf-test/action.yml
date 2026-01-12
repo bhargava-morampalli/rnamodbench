@@ -1,0 +1,41 @@
+name: Run nf-test
+description: Run nf-test for a specific shard
+inputs:
+  shard:
+    description: Current shard number
+    required: true
+  total:
+    description: Total number of shards
+    required: true
+  nxf-version:
+    description: Nextflow version to use
+    required: false
+    default: "latest-stable"
+runs:
+  using: "composite"
+  steps:
+    - name: Install Nextflow
+      uses: nf-core/setup-nextflow@v2
+      with:
+        version: ${{ inputs.nxf-version }}
+
+    - name: Install nf-test
+      shell: bash
+      run: |
+        wget -qO- https://get.nf-test.com | bash
+        sudo mv nf-test /usr/local/bin/
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: "17"
+
+    - name: Run nf-test
+      shell: bash
+      run: |
+        nf-test test \
+          --shard ${{ inputs.shard }}/${{ inputs.total }} \
+          --profile test,docker \
+          --ci \
+          --verbose

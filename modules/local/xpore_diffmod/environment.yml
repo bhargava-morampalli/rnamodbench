@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # renovate: datasource=conda depName=conda-forge/python
+  - conda-forge::python=3.9
+  # renovate: datasource=conda depName=bioconda/xpore
+  - bioconda::xpore=2.1

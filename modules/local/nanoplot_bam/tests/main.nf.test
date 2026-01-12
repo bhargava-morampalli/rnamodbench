@@ -1,0 +1,59 @@
+nextflow_process {
+
+    name "Test Process NANOPLOT_BAM"
+    script "../main.nf"
+    process "NANOPLOT_BAM"
+
+    tag "modules"
+    tag "modules_local"
+    tag "nanoplot_bam"
+    tag "visualization"
+
+    test("Should generate feather file from BAM file") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test', single_end: false ],
+                    file("${projectDir}/modules/local/nanoplot_bam/tests/data/test.bam", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.stats },
+                { assert process.out.stats.get(0).get(1).toString().endsWith('.feather') },
+                { assert process.out.versions },
+                { assert snapshot(process.out.versions).match() }
+            )
+        }
+    }
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/nanoplot_bam/tests/data/test.bam", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.stats },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

@@ -1,0 +1,37 @@
+nextflow_process {
+
+    name "Test Process NANOCOMPORE_EVENTALIGN_COLLAPSE"
+    script "../main.nf"
+    process "NANOCOMPORE_EVENTALIGN_COLLAPSE"
+
+    tag "modules"
+    tag "modules_local"
+    tag "nanocompore_eventalign_collapse"
+    tag "rna_modifications"
+
+    // Integration test disabled
+
+    test("Should work in stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'test_stub', single_end: false ],
+                    file("${projectDir}/modules/local/nanocompore_eventalign_collapse/tests/data/test_eventalign.txt", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.collapsed },
+                { assert process.out.versions }
+            )
+        }
+    }
+}

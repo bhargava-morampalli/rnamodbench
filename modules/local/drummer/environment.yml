@@ -1,0 +1,19 @@
+channels:
+  - anaconda
+  - conda-forge
+  - bioconda
+  - r
+  - defaults
+dependencies:
+  - python>=3.8
+  - numpy
+  - scipy
+  - pandas
+  - seaborn
+  - pysam
+  - biopython
+  - matplotlib
+  - statsmodels
+  - samtools=1.17
+  - bedtools
+  - git
