@@ -17,8 +17,8 @@ process NANOCOMPORE_SAMPCOMP {
     task.ext.when == null || task.ext.when
 
     script:
-    // Added recommended defaults per benchmarking papers: 5-mer context, p-value threshold, logistic regression
-    def args = task.ext.args ?: '--sequence_context 2 --pvalue_thr 0.01 --logit'
+    // Output ALL positions for ROC curve analysis (pvalue_thr=1), with 5-mer context and logistic regression
+    def args = task.ext.args ?: '--sequence_context 2 --pvalue_thr 1 --logit'
     prefix = task.ext.prefix ?: "${key}_sampcomp"
     def cond1_files = condition1_files.collect{ "${it}/out_eventalign_collapse.tsv" }.join(',')
     def cond2_files = condition2_files.collect{ "${it}/out_eventalign_collapse.tsv" }.join(',')
