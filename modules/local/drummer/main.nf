@@ -59,15 +59,15 @@ process DRUMMER {
     ref_name=\$(head -1 ${reference}.fai | cut -f1)
 
     # Run DRUMMER in exome mode (suitable for rRNA)
-    # Control = IVT (modifications absent)
-    # Treatment = Native (modifications present)
+    # Control = Native (modifications present)
+    # Treatment = IVT (modifications absent)
     # Using p-value threshold of 1.0 to output ALL positions for ROC curve analysis
     # DRUMMER outputs per-position statistics with p-values and odds ratios
     python DRUMMER/DRUMMER.py \\
         -r $reference \\
         -n \$ref_name \\
-        -c $ivt_bam \\
-        -t $native_bam \\
+        -c $native_bam \\
+        -t $ivt_bam \\
         -o ${prefix} \\
         -a exome \\
         -p ${pval_threshold} \\
