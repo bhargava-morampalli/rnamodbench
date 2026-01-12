@@ -95,18 +95,48 @@ process EPINANO_ERROR {
     fi
 
     # Run differential error analysis if both per-site files exist
-    # Epinano_DiffErr.R calculates sum_err internally from mis+ins+del columns
-    # Output ALL positions with z-scores (set threshold to 0 to get all)
     if [ -f "native_fixed.csv" ] && [ -f "ivt_fixed.csv" ]; then
+
+        # Analysis 1: Mismatch only (-f mis)
+        # Uses per_site.csv files directly
+        echo "Running mismatch analysis (-f mis)..."
         Rscript EpiNano/Epinano_DiffErr.R \\
             -k "ivt_fixed.csv" \\
             -w "native_fixed.csv" \\
             -t $zscore_threshold \\
-            -o ${prefix}/${meta.id} \\
+            -o ${prefix}/${meta.id}_mismatch \\
             -c $coverage_threshold \\
-            -f sum_err \\
+            -f mis \\
             -d $error_threshold \\
             $args || true
+
+        # Preprocessing for sum_err analysis: run Epinano_sumErr.py
+        # This creates sum_err.csv files required for -f sum_err
+        echo "Running Epinano_sumErr.py preprocessing..."
+        python EpiNano/misc/Epinano_sumErr.py \\
+            --file native_fixed.csv \\
+            --out native_sum_err.csv \\
+            --kmer 0 || true
+
+        python EpiNano/misc/Epinano_sumErr.py \\
+            --file ivt_fixed.csv \\
+            --out ivt_sum_err.csv \\
+            --kmer 0 || true
+
+        # Analysis 2: Sum Error (-f sum_err)
+        # Uses preprocessed sum_err.csv files
+        if [ -f "native_sum_err.csv" ] && [ -f "ivt_sum_err.csv" ]; then
+            echo "Running sum_err analysis (-f sum_err)..."
+            Rscript EpiNano/Epinano_DiffErr.R \\
+                -k "ivt_sum_err.csv" \\
+                -w "native_sum_err.csv" \\
+                -t $zscore_threshold \\
+                -o ${prefix}/${meta.id}_sumerr \\
+                -c $coverage_threshold \\
+                -f sum_err \\
+                -d $error_threshold \\
+                $args || true
+        fi
     fi
 
     # Move any generated files to output directory
@@ -136,7 +166,8 @@ process EPINANO_ERROR {
     mkdir -p ${prefix}
     touch ${prefix}/native_per_site.csv
     touch ${prefix}/ivt_per_site.csv
-    touch ${prefix}/${meta.id}_diff_err.csv
+    touch ${prefix}/${meta.id}_mismatch_diff_err.csv
+    touch ${prefix}/${meta.id}_sumerr_diff_err.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
