@@ -10,5 +10,8 @@ dependencies:
   - bioconda::pysam
   - bioconda::samtools=1.17
   - conda-forge::h5py
+  - conda-forge::statsmodels
+  - conda-forge::joblib
+  - conda-forge::click
   - conda-forge::git
   - conda-forge::pip

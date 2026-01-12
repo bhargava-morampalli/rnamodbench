@@ -35,11 +35,10 @@ process DIFFERR {
     echo "Arguments: $args"
     echo "==========================================="
 
-    # Clone and install differr from GitHub to local directory
-    # Use --target to install in work directory (container may have read-only filesystem)
+    # Clone and install differr from GitHub
     if [ ! -d "differr_nanopore_DRS" ]; then
         git clone --depth 1 https://github.com/bartongroup/differr_nanopore_DRS.git
-        pip install ./differr_nanopore_DRS --target=./local_packages --quiet --no-cache-dir
+        pip install ./differr_nanopore_DRS --quiet --no-cache-dir
     fi
 
     # Index reference if not already indexed
@@ -47,20 +46,16 @@ process DIFFERR {
         samtools faidx $reference
     fi
 
-    # Set PYTHONPATH for locally installed packages (use :- to handle unset variable in strict mode)
-    export PYTHONPATH="\$PWD/local_packages:\${PYTHONPATH:-}"
-
     # Run differr comparing native (WT/modified) vs IVT (control/unmodified)
-    # -a: alternate samples (IVT/control)
-    # -b: reference samples (native/modified)
+    # -b: native/WT samples (modifications present)
+    # -a: IVT samples (modifications absent)
     # Using FDR threshold of 1.0 to output ALL positions for ROC curve analysis
-    # Output includes per-position statistics: odds_ratio, g_stat, pval, fdr
-    python -m differr \\
-        -a $ivt_bam \\
+    differr \\
         -b $native_bam \\
+        -a $ivt_bam \\
         -r $reference \\
         -o ${prefix}.bed \\
-        --fdr ${fdr_threshold} \\
+        -f ${fdr_threshold} \\
         $args || true
 
     # Also try to get raw output files if differr creates intermediate files
