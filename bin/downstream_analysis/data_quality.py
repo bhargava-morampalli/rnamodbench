@@ -412,10 +412,7 @@ def check_replicate_overlap(
     # Get positions per replicate
     rep_positions = {}
     for rep in replicates:
-        rep_df = tool_df[tool_df['replicate'] == rep].copy()
-        rep_df['position'] = pd.to_numeric(rep_df['position'], errors='coerce')
-        rep_df = rep_df[rep_df['position'].notna()]
-        positions = set(zip(rep_df['reference'].astype(str), rep_df['position'].astype(int)))
+        positions = set(tool_df[tool_df['replicate'] == rep]['position'].values)
         rep_positions[rep] = positions
 
     # Calculate pairwise Jaccard
@@ -460,7 +457,7 @@ def check_replicate_overlap(
 
 def check_position_coverage(
     tool_outputs: Dict[str, pd.DataFrame],
-    reference_positions: Optional[Set[Tuple[str, int]]] = None,
+    reference_positions: Optional[Set[int]] = None,
     report: DataQualityReport = None
 ) -> DataQualityReport:
     """
@@ -478,7 +475,7 @@ def check_position_coverage(
         report = DataQualityReport()
 
     # Calculate union of all positions (testable universe)
-    all_positions: Set[Tuple[str, int]] = set()
+    all_positions = set()
     tool_positions = {}
 
     for tool_name, tool_df in tool_outputs.items():
@@ -486,10 +483,7 @@ def check_position_coverage(
             tool_positions[tool_name] = set()
             continue
 
-        tmp = tool_df.copy()
-        tmp['position'] = pd.to_numeric(tmp['position'], errors='coerce')
-        tmp = tmp[tmp['position'].notna()]
-        positions = set(zip(tmp['reference'].astype(str), tmp['position'].astype(int)))
+        positions = set(tool_df['position'].values)
         tool_positions[tool_name] = positions
         all_positions.update(positions)
 
