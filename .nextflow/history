@@ -10,4 +10,3 @@
 2026-01-10 20:10:45	-	crazy_volta	-	22022dc0b47f30718e091efbf11da852	cfc324da-346a-4ab0-a8b6-0d19435a94d9	nextflow run /home/bmorampa/new_improved/subworkflows/local/input_check/main.nf --help
 2026-01-10 20:10:48	-	ecstatic_mercator	-	d401242c5824bde45048a0b9c794021f	b029185c-134c-4b6d-bca0-aead04b200ba	nextflow run /home/bmorampa/new_improved/subworkflows/local/mapping_rrna/main.nf --help
 2026-01-10 20:10:52	-	kickass_shaw	-	b7ce39cd672779b6167a1342d516406d	d858184b-570f-4f82-93ac-837d4828a8ac	nextflow run /home/bmorampa/new_improved/subworkflows/local/modification_calling/main.nf --help
-2026-01-10 20:10:56	-	romantic_panini	-	ae5b09883b7cbd44db7f723634088986	e7843215-9095-405b-85f2-79deaff74755	nextflow run /home/bmorampa/new_improved/subworkflows/local/prepare_signal_data/main.nf --help

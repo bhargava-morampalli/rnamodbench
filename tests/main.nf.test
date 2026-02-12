@@ -50,4 +50,53 @@ ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
 
     }
 
+    test("Should fail when native FAST5 directories are not pooled to one canonical path") {
+
+        options "-stub"
+
+        when {
+            def sheet = file("test_samplesheet_mismatched_native_fast5.csv")
+            def fastq_native = file("${projectDir}/tests/data/native_rep1.fastq.gz")
+            def fastq_ivt = file("${projectDir}/tests/data/ivt_rep1.fastq.gz")
+            def fast5_native_a = file("${projectDir}/tests/data/fast5/native_rep1")
+            def fast5_native_b = file("${projectDir}/tests/data/fast5/ivt_rep1")
+            def fast5_ivt = file("${projectDir}/tests/data/fast5/ivt_rep1")
+
+            // Intentionally provide two different native FAST5 directories to trigger fail-fast validation.
+            // Keep native/ivt pairing valid for each target+replicate.
+            sheet.text = """sample,fastq,type,replicate,fast5_dir,target
+native_16s_rep1,${fastq_native},native,rep1,${fast5_native_a},16s
+ivt_16s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},16s
+native_23s_rep1,${fastq_native},native,rep1,${fast5_native_b},23s
+ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
+"""
+
+            params {
+                input = sheet.getAbsolutePath().toString()
+                outdir = "$outputDir"
+                references = "${projectDir}/tests/data/references.csv"
+                validate_params = false
+            }
+        }
+
+        then {
+            assert !workflow.success
+
+            // Assert deterministic pooled FAST5 validation message is surfaced.
+            def props = workflow.properties
+            def error_chunks = []
+            ['errorMessage', 'stderr', 'stdout', 'log'].each { key ->
+                if (props.containsKey(key) && workflow."${key}") {
+                    error_chunks << workflow."${key}".toString()
+                }
+            }
+            if (path(".nextflow.log").exists()) {
+                error_chunks << path(".nextflow.log").text
+            }
+            def error_text = error_chunks.join('\n')
+            assert error_text.contains("ERROR: Pooled FAST5 mode requires exactly one FAST5 directory for type 'native'.")
+        }
+
+    }
+
 }

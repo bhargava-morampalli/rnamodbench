@@ -2,7 +2,7 @@
 work/
 .nextflow/
 .nextflow.log*
-
+docs/review_step1_workflow_dataflow.md
 # nf-test directories
 .nf-test/
 

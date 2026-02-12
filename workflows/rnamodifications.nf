@@ -137,9 +137,43 @@ workflow RNAMODIFICATIONS {
     // =========================================================================
     // PREPARE SIGNAL DATA
     // =========================================================================
-    // Get FAST5 directories from reads
-    native_fast5 = native_reads.map { it[0].fast5_dir }.first()
-    ivt_fast5 = ivt_reads.map { it[0].fast5_dir }.first()
+    // Pooled FAST5 mode: require exactly one canonical FAST5 directory per type.
+    // Canonicalization uses real paths so symlink/path variants collapse.
+    native_fast5 = native_reads
+        .map { meta, fastq ->
+            try {
+                meta.fast5_dir.toRealPath().toString()
+            } catch (Exception e) {
+                error "ERROR: Could not resolve FAST5 directory for sample '${meta.id}' (${meta.type}): ${meta.fast5_dir}"
+            }
+        }
+        .unique()
+        .collect()
+        .map { dirs ->
+            def sorted_dirs = dirs.collect { it }.sort()
+            if (sorted_dirs.size() != 1) {
+                error "ERROR: Pooled FAST5 mode requires exactly one FAST5 directory for type 'native'. Found ${sorted_dirs.size()}: ${sorted_dirs.join(', ')}"
+            }
+            file(sorted_dirs[0], checkIfExists: true)
+        }
+
+    ivt_fast5 = ivt_reads
+        .map { meta, fastq ->
+            try {
+                meta.fast5_dir.toRealPath().toString()
+            } catch (Exception e) {
+                error "ERROR: Could not resolve FAST5 directory for sample '${meta.id}' (${meta.type}): ${meta.fast5_dir}"
+            }
+        }
+        .unique()
+        .collect()
+        .map { dirs ->
+            def sorted_dirs = dirs.collect { it }.sort()
+            if (sorted_dirs.size() != 1) {
+                error "ERROR: Pooled FAST5 mode requires exactly one FAST5 directory for type 'ivt'. Found ${sorted_dirs.size()}: ${sorted_dirs.join(', ')}"
+            }
+            file(sorted_dirs[0], checkIfExists: true)
+        }
 
     PREPARE_SIGNAL_DATA(
         MAPPING_RRNA.out.mapped_fastqs,
