@@ -7,7 +7,7 @@ process TOMBO_TEXT_OUTPUT {
     container null
 
     input:
-    tuple val(key), path(statistic)
+    tuple val(key), path(statistic), path(reference)
 
     output:
     tuple val(key), path("*.csv"), emit: bed
@@ -19,11 +19,6 @@ process TOMBO_TEXT_OUTPUT {
 
     script:
     def prefix = task.ext.prefix ?: "${key}"
-    def rrna_type = key.split('_')[0]
-    // Define chromosome names and coordinates based on rRNA type
-    def chrom = rrna_type == '16s' ? '16s_88_rrsE' : '23s_78_rrlB'
-    def start = 1
-    def end = rrna_type == '16s' ? 1813 : 3163
     """
     #!/usr/bin/env python
     import sys
@@ -44,8 +39,24 @@ process TOMBO_TEXT_OUTPUT {
     logger.info("=== TOMBO_TEXT_OUTPUT started ===")
     logger.info(f"Key: ${key}")
     logger.info(f"Statistic file: $statistic")
-    logger.info(f"Chromosome: ${chrom}")
-    logger.info(f"Region: ${start}-${end}")
+    logger.info(f"Reference file: ${reference}")
+
+    # Parse reference FASTA to get chromosome name and sequence length
+    chrom = None
+    seq_length = 0
+    with open("${reference}") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith('>'):
+                chrom = line[1:].split()[0]
+            else:
+                seq_length += len(line)
+
+    if not chrom:
+        raise ValueError(f"No sequence found in reference FASTA: ${reference}")
+
+    logger.info(f"Chromosome: {chrom}")
+    logger.info(f"Region: 1-{seq_length}")
 
     from tombo import tombo_stats
     import pandas as pd
@@ -55,9 +66,9 @@ process TOMBO_TEXT_OUTPUT {
         logger.info("Loading Tombo statistics...")
         sample_level_stats = tombo_stats.LevelStats("$statistic")
 
-        # Get regional statistics
+        # Get regional statistics for the full reference
         logger.info("Extracting regional statistics...")
-        reg_level_stats = sample_level_stats.get_reg_stats('${chrom}', '+', ${start}, ${end})
+        reg_level_stats = sample_level_stats.get_reg_stats(chrom, '+', 1, seq_length)
 
         # Convert to DataFrame and save as CSV
         logger.info(f"Saving results to ${prefix}.csv")

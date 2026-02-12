@@ -71,7 +71,19 @@ workflow MODIFICATION_CALLING {
         versions_ch = versions_ch.mix(TOMBO_DETECT_MODIFICATIONS.out.versions)
 
         // TOMBO: Extract text output from stats files
-        TOMBO_TEXT_OUTPUT ( TOMBO_DETECT_MODIFICATIONS.out.stats )
+        // Wire reference FASTA from ref_map using target extracted from the key
+        ch_tombo_stats_with_ref = TOMBO_DETECT_MODIFICATIONS.out.stats
+            .combine(ref_map)
+            .map { key, stats, refs ->
+                def rrna = key.split('_')[0]
+                def reference = refs[rrna.toLowerCase()]
+                if (!reference) {
+                    error "No reference found for target '${rrna}' in ref_map. Available: ${refs.keySet()}"
+                }
+                [ key, stats, reference ]
+            }
+
+        TOMBO_TEXT_OUTPUT ( ch_tombo_stats_with_ref )
         versions_ch = versions_ch.mix(TOMBO_TEXT_OUTPUT.out.versions)
 
         // =====================================================================

@@ -17,7 +17,8 @@ nextflow_process {
                 """
                 input[0] = [
                     '16s_test',
-                    file("${projectDir}/modules/local/tombo_text_output/tests/data/16s_test.tombo.stats", checkIfExists: true)
+                    file("${projectDir}/modules/local/tombo_text_output/tests/data/16s_test.tombo.stats", checkIfExists: true),
+                    file("${projectDir}/tests/data/16s_reference.fasta", checkIfExists: true)
                 ]
                 """
             }
@@ -40,7 +41,8 @@ nextflow_process {
                 """
                 input[0] = [
                     '16s_test_stub',
-                    file("${projectDir}/modules/local/tombo_text_output/tests/data/16s_test.tombo.stats", checkIfExists: true)
+                    file("${projectDir}/modules/local/tombo_text_output/tests/data/16s_test.tombo.stats", checkIfExists: true),
+                    file("${projectDir}/tests/data/16s_reference.fasta", checkIfExists: true)
                 ]
                 """
             }
