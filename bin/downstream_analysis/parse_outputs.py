@@ -44,6 +44,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Tools whose parsers support directory inputs (have is_dir() handling)
+DIR_CAPABLE_TOOLS = {'nanocompore', 'xpore', 'eligos', 'epinano', 'drummer'}
+
 
 def parse_tombo(
     filepath: Union[str, Path],
@@ -870,6 +873,14 @@ def _load_standard_structure(
                                 tool_dfs.append(df)
                         except Exception as e:
                             logger.warning(f"Failed to parse {filepath}: {e}")
+                    elif filepath.is_dir() and tool in DIR_CAPABLE_TOOLS:
+                        # Directory outputs (e.g. ELIGOS, EPINANO, DRUMMER)
+                        try:
+                            df = parse_tool_output(tool, filepath)
+                            if not df.empty:
+                                tool_dfs.append(df)
+                        except Exception as e:
+                            logger.warning(f"Failed to parse directory {filepath}: {e}")
             elif subdir.is_file() and subdir.suffix in ['.csv', '.tsv', '.txt', '.bed']:
                 # Direct file in tool directory
                 try:
@@ -934,6 +945,13 @@ def _load_with_coverage_dirs(
                                     results[tool].append(df)
                             except Exception as e:
                                 logger.warning(f"Failed to parse {filepath}: {e}")
+                        elif filepath.is_dir() and tool in DIR_CAPABLE_TOOLS:
+                            try:
+                                df = parse_tool_output(tool, filepath, coverage=coverage)
+                                if not df.empty:
+                                    results[tool].append(df)
+                            except Exception as e:
+                                logger.warning(f"Failed to parse directory {filepath}: {e}")
                 elif item.is_file() and item.suffix in ['.csv', '.tsv', '.txt', '.bed']:
                     try:
                         df = parse_tool_output(tool, item, coverage=coverage)
