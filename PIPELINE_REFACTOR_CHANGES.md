@@ -97,7 +97,7 @@ ref_16s    = null  // [DEPRECATED]
 ref_23s    = null  // [DEPRECATED]
 ```
 
-### 5. Main Workflow (`workflows/rnamodifications.nf`)
+### 5. Main Workflow (`workflows/rnamodbench.nf`)
 
 **Changes**:
 - Parses references CSV into a channel and map

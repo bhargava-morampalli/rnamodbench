@@ -1,11 +1,11 @@
 nextflow_workflow {
 
-    name "Test Workflow RNAMODIFICATIONS"
-    script "../rnamodifications.nf"
-    workflow "RNAMODIFICATIONS"
+    name "Test Workflow RNAMODBENCH"
+    script "../rnamodbench.nf"
+    workflow "RNAMODBENCH"
 
     tag "workflows"
-    tag "rnamodifications"
+    tag "rnamodbench"
     tag "pipeline"
 
     test("Should work in stub mode for complete pipeline") {

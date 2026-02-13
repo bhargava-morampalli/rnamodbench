@@ -1,4 +1,4 @@
-# nf-core/rnamodifications: Changelog
+# bhargava-morampalli/rnamodbench: Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for native vs IVT comparison with 3 replicates each
 - Comprehensive test suite with nf-test (23 module tests)
 - Container support via Docker, Singularity, and Wave
-- nf-core 3.5.x standards compliance
+- Structural and style compliance updates across modules and subworkflows
 
 ### Changed
 

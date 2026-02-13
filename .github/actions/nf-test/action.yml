@@ -15,9 +15,14 @@ runs:
   using: "composite"
   steps:
     - name: Install Nextflow
-      uses: nf-core/setup-nextflow@v2
-      with:
-        version: ${{ inputs.nxf-version }}
+      shell: bash
+      run: |
+        if [[ "${{ inputs.nxf-version }}" != "latest-stable" ]]; then
+          export NXF_VER="${{ inputs.nxf-version }}"
+        fi
+        curl -s https://get.nextflow.io | bash
+        sudo mv nextflow /usr/local/bin/
+        nextflow -version
 
     - name: Install nf-test
       shell: bash

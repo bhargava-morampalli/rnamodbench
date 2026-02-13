@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Join nf-core
-    url: https://nf-co.re/join
-    about: For general questions, join the nf-core community on Slack
+  - name: Discussions
+    url: https://github.com/bhargava-morampalli/rnamodbench/discussions
+    about: Use discussions for questions and general conversation.

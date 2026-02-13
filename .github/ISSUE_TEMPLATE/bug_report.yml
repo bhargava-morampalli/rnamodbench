@@ -7,8 +7,8 @@ body:
       value: |
         Before you post this issue, please check the documentation:
 
-        - [nf-core website: troubleshooting](https://nf-co.re/docs/usage/troubleshooting)
-        - [nf-core/rnamodifications pipeline documentation](https://nf-co.re/rnamodifications/usage)
+        - [Pipeline usage documentation](https://github.com/bhargava-morampalli/rnamodbench/blob/dev/docs/usage.md)
+        - [Pipeline output documentation](https://github.com/bhargava-morampalli/rnamodbench/blob/dev/docs/output.md)
 
   - type: textarea
     id: description
@@ -47,4 +47,4 @@ body:
         * Executor _(eg. Slurm, PBS, local)_
         * Container engine: _(eg. Docker, Singularity, Conda, Podman, Apptainer)_
         * OS _(eg. Ubuntu Linux 22.04, macOS 14.2, Windows 11)_
-        * Version of nf-core/rnamodifications _(eg. 1.0.0, 1.0.1)_
+        * Version of bhargava-morampalli/rnamodbench _(eg. 1.0.0, 1.0.1)_

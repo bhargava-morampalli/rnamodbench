@@ -1,6 +1,6 @@
 process F5C_EVENTALIGN_XPORE {
     tag "$meta.id"
-    label 'process_medium'  // nf-core nanopolish equivalent uses process_medium
+    label 'process_medium'  // rnamodbench nanopolish equivalent uses process_medium
 
     conda "bioconda::f5c=1.5"
     container "quay.io/biocontainers/f5c:1.5--hee927d3_2"

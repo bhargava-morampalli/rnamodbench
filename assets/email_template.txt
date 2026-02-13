@@ -1,15 +1,15 @@
 ============================================
- nf-core/rnamodifications
+ bhargava-morampalli/rnamodbench
 ============================================
 Run Name: $runName
 
 <% if (success) { %>
 --------------------------------------------
-nf-core/rnamodifications execution completed successfully!
+bhargava-morampalli/rnamodbench execution completed successfully!
 --------------------------------------------
 <% } else { %>
 ############################################
-nf-core/rnamodifications execution completed unsuccessfully!
+bhargava-morampalli/rnamodbench execution completed unsuccessfully!
 
 The exit status of the task that caused the workflow execution to fail was: $exitStatus.
 
@@ -34,4 +34,4 @@ $param.key: $param.value
 <% } %>
 
 --
-nf-core/rnamodifications
+bhargava-morampalli/rnamodbench

@@ -7,13 +7,13 @@ nextflow.enable.dsl=2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { RNAMODIFICATIONS } from './workflows/rnamodifications'
+include { RNAMODBENCH } from './workflows/rnamodbench'
 
 //
-// WORKFLOW: Run main nf-core/rnamodifications analysis pipeline
+// WORKFLOW: Run main RNA modification benchmarking analysis pipeline
 //
-workflow NFCORE_RNAMODIFICATIONS {
-    RNAMODIFICATIONS ()
+workflow RNAMODBENCH_MAIN {
+    RNAMODBENCH ()
 }
 
 /*
@@ -26,7 +26,7 @@ workflow NFCORE_RNAMODIFICATIONS {
 // WORKFLOW: Execute a single named workflow for the pipeline
 //
 workflow {
-    NFCORE_RNAMODIFICATIONS ()
+    RNAMODBENCH_MAIN ()
 }
 
 /*

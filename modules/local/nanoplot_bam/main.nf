@@ -1,6 +1,6 @@
 process NANOPLOT_BAM {
     tag "$meta.id"
-    label 'process_low'  // nf-core standard: nanoplot uses process_low
+    label 'process_low'  // rnamodbench standard: nanoplot uses process_low
 
     conda "bioconda::nanoplot=1.41.0"
     container "quay.io/biocontainers/nanoplot:1.41.0--pyhdfd78af_0"

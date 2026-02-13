@@ -1,4 +1,4 @@
-name: nf-core linting
+name: Repository linting
 on:
   push:
     branches:
@@ -8,7 +8,7 @@ on:
     types: [published]
 
 jobs:
-  EditorConfig:
+  editorconfig:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
       - name: Run EditorConfig check
         run: editorconfig-checker -exclude README.md $(find .* -type f | grep -v '.git\|.py\|.md\|json\|yml\|yaml\|html\|css\|work\|.nf-test\|.nextflow')
 
-  Prettier:
+  prettier:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,40 +38,42 @@ jobs:
       - name: Run Prettier --check
         run: prettier --check ${GITHUB_WORKSPACE}
 
-  nf-core:
+  pipeline-sanity:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v2
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          architecture: "x64"
-
-      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install nf-core
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+          nextflow -version
 
-      - name: Run nf-core pipelines lint
-        env:
-          GITHUB_COMMENTS_URL: ${{ github.event.pull_request.comments_url }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_PR_COMMIT: ${{ github.event.pull_request.head.sha }}
-        run: nf-core pipelines lint --dir ${GITHUB_WORKSPACE} --markdown lint_results.md
+      - name: Parse Nextflow configuration
+        run: nextflow config -flat > /tmp/nextflow.config.flat
 
-      - name: Save PR number
-        if: ${{ always() }}
-        run: echo ${{ github.event.pull_request.number }} > PR_number.txt
+      - name: Validate JSON schemas
+        run: |
+          python -m json.tool nextflow_schema.json > /dev/null
+          python -m json.tool assets/schema_input.json > /dev/null
+          python -m json.tool assets/schema_references.json > /dev/null
 
-      - name: Upload linting log file artifact
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: linting-logs
-          path: |
-            lint_results.md
-            PR_number.txt
+  branding-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for legacy branding tokens
+        run: |
+          pattern='n[f]-c[o]re|n[f]c[o]re|n[f]-c[o]\.re|rna(modifications)'
+          set +e
+          git grep -niE "$pattern"
+          status=$?
+          set -e
+          if [[ $status -eq 0 ]]; then
+            echo "Legacy branding tokens were found in tracked files."
+            exit 1
+          fi
+          if [[ $status -gt 1 ]]; then
+            exit $status
+          fi

@@ -1,6 +1,6 @@
 process XPORE_DIFFMOD {
     tag "$key"
-    label 'process_medium'  // nf-core nanoseq uses process_medium for xpore
+    label 'process_medium'  // rnamodbench nanoseq uses process_medium for xpore
 
     conda "${moduleDir}/environment.yml"
     container "quay.io/biocontainers/xpore:2.1--pyh5e36f6f_0"

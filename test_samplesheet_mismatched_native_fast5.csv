@@ -1,5 +1,0 @@
-sample,fastq,type,replicate,fast5_dir,target
-native_16s_rep1,/home/bmorampa/new_improved/tests/data/native_rep1.fastq.gz,native,rep1,/home/bmorampa/new_improved/tests/data/fast5/native_rep1,16s
-ivt_16s_rep1,/home/bmorampa/new_improved/tests/data/ivt_rep1.fastq.gz,ivt,rep1,/home/bmorampa/new_improved/tests/data/fast5/ivt_rep1,16s
-native_23s_rep1,/home/bmorampa/new_improved/tests/data/native_rep1.fastq.gz,native,rep1,/home/bmorampa/new_improved/tests/data/fast5/ivt_rep1,23s
-ivt_23s_rep1,/home/bmorampa/new_improved/tests/data/ivt_rep1.fastq.gz,ivt,rep1,/home/bmorampa/new_improved/tests/data/fast5/ivt_rep1,23s

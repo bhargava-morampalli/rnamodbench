@@ -1,6 +1,6 @@
 process SAMTOOLS_VIEW {
     tag "$meta.id"
-    label 'process_low'  // nf-core standard: samtools view is lightweight
+    label 'process_low'  // rnamodbench standard: samtools view is lightweight
 
     conda "bioconda::samtools=1.17"
     container "quay.io/biocontainers/samtools:1.17--h00cdaf9_0"

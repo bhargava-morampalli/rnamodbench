@@ -166,7 +166,7 @@ def check_samplesheet(file_in, file_out):
     Example:
         This function checks that the samplesheet follows the following structure,
         see also the `pipeline documentation
-        <https://nf-co.re/rnamodifications/usage#samplesheet-input>`_::
+        <https://github.com/bhargava-morampalli/rnamodbench/blob/dev/docs/usage.md#samplesheet-input>`_::
 
             sample,fastq,type,replicate,fast5_dir
             SAMPLE_1,SAMPLE_1.fastq.gz,native,rep1,/path/to/fast5

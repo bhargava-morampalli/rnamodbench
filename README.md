@@ -1,14 +1,13 @@
-# nf-core/rnamodifications
+# bhargava-morampalli/rnamodbench
 
 [![Nextflow](https://img.shields.io/badge/version-%E2%89%A525.04.0-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
-[![nf-core template version](https://img.shields.io/badge/nf--core_template-3.5.1-green?style=flat&logo=nfcore&logoColor=white&color=%2324B064&link=https%3A%2F%2Fnf-co.re)](https://github.com/nf-core/tools/releases/tag/3.5.1)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 ## Introduction
 
-**nf-core/rnamodifications** is a bioinformatics pipeline for detecting RNA modifications in Oxford Nanopore direct RNA sequencing data. The pipeline is specifically designed for analyzing 16S and 23S rRNA modifications in E. coli bacteria by comparing native and in vitro transcribed (IVT) RNA samples.
+**bhargava-morampalli/rnamodbench** is a bioinformatics pipeline for detecting RNA modifications in Oxford Nanopore direct RNA sequencing data. The pipeline is specifically designed for analyzing 16S and 23S rRNA modifications in E. coli bacteria by comparing native and in vitro transcribed (IVT) RNA samples.
 
 The pipeline performs the following steps:
 
@@ -61,7 +60,7 @@ graph TD
 4. Run the pipeline:
 
 ```bash
-nextflow run nf-core/rnamodifications \
+nextflow run bhargava-morampalli/rnamodbench \
     -profile singularity \
     --input samplesheet.csv \
     --ref_16s references/16S.fa \
@@ -186,7 +185,7 @@ results/
 ### Basic Usage
 
 ```bash
-nextflow run nf-core/rnamodifications \
+nextflow run bhargava-morampalli/rnamodbench \
     -profile singularity \
     --input samplesheet.csv \
     --ref_16s references/16S.fa \
@@ -197,7 +196,7 @@ nextflow run nf-core/rnamodifications \
 ### Custom Resource Limits
 
 ```bash
-nextflow run nf-core/rnamodifications \
+nextflow run bhargava-morampalli/rnamodbench \
     -profile singularity \
     --input samplesheet.csv \
     --ref_16s references/16S.fa \
@@ -210,7 +209,7 @@ nextflow run nf-core/rnamodifications \
 ### With Conda
 
 ```bash
-nextflow run nf-core/rnamodifications \
+nextflow run bhargava-morampalli/rnamodbench \
     -profile conda \
     --input samplesheet.csv \
     --ref_16s references/16S.fa \
@@ -221,7 +220,7 @@ nextflow run nf-core/rnamodifications \
 ### Resume a Run
 
 ```bash
-nextflow run nf-core/rnamodifications \
+nextflow run bhargava-morampalli/rnamodbench \
     -profile singularity \
     --input samplesheet.csv \
     --ref_16s references/16S.fa \
@@ -276,4 +275,4 @@ If you use this pipeline, please cite:
 For questions and support:
 - Open an issue on the GitHub repository
 - Check the [Nextflow documentation](https://www.nextflow.io/docs/latest/)
-- Visit the [nf-core website](https://nf-co.re/)
+- Visit the [rnamodbench website](https://github.com/bhargava-morampalli/rnamodbench/)

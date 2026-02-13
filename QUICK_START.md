@@ -2,7 +2,7 @@
 
 ## What Has Been Created
 
-A complete nf-core compliant pipeline structure for RNA modification detection has been created in `/home/bmorampa/new_improved/`.
+A complete rnamodbench compliant pipeline structure for RNA modification detection has been created in `/home/bmorampa/rnamodbench/`.
 
 ## Pipeline Architecture
 
@@ -12,7 +12,7 @@ A complete nf-core compliant pipeline structure for RNA modification detection h
    - Clean DSL2 structure
    - Workflow orchestration
 
-2. **Main Workflow** (`workflows/rnamodifications.nf`)
+2. **Main Workflow** (`workflows/rnamodbench.nf`)
    - Modular workflow design
    - Six subworkflows for logical grouping
 
@@ -81,9 +81,9 @@ Create these files in `modules/local/` following the template in `MODULES_README
 
 Create `lib/` directory with:
 - [ ] WorkflowMain.groovy
-- [ ] WorkflowRnamodifications.groovy
-- [ ] NfcoreSchema.groovy
-- [ ] NfcoreTemplate.groovy
+- [ ] WorkflowRnamodbench.groovy
+- [ ] SchemaUtils.groovy
+- [ ] TemplateUtils.groovy
 
 ### 3. Setup Test Data
 
@@ -103,7 +103,7 @@ Create `lib/` directory with:
 
 ```bash
 # Create the module file
-nano /home/bmorampa/new_improved/modules/local/samtools_sort.nf
+nano /home/bmorampa/rnamodbench/modules/local/samtools_sort.nf
 ```
 
 Copy this template:
@@ -188,7 +188,7 @@ ivt_rep1,/path/to/ivt_rep1.fastq,ivt,rep1,/path/to/ivt_fast5
 EOF
 
 # 2. Run the pipeline
-nextflow run /home/bmorampa/new_improved/main.nf \\
+nextflow run /home/bmorampa/rnamodbench/main.nf \\
     -profile singularity \\
     --input samplesheet.csv \\
     --ref_16s /path/to/16S.fa \\
@@ -202,7 +202,7 @@ ls -R results/
 ## Directory Structure Overview
 
 ```
-new_improved/
+rnamodbench/
 ├── main.nf                      # ✅ Entry point
 ├── nextflow.config              # ✅ Main config
 ├── nextflow_schema.json         # ✅ Parameter schema
@@ -212,7 +212,7 @@ new_improved/
 ├── QUICK_START.md              # ✅ This file
 │
 ├── workflows/
-│   └── rnamodifications.nf     # ✅ Main workflow
+│   └── rnamodbench.nf     # ✅ Main workflow
 │
 ├── subworkflows/local/
 │   ├── input_check.nf          # ✅ Complete
@@ -254,7 +254,7 @@ new_improved/
 | Testing | Difficult | Easy |
 | Maintenance | Hard | Easy |
 | Scalability | Limited | Excellent |
-| nf-core compliance | No | Yes |
+| rnamodbench compliance | No | Yes |
 
 ## Expected Timeline
 
@@ -275,17 +275,17 @@ new_improved/
 
 2. **Nextflow resources**:
    - https://www.nextflow.io/docs/latest/
-   - https://nf-co.re/docs/
+   - https://github.com/bhargava-morampalli/rnamodbench/docs/
 
 3. **Module examples**:
    - Check `modules/local/` for completed examples
-   - Look at nf-core modules: https://nf-co.re/modules
+   - Look at rnamodbench modules: https://github.com/bhargava-morampalli/rnamodbench/modules
 
 ## Quick Reference Commands
 
 ```bash
 # Run pipeline
-nextflow run /home/bmorampa/new_improved/main.nf \\
+nextflow run /home/bmorampa/rnamodbench/main.nf \\
     -profile singularity \\
     --input samplesheet.csv \\
     --ref_16s refs/16S.fa \\
@@ -299,10 +299,10 @@ nextflow run ... -resume
 nextflow clean -f
 
 # Check pipeline syntax
-nextflow run /home/bmorampa/new_improved/main.nf --help
+nextflow run /home/bmorampa/rnamodbench/main.nf --help
 
 # View DAG
-nextflow run /home/bmorampa/new_improved/main.nf -with-dag flowchart.html
+nextflow run /home/bmorampa/rnamodbench/main.nf -with-dag flowchart.html
 ```
 
 ## Success Criteria

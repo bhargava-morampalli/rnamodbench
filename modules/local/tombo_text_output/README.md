@@ -2,9 +2,9 @@
 
 ## Container Dependencies
 
-This module requires both `ont-tombo` and `pandas` to function properly. The module uses Wave (Seqera Containers) for automatic multi-package container building following nf-core best practices.
+This module requires both `ont-tombo` and `pandas` to function properly. The module uses Wave (Seqera Containers) for automatic multi-package container building following rnamodbench best practices.
 
-### Recommended Usage with Wave (Modern nf-core Standard)
+### Recommended Usage with Wave (Modern rnamodbench Standard)
 
 **Use the Wave profile** (Automatic container building):
 ```bash
@@ -33,7 +33,7 @@ Wave will automatically:
 
 ### Environment Specification
 
-The `environment.yml` follows nf-core standards:
+The `environment.yml` follows rnamodbench standards:
 - Includes Renovate comments for automated dependency updates
 - Specifies exact versions for reproducibility
 - Uses conda-forge and bioconda channels

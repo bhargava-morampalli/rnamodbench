@@ -1,6 +1,6 @@
 nextflow_pipeline {
 
-    name "Test Pipeline RNAMODIFICATIONS - Default"
+    name "Test Pipeline RNAMODBENCH - Default"
     script "../main.nf"
     tag "pipeline"
     tag "default"

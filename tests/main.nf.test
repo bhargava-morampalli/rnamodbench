@@ -1,6 +1,6 @@
 nextflow_pipeline {
 
-    name "Test Pipeline RNAMODIFICATIONS"
+    name "Test Pipeline RNAMODBENCH"
     script "main.nf"
     tag "pipeline"
     tag "stub"

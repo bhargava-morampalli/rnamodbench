@@ -1,6 +1,6 @@
 process SAMTOOLS_FLAGSTAT {
     tag "$meta.id"
-    label 'process_single'  // nf-core standard: flagstat is very fast
+    label 'process_single'  // rnamodbench standard: flagstat is very fast
 
     conda "bioconda::samtools=1.17"
     container "quay.io/biocontainers/samtools:1.17--h00cdaf9_0"

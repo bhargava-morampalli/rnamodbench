@@ -1,6 +1,0 @@
-Oct-23 20:40:01.136 [main] INFO  com.askimed.nf.test.App - nf-test 0.9.2
-Oct-23 20:40:01.143 [main] INFO  com.askimed.nf.test.App - Arguments: [list]
-Oct-23 20:40:01.559 [main] INFO  com.askimed.nf.test.App - Nextflow Version: 24.10.5
-Oct-23 20:40:01.564 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Loaded 0 files from directory /home/bmorampa/new_improved/modules/local/samtools_depth/tests/data in 0.002 sec
-Oct-23 20:40:01.564 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Found 0 files containing tests.
-Oct-23 20:40:01.565 [main] DEBUG com.askimed.nf.test.lang.dependencies.DependencyResolver - Found files: []

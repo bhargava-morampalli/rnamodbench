@@ -1,4 +1,4 @@
-name: nf-core branch protection
+name: rnamodbench branch protection
 on:
   pull_request_target:
     branches:
@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check PRs
-        if: github.repository == 'nf-core/rnamodifications'
+        if: github.repository == 'bhargava-morampalli/rnamodbench'
         run: |
-          { [[ ${{github.event.pull_request.head.repo.full_name }} == nf-core/rnamodifications ]] && [[ $GITHUB_HEAD_REF == "dev" ]]; } || { echo "
+          { [[ ${{github.event.pull_request.head.repo.full_name }} == bhargava-morampalli/rnamodbench ]] && [[ $GITHUB_HEAD_REF == "dev" ]]; } || { echo "
           ==============================================================
           Hi there!
-          It looks like you want to open a PR against the \`master\` branch of nf-core/rnamodifications.
+          It looks like you want to open a PR against the \`master\` branch of bhargava-morampalli/rnamodbench.
           That's not allowed - PRs should be opened against \`dev\` instead (or \`master\` if you are merging a release).
-          If you're an nf-core maintainer and want to release, please open this PR against the \`master\` branch
+          If you're an rnamodbench maintainer and want to release, please open this PR against the \`master\` branch
           from a branch called \`dev\`.
           ==============================================================
           " ; exit 1; }

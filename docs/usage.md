@@ -1,15 +1,15 @@
-# nf-core/rnamodifications: Usage
+# bhargava-morampalli/rnamodbench: Usage
 
 ## Introduction
 
-nf-core/rnamodifications is a bioinformatics pipeline for detecting RNA modifications from Oxford Nanopore direct RNA sequencing data. It compares native RNA samples against in-vitro transcribed (IVT) controls to identify modified positions using multiple detection algorithms.
+bhargava-morampalli/rnamodbench is a bioinformatics pipeline for detecting RNA modifications from Oxford Nanopore direct RNA sequencing data. It compares native RNA samples against in-vitro transcribed (IVT) controls to identify modified positions using multiple detection algorithms.
 
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/rnamodifications \
+nextflow run bhargava-morampalli/rnamodbench \
     --input samplesheet.csv \
     --outdir results \
     --ref_16s /path/to/16s_reference.fa \
@@ -84,7 +84,7 @@ Several generic profiles are bundled with the pipeline which instruct the pipeli
 
 > We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility.
 
-The pipeline also dynamically loads configurations from [nf-core/configs](https://github.com/nf-core/configs) when it runs. See the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation) for more information.
+The pipeline currently uses local configuration profiles bundled with this repository.
 
 Note that multiple profiles can be loaded, for example: `-profile test,docker` - the order of arguments is important! They are loaded in sequence, so later profiles can overwrite earlier profiles.
 
@@ -105,9 +105,9 @@ Specify the path to a specific config file.
 
 ### Resource requests
 
-Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with any of the error codes specified [here](https://github.com/nf-core/rnaseq/blob/4c27ef5610c87db00c3c5a3ber3568c0eb9f9f/conf/base.config#L18), it will automatically be resubmitted with higher requests (2 x original, then 3 x original). If it still fails after the third attempt then the pipeline will terminate.
+Each step in the pipeline has default CPU, memory, and time requests in `conf/base.config`. For selected error codes, failed jobs are retried with larger resources. If a step still fails after retries, the pipeline terminates.
 
-To change the resource requests, please see the [max resources documentation](https://nf-co.re/docs/usage/configuration#max-resources).
+To change resource requests, use a custom Nextflow config (`-c custom.config`) with your own `process` selectors.
 
 ## Pipeline parameters
 

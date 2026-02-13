@@ -1,4 +1,4 @@
-# nf-core/rnamodifications: Output
+# bhargava-morampalli/rnamodbench: Output
 
 ## Introduction
 

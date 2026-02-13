@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 /*
- * RNAMODIFICATIONS Workflow
+ * RNAMODBENCH Workflow
  *
  * Dynamic RNA modification detection pipeline supporting arbitrary target rRNA types.
  * Samples are mapped directly to their designated references based on the 'target' column
@@ -15,7 +15,7 @@ include { PREPARE_SIGNAL_DATA  } from '../subworkflows/local/prepare_signal_data
 include { SIGNAL_PROCESSING    } from '../subworkflows/local/signal_processing'
 include { MODIFICATION_CALLING } from '../subworkflows/local/modification_calling'
 
-workflow RNAMODIFICATIONS {
+workflow RNAMODBENCH {
     ch_versions = Channel.empty()
 
     // =========================================================================
