@@ -59,6 +59,13 @@ workflow MODIFICATION_CALLING {
         // =====================================================================
         // TOMBO: Detect modifications by comparing native vs IVT
         // =====================================================================
+        ch_tombo_key_to_rrna = tombo_resquiggled
+            .map { meta, fast5 ->
+                def key = "${meta.rrna}_${meta.replicate}"
+                [ key, meta.rrna ]
+            }
+            .unique()
+
         // Group by target+replicate, collect native and IVT samples
         ch_tombo_ready = tombo_resquiggled
             .map { meta, fast5 ->
@@ -71,11 +78,11 @@ workflow MODIFICATION_CALLING {
         versions_ch = versions_ch.mix(TOMBO_DETECT_MODIFICATIONS.out.versions)
 
         // TOMBO: Extract text output from stats files
-        // Wire reference FASTA from ref_map using target extracted from the key
+        // Wire reference FASTA from ref_map using explicit key->rrna mapping
         ch_tombo_stats_with_ref = TOMBO_DETECT_MODIFICATIONS.out.stats
+            .join(ch_tombo_key_to_rrna)
             .combine(ref_map)
-            .map { key, stats, refs ->
-                def rrna = key.split('_')[0]
+            .map { key, stats, rrna, refs ->
                 def reference = refs[rrna.toLowerCase()]
                 if (!reference) {
                     error "No reference found for target '${rrna}' in ref_map. Available: ${refs.keySet()}"
@@ -97,10 +104,10 @@ workflow MODIFICATION_CALLING {
         ch_yanocomp_ready = YANOCOMP_PREPARE.out.hdf5
             .map { meta, hdf5 ->
                 def key = "${meta.rrna}_${meta.replicate}"
-                [ key, meta.type, hdf5 ]
+                [ key, meta.type, hdf5, meta.rrna, meta.replicate ]
             }
             .groupTuple()
-            .filter { key, types, hdf5s ->
+            .filter { key, types, hdf5s, rrnas, replicates ->
                 def has_native = types.contains('native')
                 def has_ivt = types.contains('ivt')
                 if (!has_native || !has_ivt) {
@@ -108,11 +115,11 @@ workflow MODIFICATION_CALLING {
                 }
                 has_native && has_ivt
             }
-            .map { key, types, hdf5s ->
+            .map { key, types, hdf5s, rrnas, replicates ->
                 def meta = [:]
                 meta.id = key
-                meta.rrna = key.split('_')[0]
-                meta.replicate = key.split('_').drop(1).join('_')  // Handle replicate names with underscores
+                meta.rrna = rrnas[0]
+                meta.replicate = replicates[0]
                 def native_idx = types.findIndexOf { it == 'native' }
                 def ivt_idx = types.findIndexOf { it == 'ivt' }
                 [ meta, hdf5s[native_idx], hdf5s[ivt_idx] ]

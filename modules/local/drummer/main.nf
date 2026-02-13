@@ -22,6 +22,7 @@ process DRUMMER {
     // Set p-value threshold to 1.0 to output ALL positions for ROC curve analysis
     def pval_threshold = task.ext.pval ?: '1.0'
     def odds_ratio = task.ext.odds_ratio ?: '0'
+    def drummer_home = task.ext.drummer_home ?: ''
     """
     # Capture stdout and stderr to log file
     exec > >(tee -a ${prefix}.log) 2>&1
@@ -38,16 +39,16 @@ process DRUMMER {
 
     mkdir -p ${prefix}
 
-    # Clone DRUMMER from GitHub
-    if [ ! -d "DRUMMER" ]; then
-        git clone --depth 1 https://github.com/DepledgeLab/DRUMMER.git
-        # Fix Python 3.11+ compatibility: 'rU' mode was removed in Python 3.11
-        sed -i "s/'rU'/'r'/g" DRUMMER/modules/test_exome.py
-        sed -i "s/'rU'/'r'/g" DRUMMER/modules/support.py 2>/dev/null || true
-
-        # Fix multiprocessing issues in containerized environments (Python 3.14+)
-        # Add multiprocessing start method fix at the beginning of DRUMMER.py
-        sed -i '1a import multiprocessing; multiprocessing.set_start_method("fork", force=True)' DRUMMER/DRUMMER.py 2>/dev/null || true
+    DRUMMER_HOME="${drummer_home}"
+    if [ -n "\$DRUMMER_HOME" ] && [ -f "\$DRUMMER_HOME/DRUMMER.py" ]; then
+        DRUMMER_SCRIPT="\$DRUMMER_HOME/DRUMMER.py"
+    elif command -v DRUMMER.py >/dev/null 2>&1; then
+        DRUMMER_SCRIPT=\$(command -v DRUMMER.py)
+    elif command -v drummer >/dev/null 2>&1; then
+        DRUMMER_SCRIPT=\$(command -v drummer)
+    else
+        echo "ERROR: DRUMMER executable not found. Install DRUMMER in the module environment/container or set task.ext.drummer_home."
+        exit 1
     fi
 
     # Index reference if not already indexed
@@ -63,7 +64,7 @@ process DRUMMER {
     # Treatment = IVT (modifications absent)
     # Using p-value threshold of 1.0 to output ALL positions for ROC curve analysis
     # DRUMMER outputs per-position statistics with p-values and odds ratios
-    python DRUMMER/DRUMMER.py \\
+    python "\$DRUMMER_SCRIPT" \\
         -r $reference \\
         -n \$ref_name \\
         -c $native_bam \\
@@ -88,9 +89,26 @@ process DRUMMER {
 
     echo "=== DRUMMER completed at \$(date) ==="
 
+    drummer_version=\$(python - <<'PY'
+try:
+    import importlib.metadata as md
+except Exception:
+    import importlib_metadata as md  # type: ignore
+
+version = "unknown"
+for package in ("drummer", "DRUMMER"):
+    try:
+        version = md.version(package)
+        break
+    except Exception:
+        pass
+print(version)
+PY
+)
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        drummer: \$(cd DRUMMER && git describe --tags 2>/dev/null || echo "1.0")
+        drummer: \$drummer_version
         python: \$(python --version 2>&1 | sed 's/Python //')
     END_VERSIONS
     """

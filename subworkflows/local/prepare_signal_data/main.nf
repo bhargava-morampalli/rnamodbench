@@ -42,13 +42,9 @@ workflow PREPARE_SIGNAL_DATA {
 
         // 2. Subset the FAST5 directory to get relevant files
         // Select correct FAST5 directory based on sample type (native/ivt)
-        // Wrap directory paths in channels for combine operation
-        ch_native_fast5 = Channel.value(native_fast5_dir)
-        ch_ivt_fast5 = Channel.value(ivt_fast5_dir)
-
         ch_fast5_subset_input = EXTRACT_READ_IDS.out.read_ids
-            .combine(ch_native_fast5)
-            .combine(ch_ivt_fast5)
+            .combine(native_fast5_dir)
+            .combine(ivt_fast5_dir)
             .map { meta, read_ids, native_dir, ivt_dir ->
                 def fast5_dir = (meta.type == 'native') ? native_dir : ivt_dir
                 [ meta, read_ids, fast5_dir ]

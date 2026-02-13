@@ -35,10 +35,9 @@ process DIFFERR {
     echo "Arguments: $args"
     echo "==========================================="
 
-    # Clone and install differr from GitHub
-    if [ ! -d "differr_nanopore_DRS" ]; then
-        git clone --depth 1 https://github.com/bartongroup/differr_nanopore_DRS.git
-        pip install ./differr_nanopore_DRS --quiet --no-cache-dir
+    if ! command -v differr >/dev/null 2>&1; then
+        echo "ERROR: 'differr' command not found in environment. Install DiffErr in the module environment/container."
+        exit 1
     fi
 
     # Index reference if not already indexed
@@ -69,9 +68,14 @@ process DIFFERR {
 
     echo "=== DIFFERR completed at \$(date) ==="
 
+    differr_version=\$(differr --version 2>/dev/null | head -1 | sed -E 's/^[^0-9]*([0-9]+(\\.[0-9]+)*)?.*\$/\\1/')
+    if [ -z "\$differr_version" ]; then
+        differr_version="unknown"
+    fi
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        differr: \$(cd differr_nanopore_DRS && git describe --tags 2>/dev/null || echo "0.2")
+        differr: \$differr_version
         python: \$(python --version 2>&1 | sed 's/Python //')
     END_VERSIONS
     """

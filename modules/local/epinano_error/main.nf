@@ -22,6 +22,7 @@ process EPINANO_ERROR {
     def zscore_threshold = task.ext.zscore ?: '3'
     def coverage_threshold = task.ext.coverage ?: '30'
     def error_threshold = task.ext.error_threshold ?: '0.1'
+    def epinano_home = task.ext.epinano_home ?: ''
     """
     # Capture stdout and stderr to log file
     exec > >(tee -a ${prefix}.log) 2>&1
@@ -39,9 +40,20 @@ process EPINANO_ERROR {
 
     mkdir -p ${prefix}
 
-    # Clone EpiNano from GitHub
-    if [ ! -d "EpiNano" ]; then
-        git clone --depth 1 https://github.com/novoalab/EpiNano.git
+    EPINANO_HOME="${epinano_home}"
+    if [ -n "\$EPINANO_HOME" ]; then
+        EPINANO_VARIANTS="\$EPINANO_HOME/Epinano_Variants.py"
+        EPINANO_DIFFERR="\$EPINANO_HOME/Epinano_DiffErr.R"
+        EPINANO_SUMERR="\$EPINANO_HOME/misc/Epinano_sumErr.py"
+    else
+        EPINANO_VARIANTS=\$(command -v Epinano_Variants.py || true)
+        EPINANO_DIFFERR=\$(command -v Epinano_DiffErr.R || true)
+        EPINANO_SUMERR=\$(command -v Epinano_sumErr.py || true)
+    fi
+
+    if [ -z "\$EPINANO_VARIANTS" ] || [ -z "\$EPINANO_DIFFERR" ] || [ -z "\$EPINANO_SUMERR" ]; then
+        echo "ERROR: EpiNano scripts not found. Install EpiNano in the module environment/container or set task.ext.epinano_home."
+        exit 1
     fi
 
     # Index reference if not already indexed
@@ -51,14 +63,14 @@ process EPINANO_ERROR {
 
     # Extract variants for native (WT/modified) sample using EpiNano
     # Using -r (lowercase) for reference as per current EpiNano API
-    python EpiNano/Epinano_Variants.py \\
+    python "\$EPINANO_VARIANTS" \\
         -r $reference \\
         -b $native_bam \\
         -c $task.cpus \\
         -o native_variants || true
 
     # Extract variants for IVT (KO/unmodified) sample
-    python EpiNano/Epinano_Variants.py \\
+    python "\$EPINANO_VARIANTS" \\
         -r $reference \\
         -b $ivt_bam \\
         -c $task.cpus \\
@@ -100,7 +112,7 @@ process EPINANO_ERROR {
         # Analysis 1: Mismatch only (-f mis)
         # Uses per_site.csv files directly
         echo "Running mismatch analysis (-f mis)..."
-        Rscript EpiNano/Epinano_DiffErr.R \\
+        Rscript "\$EPINANO_DIFFERR" \\
             -k "ivt_fixed.csv" \\
             -w "native_fixed.csv" \\
             -t $zscore_threshold \\
@@ -113,12 +125,12 @@ process EPINANO_ERROR {
         # Preprocessing for sum_err analysis: run Epinano_sumErr.py
         # This creates sum_err.csv files required for -f sum_err
         echo "Running Epinano_sumErr.py preprocessing..."
-        python EpiNano/misc/Epinano_sumErr.py \\
+        python "\$EPINANO_SUMERR" \\
             --file native_fixed.csv \\
             --out native_sum_err.csv \\
             --kmer 0 || true
 
-        python EpiNano/misc/Epinano_sumErr.py \\
+        python "\$EPINANO_SUMERR" \\
             --file ivt_fixed.csv \\
             --out ivt_sum_err.csv \\
             --kmer 0 || true
@@ -127,7 +139,7 @@ process EPINANO_ERROR {
         # Uses preprocessed sum_err.csv files
         if [ -f "native_sum_err.csv" ] && [ -f "ivt_sum_err.csv" ]; then
             echo "Running sum_err analysis (-f sum_err)..."
-            Rscript EpiNano/Epinano_DiffErr.R \\
+            Rscript "\$EPINANO_DIFFERR" \\
                 -k "ivt_sum_err.csv" \\
                 -w "native_sum_err.csv" \\
                 -t $zscore_threshold \\
@@ -152,9 +164,26 @@ process EPINANO_ERROR {
 
     echo "=== EPINANO_ERROR completed at \$(date) ==="
 
+    epinano_version=\$(python - <<'PY'
+try:
+    import importlib.metadata as md
+except Exception:
+    import importlib_metadata as md  # type: ignore
+
+version = "unknown"
+for package in ("epinano", "EpiNano"):
+    try:
+        version = md.version(package)
+        break
+    except Exception:
+        pass
+print(version)
+PY
+)
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        epinano: \$(cd EpiNano && git describe --tags 2>/dev/null || echo "1.2")
+        epinano: \$epinano_version
         python: \$(python --version 2>&1 | sed 's/Python //')
         R: \$(R --version 2>&1 | head -1 | sed 's/R version \\([^ ]*\\).*/\\1/')
     END_VERSIONS

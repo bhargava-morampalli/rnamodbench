@@ -15,3 +15,5 @@ dependencies:
   - conda-forge::click
   - conda-forge::git
   - conda-forge::pip
+  - pip:
+      - git+https://github.com/bartongroup/differr_nanopore_DRS.git@a554d00c894d76cd4e91e2312cf88d611b0af3d2

@@ -15,9 +15,6 @@ include { PREPARE_SIGNAL_DATA  } from '../subworkflows/local/prepare_signal_data
 include { SIGNAL_PROCESSING    } from '../subworkflows/local/signal_processing'
 include { MODIFICATION_CALLING } from '../subworkflows/local/modification_calling'
 
-// Import nf-schema functions
-include { samplesheetToList } from 'plugin/nf-schema'
-
 workflow RNAMODIFICATIONS {
     ch_versions = Channel.empty()
 
@@ -32,16 +29,30 @@ workflow RNAMODIFICATIONS {
             .fromPath(params.references, checkIfExists: true)
             .splitCsv(header: true)
             .map { row ->
-                def target = row.target.toLowerCase()
-                def ref_file = file(row.reference, checkIfExists: true)
+                def target = row instanceof Map ? row.target : row[0]
+                def reference = row instanceof Map ? row.reference : row[1]
+                def ref_file = file(reference, checkIfExists: true)
+                target = target.toString().toLowerCase()
                 [ target, ref_file ]
             }
 
         // Also create a reference map for downstream use
         ch_ref_map = ch_references.collect().map { ref_list ->
             def ref_map = [:]
-            ref_list.each { target, ref_file ->
-                ref_map[target] = ref_file
+            if (ref_list && ref_list[0] instanceof List) {
+                ref_list.each { item ->
+                    def target = item[0]
+                    def ref_file = item[1]
+                    ref_map[target.toString()] = ref_file
+                }
+            } else {
+                ref_list.collate(2).each { item ->
+                    if (item.size() == 2) {
+                        def target = item[0]
+                        def ref_file = item[1]
+                        ref_map[target.toString()] = ref_file
+                    }
+                }
             }
             ref_map
         }
@@ -68,16 +79,22 @@ workflow RNAMODIFICATIONS {
     // meta contains: id, single_end, type, replicate, fast5_dir, rrna
 
     reads = Channel
-        .fromList(samplesheetToList(params.input, "assets/schema_input.json"))
+        .fromPath(params.input, checkIfExists: true)
+        .splitCsv(header: true, sep: ',')
         .map { row ->
+            def target = row.target ?: row.rrna
+            if (!target) {
+                error "ERROR: Samplesheet row for sample '${row.sample}' is missing required target column."
+            }
+
             def meta = [:]
             meta.id = row.sample
             meta.single_end = true
             meta.type = row.type
             meta.replicate = row.replicate
-            meta.fast5_dir = file(row.fast5_dir)
-            meta.rrna = row.target.toLowerCase()  // Target rRNA type (e.g., '16s', '23s')
-            [ meta, file(row.fastq) ]
+            meta.fast5_dir = file(row.fast5_dir, checkIfExists: true)
+            meta.rrna = target.toString().toLowerCase()  // Target rRNA type (e.g., '16s', '23s')
+            [ meta, file(row.fastq, checkIfExists: true) ]
         }
 
     // Get unique targets from samplesheet for validation

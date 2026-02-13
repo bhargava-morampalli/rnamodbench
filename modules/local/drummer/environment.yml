@@ -17,3 +17,6 @@ dependencies:
   - samtools=1.17
   - bedtools
   - git
+  - pip
+  - pip:
+      - git+https://github.com/DepledgeLab/DRUMMER.git@6683822c6210083e4ab0eecb4b6327e3c55f4c46

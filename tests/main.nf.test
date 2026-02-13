@@ -12,10 +12,18 @@ nextflow_pipeline {
         when {
             // Create a samplesheet with absolute paths to test data
             def sheet = file("test_samplesheet.csv")
+            def refs = file("test_references.csv")
             def fastq_native = file("${projectDir}/tests/data/native_rep1.fastq.gz")
             def fastq_ivt = file("${projectDir}/tests/data/ivt_rep1.fastq.gz")
             def fast5_native = file("${projectDir}/tests/data/fast5/native_rep1")
             def fast5_ivt = file("${projectDir}/tests/data/fast5/ivt_rep1")
+            def ref16s = file("${projectDir}/tests/data/16s_reference.fasta")
+            def ref23s = file("${projectDir}/tests/data/23s_reference.fasta")
+
+            refs.text = """target,reference
+16s,${ref16s}
+23s,${ref23s}
+"""
 
             // Header: sample,fastq,type,replicate,fast5_dir,target
             // Each target (16s, 23s) requires both native and IVT samples
@@ -29,7 +37,7 @@ ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
             params {
                 input = sheet.getAbsolutePath().toString()
                 outdir = "$outputDir"
-                references = "${projectDir}/tests/data/references.csv"
+                references = refs.getAbsolutePath().toString()
                 validate_params = false
             }
         }
@@ -41,10 +49,32 @@ ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
             // Snapshot versions.yml file
             def versionsFile = path("$outputDir").resolve("pipeline_info").list()
                 .find { it.name.endsWith("versions.yml") }
+            def native16sFlagstat = path("$outputDir")
+                .resolve("qc").resolve("flagstat").resolve("native").resolve("16s")
+                .resolve("native_16s_rep1_flagstat.txt")
+            def native16sDepth = path("$outputDir")
+                .resolve("qc").resolve("depth").resolve("native").resolve("16s")
+                .resolve("native_16s_rep1.txt")
+            def native16sSingleFast5 = path("$outputDir")
+                .resolve("single_fast5").resolve("native").resolve("16s")
+                .resolve("single_fast5_native_16s_rep1")
+            def tomboStats = path("$outputDir")
+                .resolve("modifications").resolve("tombo")
+                .resolve("16s_rep1.tombo.stats")
+            def epinanoScript = path("${projectDir}/modules/local/epinano_error/main.nf").text
+            def differrScript = path("${projectDir}/modules/local/differr/main.nf").text
+            def drummerScript = path("${projectDir}/modules/local/drummer/main.nf").text
             assertAll(
                 { assert workflow.success },
                 { assert versionsFile != null : "versions.yml file should exist" },
-                { assert snapshot(versionsFile).match("versions.yml") }
+                { assert snapshot(versionsFile).match("versions.yml") },
+                { assert native16sFlagstat.exists() : "Expected flagstat output was not published" },
+                { assert native16sDepth.exists() : "Expected depth output was not published" },
+                { assert native16sSingleFast5.exists() : "Expected single_fast5 output was not published" },
+                { assert tomboStats.exists() : "Expected Tombo stats output was not published" },
+                { assert !epinanoScript.contains("git clone") : "Runtime git clone remains in EPINANO_ERROR module" },
+                { assert !differrScript.contains("git clone") : "Runtime git clone remains in DIFFERR module" },
+                { assert !drummerScript.contains("git clone") : "Runtime git clone remains in DRUMMER module" }
             )
         }
 
@@ -56,11 +86,19 @@ ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
 
         when {
             def sheet = file("test_samplesheet_mismatched_native_fast5.csv")
+            def refs = file("test_references_mismatched_native_fast5.csv")
             def fastq_native = file("${projectDir}/tests/data/native_rep1.fastq.gz")
             def fastq_ivt = file("${projectDir}/tests/data/ivt_rep1.fastq.gz")
             def fast5_native_a = file("${projectDir}/tests/data/fast5/native_rep1")
             def fast5_native_b = file("${projectDir}/tests/data/fast5/ivt_rep1")
             def fast5_ivt = file("${projectDir}/tests/data/fast5/ivt_rep1")
+            def ref16s = file("${projectDir}/tests/data/16s_reference.fasta")
+            def ref23s = file("${projectDir}/tests/data/23s_reference.fasta")
+
+            refs.text = """target,reference
+16s,${ref16s}
+23s,${ref23s}
+"""
 
             // Intentionally provide two different native FAST5 directories to trigger fail-fast validation.
             // Keep native/ivt pairing valid for each target+replicate.
@@ -74,7 +112,7 @@ ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
             params {
                 input = sheet.getAbsolutePath().toString()
                 outdir = "$outputDir"
-                references = "${projectDir}/tests/data/references.csv"
+                references = refs.getAbsolutePath().toString()
                 validate_params = false
             }
         }
@@ -95,6 +133,54 @@ ivt_23s_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},23s
             }
             def error_text = error_chunks.join('\n')
             assert error_text.contains("ERROR: Pooled FAST5 mode requires exactly one FAST5 directory for type 'native'.")
+        }
+
+    }
+
+    test("Should support targets containing underscores without truncating reference lookup") {
+
+        options "-stub"
+
+        when {
+            def sheet = file("test_samplesheet_underscore_target.csv")
+            def refs = file("test_references_underscore_target.csv")
+            def fastq_native = file("${projectDir}/tests/data/native_rep1.fastq.gz")
+            def fastq_ivt = file("${projectDir}/tests/data/ivt_rep1.fastq.gz")
+            def fast5_native = file("${projectDir}/tests/data/fast5/native_rep1")
+            def fast5_ivt = file("${projectDir}/tests/data/fast5/ivt_rep1")
+            def ref16s = file("${projectDir}/tests/data/16s_reference.fasta")
+
+            refs.text = """target,reference
+16s_alt,${ref16s}
+"""
+
+            sheet.text = """sample,fastq,type,replicate,fast5_dir,target
+native_16s_alt_rep1,${fastq_native},native,rep1,${fast5_native},16s_alt
+ivt_16s_alt_rep1,${fastq_ivt},ivt,rep1,${fast5_ivt},16s_alt
+"""
+
+            params {
+                input = sheet.getAbsolutePath().toString()
+                outdir = "$outputDir"
+                references = refs.getAbsolutePath().toString()
+                validate_params = false
+            }
+        }
+
+        then {
+            def nativeTargetDir = path("$outputDir")
+                .resolve("mapping").resolve("native").resolve("16s_alt")
+            def ivtTargetDir = path("$outputDir")
+                .resolve("mapping").resolve("ivt").resolve("16s_alt")
+            def tomboStats = path("$outputDir")
+                .resolve("modifications").resolve("tombo")
+                .resolve("16s_alt_rep1.tombo.stats")
+            assertAll(
+                { assert workflow.success },
+                { assert nativeTargetDir.exists() : "Native mapping output not published under underscore target path" },
+                { assert ivtTargetDir.exists() : "IVT mapping output not published under underscore target path" },
+                { assert tomboStats.exists() : "Tombo stats missing for underscore target key" }
+            )
         }
 
     }
