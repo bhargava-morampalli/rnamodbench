@@ -39,7 +39,14 @@ process DRUMMER {
 
     mkdir -p ${prefix}
 
+    # Clone DRUMMER at pinned commit (not pip-installable — standalone scripts)
     DRUMMER_HOME="${drummer_home}"
+    if [ -z "\$DRUMMER_HOME" ]; then
+        git clone --quiet https://github.com/DepledgeLab/DRUMMER.git drummer_repo
+        cd drummer_repo && git checkout --quiet 6683822c6210083e4ab0eecb4b6327e3c55f4c46 && cd ..
+        DRUMMER_HOME="drummer_repo"
+    fi
+
     if [ -n "\$DRUMMER_HOME" ] && [ -f "\$DRUMMER_HOME/DRUMMER.py" ]; then
         DRUMMER_SCRIPT="\$DRUMMER_HOME/DRUMMER.py"
     elif command -v DRUMMER.py >/dev/null 2>&1; then

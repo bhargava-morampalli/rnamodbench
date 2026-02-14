@@ -49,9 +49,9 @@ input:
         Map of target to reference file
         Example: { 'target': ref_file }
 output:
-  - tombo_bed:
+  - tombo_csv:
       type: tuple
-      description: Tombo modification BED output
+      description: Tombo modification CSV output
   - yanocomp_bed:
       type: tuple
       description: Yanocomp modification BED output

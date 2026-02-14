@@ -10,7 +10,7 @@ process TOMBO_TEXT_OUTPUT {
     tuple val(key), path(statistic), path(reference)
 
     output:
-    tuple val(key), path("*.csv"), emit: bed
+    tuple val(key), path("*.csv"), emit: csv
     path "*.log"                 , emit: log, optional: true
     path "versions.yml"          , emit: versions
 

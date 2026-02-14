@@ -20,6 +20,3 @@ dependencies:
   - conda-forge::r-ggrepel
   - conda-forge::r-tidyverse
   - conda-forge::git
-  - conda-forge::pip
-  - pip:
-      - git+https://github.com/novoalab/EpiNano.git@eba4700953cc6e6e0ad0a4f846e7e071c43fe51c

@@ -14,7 +14,7 @@ nextflow.enable.dsl=2
  *   - ref_map:           val(map) - { 'target': ref_file, ... }
  *
  * Outputs:
- *   - tombo_bed:           [ val(meta), path(bed) ]
+ *   - tombo_csv:           [ val(meta), path(csv) ]
  *   - yanocomp_bed:        [ val(meta), path(bed) ]
  *   - nanocompore_results: [ val(key), path(results) ]
  *   - xpore_table:         [ val(key), path(table) ]
@@ -185,6 +185,14 @@ workflow MODIFICATION_CALLING {
                 [ key, meta.type, dataprep_dir ]
             }
             .groupTuple()
+            .filter { key, types, dataprep_dirs ->
+                def has_native = types.contains('native')
+                def has_ivt = types.contains('ivt')
+                if (!has_native || !has_ivt) {
+                    log.warn "Skipping xpore for ${key}: missing ${!has_native ? 'native' : 'ivt'} sample"
+                }
+                has_native && has_ivt
+            }
 
         XPORE_DIFFMOD ( ch_xpore_ready )
         versions_ch = versions_ch.mix(XPORE_DIFFMOD.out.versions)
@@ -245,7 +253,7 @@ workflow MODIFICATION_CALLING {
         ch_nanorms_results = Channel.empty()
 
     emit:
-        tombo_bed           = TOMBO_TEXT_OUTPUT.out.bed
+        tombo_csv           = TOMBO_TEXT_OUTPUT.out.csv
         yanocomp_bed        = YANOCOMP_ANALYSIS.out.bed
         nanocompore_results = NANOCOMPORE_SAMPCOMP.out.results
         xpore_table         = XPORE_DIFFMOD.out.diffmod

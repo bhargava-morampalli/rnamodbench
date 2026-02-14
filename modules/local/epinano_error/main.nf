@@ -40,7 +40,14 @@ process EPINANO_ERROR {
 
     mkdir -p ${prefix}
 
+    # Clone EpiNano at pinned commit (not pip-installable — it's standalone scripts)
     EPINANO_HOME="${epinano_home}"
+    if [ -z "\$EPINANO_HOME" ]; then
+        git clone --quiet https://github.com/novoalab/EpiNano.git epinano_repo
+        cd epinano_repo && git checkout --quiet eba4700953cc6e6e0ad0a4f846e7e071c43fe51c && cd ..
+        EPINANO_HOME="epinano_repo"
+    fi
+
     if [ -n "\$EPINANO_HOME" ]; then
         EPINANO_VARIANTS="\$EPINANO_HOME/Epinano_Variants.py"
         EPINANO_DIFFERR="\$EPINANO_HOME/Epinano_DiffErr.R"
