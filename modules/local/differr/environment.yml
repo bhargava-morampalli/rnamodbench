@@ -6,7 +6,7 @@ dependencies:
   - conda-forge::python>=3.8
   - conda-forge::numpy
   - conda-forge::scipy
-  - conda-forge::pandas
+  - conda-forge::pandas<2.0
   - bioconda::pysam
   - bioconda::samtools=1.17
   - conda-forge::h5py

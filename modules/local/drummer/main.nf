@@ -47,6 +47,11 @@ process DRUMMER {
         DRUMMER_HOME="drummer_repo"
     fi
 
+    # Symlink modules/ so DRUMMER's hardcoded relative path 'modules/bam-readcount' resolves
+    if [ -d "\$DRUMMER_HOME/modules" ] && [ ! -e "modules" ]; then
+        ln -s "\$DRUMMER_HOME/modules" modules
+    fi
+
     if [ -n "\$DRUMMER_HOME" ] && [ -f "\$DRUMMER_HOME/DRUMMER.py" ]; then
         DRUMMER_SCRIPT="\$DRUMMER_HOME/DRUMMER.py"
     elif command -v DRUMMER.py >/dev/null 2>&1; then

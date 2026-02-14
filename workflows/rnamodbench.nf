@@ -228,10 +228,23 @@ workflow RNAMODBENCH {
     // COLLECT VERSIONS
     // =========================================================================
 
-    ch_versions.unique().map { it.text }.collectFile(
-        storeDir: "${params.outdir}/pipeline_info",
-        name: 'software_versions.yml',
-        sort: true,
-        newLine: true
-    )
+    ch_versions
+        // Subworkflows emit either a single versions.yml path or a collected list of paths.
+        .flatMap { item -> item instanceof Collection ? item : [item] }
+        .map { version_file ->
+            version_file
+                .text
+                .readLines()
+                .findAll { line -> line.trim() != 'END_VERSIONS' }
+                .join('\n')
+                .trim()
+        }
+        .filter { entry -> entry }
+        .unique()
+        .collectFile(
+            storeDir: "${params.outdir}/pipeline_info",
+            name: 'software_versions.yml',
+            sort: true,
+            newLine: true
+        )
 }

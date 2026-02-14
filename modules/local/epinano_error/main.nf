@@ -83,17 +83,26 @@ process EPINANO_ERROR {
         -c $task.cpus \\
         -o ivt_variants || true
 
-    # Find the per-site CSV files - EpiNano outputs files like: sample.fwd.per.site.csv
-    # Try multiple patterns to handle different EpiNano versions
-    native_var=\$(find native_variants -name "*.per.site.csv" -o -name "*.per_site.*.csv" 2>/dev/null | head -1)
-    ivt_var=\$(find ivt_variants -name "*.per.site.csv" -o -name "*.per_site.*.csv" 2>/dev/null | head -1)
+    # Find the per-site CSV files - EpiNano outputs per-strand files (.fwd. and .rev.)
+    # Prefer forward strand (where rRNA reads align) to avoid near-zero coverage from reverse
+    native_var=\$(find native_variants -name "*.fwd.per.site.csv" 2>/dev/null | head -1)
+    if [ -z "\$native_var" ]; then
+        native_var=\$(find native_variants -name "*.per.site.csv" -o -name "*.per_site.*.csv" 2>/dev/null | sort | head -1)
+    fi
+
+    ivt_var=\$(find ivt_variants -name "*.fwd.per.site.csv" 2>/dev/null | head -1)
+    if [ -z "\$ivt_var" ]; then
+        ivt_var=\$(find ivt_variants -name "*.per.site.csv" -o -name "*.per_site.*.csv" 2>/dev/null | sort | head -1)
+    fi
 
     # If not found in output dirs, check current directory (older EpiNano versions)
     if [ -z "\$native_var" ]; then
-        native_var=\$(find . -maxdepth 1 -name "*\$(basename $native_bam .bam)*.per.site.csv" 2>/dev/null | head -1)
+        native_var=\$(find . -maxdepth 1 -name "*\$(basename $native_bam .bam)*.fwd.per.site.csv" 2>/dev/null | head -1)
+        [ -z "\$native_var" ] && native_var=\$(find . -maxdepth 1 -name "*\$(basename $native_bam .bam)*.per.site.csv" 2>/dev/null | sort | head -1)
     fi
     if [ -z "\$ivt_var" ]; then
-        ivt_var=\$(find . -maxdepth 1 -name "*\$(basename $ivt_bam .bam)*.per.site.csv" 2>/dev/null | head -1)
+        ivt_var=\$(find . -maxdepth 1 -name "*\$(basename $ivt_bam .bam)*.fwd.per.site.csv" 2>/dev/null | head -1)
+        [ -z "\$ivt_var" ] && ivt_var=\$(find . -maxdepth 1 -name "*\$(basename $ivt_bam .bam)*.per.site.csv" 2>/dev/null | sort | head -1)
     fi
 
     # Copy per-site CSV files to output - these contain RAW per-position data for ROC curves
@@ -133,22 +142,31 @@ process EPINANO_ERROR {
         # This creates sum_err.csv files required for -f sum_err
         echo "Running Epinano_sumErr.py preprocessing..."
         python "\$EPINANO_SUMERR" \\
-            --file native_fixed.csv \\
+            --file "\$native_var" \\
             --out native_sum_err.csv \\
             --kmer 0 || true
 
         python "\$EPINANO_SUMERR" \\
-            --file ivt_fixed.csv \\
+            --file "\$ivt_var" \\
             --out ivt_sum_err.csv \\
             --kmer 0 || true
 
+        # Fix sum_err headers for R (same #Ref → X.Ref replacement)
+        if [ -f "native_sum_err.csv" ]; then
+            sed -i 's/^#Ref/X.Ref/' native_sum_err.csv
+        fi
+        if [ -f "ivt_sum_err.csv" ]; then
+            sed -i 's/^#Ref/X.Ref/' ivt_sum_err.csv
+        fi
+
         # Analysis 2: Sum Error (-f sum_err)
-        # Uses preprocessed sum_err.csv files
+        # Epinano_DiffErr.R computes sum_err internally from mis/ins/del, so pass header-fixed per-site CSVs.
+        # Keep Epinano_sumErr outputs as published intermediates (not direct R inputs).
         if [ -f "native_sum_err.csv" ] && [ -f "ivt_sum_err.csv" ]; then
             echo "Running sum_err analysis (-f sum_err)..."
             Rscript "\$EPINANO_DIFFERR" \\
-                -k "ivt_sum_err.csv" \\
-                -w "native_sum_err.csv" \\
+                -k "ivt_fixed.csv" \\
+                -w "native_fixed.csv" \\
                 -t $zscore_threshold \\
                 -o ${prefix}/${meta.id}_sumerr \\
                 -c $coverage_threshold \\

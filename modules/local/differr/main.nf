@@ -68,7 +68,8 @@ process DIFFERR {
 
     echo "=== DIFFERR completed at \$(date) ==="
 
-    differr_version=\$(differr --version 2>/dev/null | head -1 | sed -E 's/^[^0-9]*([0-9]+(\\.[0-9]+)*)?.*\$/\\1/')
+    # differr does not support --version in some releases; keep probe non-fatal
+    differr_version=\$((differr --version 2>/dev/null || true) | head -1 | sed -E 's/^[^0-9]*([0-9]+(\\.[0-9]+)*)?.*\$/\\1/')
     if [ -z "\$differr_version" ]; then
         differr_version="unknown"
     fi
