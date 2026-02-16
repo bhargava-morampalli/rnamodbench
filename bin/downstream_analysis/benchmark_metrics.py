@@ -49,6 +49,9 @@ class MetricsResult:
     n_true_negatives: int
     n_ground_truth: int
     n_predictions: int
+    auprc_reported: float = np.nan
+    auroc_reported: float = np.nan
+    f1_reported: float = np.nan
 
     def to_dict(self) -> Dict:
         return {
@@ -67,6 +70,9 @@ class MetricsResult:
             "n_true_negatives": self.n_true_negatives,
             "n_ground_truth": self.n_ground_truth,
             "n_predictions": self.n_predictions,
+            "auprc_reported": self.auprc_reported,
+            "auroc_reported": self.auroc_reported,
+            "f1_reported": self.f1_reported,
         }
 
 

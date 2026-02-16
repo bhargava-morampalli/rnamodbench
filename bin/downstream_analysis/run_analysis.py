@@ -26,7 +26,7 @@ from sklearn.metrics import precision_recall_curve, roc_curve
 sys.path.insert(0, str(Path(__file__).parent))
 
 from parse_outputs import load_all_tool_outputs, parse_tool_output
-from benchmark_metrics import calculate_metrics, load_ground_truth
+from benchmark_metrics import _metrics_from_arrays, calculate_metrics, load_ground_truth
 from data_quality import generate_quality_summary, validate_all_outputs
 from position_standardization import (
     build_metric_ready_table,
@@ -43,6 +43,7 @@ from tool_comparison import (
     generate_upset_data,
     get_consensus_positions,
 )
+from visualization import plot_pr_tool_grid, plot_roc_tool_grid
 
 logging.basicConfig(
     level=logging.INFO,
@@ -153,6 +154,7 @@ def _make_dirs(base: Path) -> Dict[str, Path]:
         "curves": base / "05_curves",
         "comparison": base / "06_tool_comparison",
         "replicate": base / "07_replicate_analysis",
+        "visualizations": base / "08_visualizations",
     }
     for d in dirs.values():
         d.mkdir(parents=True, exist_ok=True)
@@ -180,44 +182,110 @@ def _extract_curve_points(
             "roc": pd.DataFrame(rows_roc),
         }
 
-    y_true = pd.to_numeric(sub["label"], errors="coerce").fillna(0).astype(int).values
-    y_score = pd.to_numeric(sub["score_metric"], errors="coerce").fillna(0).astype(float).values
+    def _append_scope(scope_df: pd.DataFrame, scope: str) -> None:
+        if scope_df.empty:
+            return
 
-    if len(np.unique(y_true)) < 2:
-        return {
-            "pr": pd.DataFrame(rows_pr),
-            "roc": pd.DataFrame(rows_roc),
-        }
+        y_true = pd.to_numeric(scope_df["label"], errors="coerce").fillna(0).astype(int).values
+        y_score = pd.to_numeric(scope_df["score_metric"], errors="coerce").fillna(0).astype(float).values
 
-    precision, recall, pr_thresholds = precision_recall_curve(y_true, y_score)
-    for i, (p, r) in enumerate(zip(precision, recall)):
-        rows_pr.append(
-            {
-                "reference": reference,
-                "tool": tool,
-                "replicate": replicate,
-                "index": i,
-                "precision": float(p),
-                "recall": float(r),
-                "threshold": float(pr_thresholds[i]) if i < len(pr_thresholds) else np.nan,
-            }
-        )
+        if len(np.unique(y_true)) < 2:
+            return
 
-    fpr, tpr, roc_thresholds = roc_curve(y_true, y_score)
-    for i, (f, t, th) in enumerate(zip(fpr, tpr, roc_thresholds)):
-        rows_roc.append(
-            {
-                "reference": reference,
-                "tool": tool,
-                "replicate": replicate,
-                "index": i,
-                "fpr": float(f),
-                "tpr": float(t),
-                "threshold": float(th),
-            }
-        )
+        precision, recall, pr_thresholds = precision_recall_curve(y_true, y_score)
+        for i, (p, r) in enumerate(zip(precision, recall)):
+            rows_pr.append(
+                {
+                    "reference": reference,
+                    "tool": tool,
+                    "replicate": replicate,
+                    "scope": scope,
+                    "index": i,
+                    "precision": float(p),
+                    "recall": float(r),
+                    "threshold": float(pr_thresholds[i]) if i < len(pr_thresholds) else np.nan,
+                }
+            )
+
+        fpr, tpr, roc_thresholds = roc_curve(y_true, y_score)
+        for i, (f, t, th) in enumerate(zip(fpr, tpr, roc_thresholds)):
+            rows_roc.append(
+                {
+                    "reference": reference,
+                    "tool": tool,
+                    "replicate": replicate,
+                    "scope": scope,
+                    "index": i,
+                    "fpr": float(f),
+                    "tpr": float(t),
+                    "threshold": float(th),
+                }
+            )
+
+    _append_scope(sub, "universe")
+    if "is_reported" in sub.columns:
+        _append_scope(sub[sub["is_reported"] == True].copy(), "reported")
 
     return {"pr": pd.DataFrame(rows_pr), "roc": pd.DataFrame(rows_roc)}
+
+
+def _compute_subset_metrics(sub_df: pd.DataFrame) -> Optional[Dict[str, float]]:
+    if sub_df.empty:
+        return None
+
+    y_true = pd.to_numeric(sub_df.get("label", np.nan), errors="coerce")
+    y_score = pd.to_numeric(sub_df.get("score_metric", np.nan), errors="coerce")
+    valid = y_true.notna() & y_score.notna() & np.isfinite(y_score.to_numpy())
+    if int(valid.sum()) == 0:
+        return None
+
+    y_true_arr = y_true[valid].astype(int).to_numpy()
+    y_score_arr = y_score[valid].astype(float).to_numpy()
+
+    if len(np.unique(y_true_arr)) < 2:
+        return None
+
+    (
+        auprc,
+        auroc,
+        f1_optimal,
+        _precision_optimal,
+        _recall_optimal,
+        _optimal_threshold,
+        _tp,
+        _fp,
+        _fn,
+        _tn,
+    ) = _metrics_from_arrays(y_true_arr, y_score_arr)
+
+    return {
+        "auprc_reported": float(auprc),
+        "auroc_reported": float(auroc),
+        "f1_reported": float(f1_optimal),
+    }
+
+
+def _invalid_score_stats(rep_df_reported: pd.DataFrame) -> tuple[int, int, float]:
+    if rep_df_reported.empty:
+        return 0, 0, 0.0
+
+    score_type = "unknown"
+    if "score_type" in rep_df_reported.columns and rep_df_reported["score_type"].notna().any():
+        score_type = str(rep_df_reported["score_type"].dropna().iloc[0]).strip().lower()
+
+    if score_type not in {"pvalue", "fdr"}:
+        return 0, 0, 0.0
+
+    if "score_raw" not in rep_df_reported.columns:
+        return 0, 0, 0.0
+
+    raw = pd.to_numeric(rep_df_reported["score_raw"], errors="coerce")
+    invalid_mask = (~np.isfinite(raw.to_numpy())) | (raw.to_numpy() < 0) | (raw.to_numpy() > 1)
+
+    invalid_n = int(invalid_mask.sum())
+    invalid_total = int(len(raw))
+    invalid_fraction = float(invalid_n / invalid_total) if invalid_total else 0.0
+    return invalid_n, invalid_total, invalid_fraction
 
 
 def run_analysis(
@@ -379,14 +447,72 @@ def run_analysis(
                 if rep_df.empty:
                     continue
 
-                m = calculate_metrics(rep_df, ground_truth=None, reference=ref)
-                metric_rows.append(pd.DataFrame([m.to_dict()]))
+                rep_df_reported = (
+                    rep_df[rep_df["is_reported"] == True].copy()
+                    if "is_reported" in rep_df.columns
+                    else rep_df.copy()
+                )
 
-                curves = _extract_curve_points(metric_ready, tool=tool, reference=ref, replicate=rep)
-                if not curves["pr"].empty:
-                    pr_rows.append(curves["pr"])
-                if not curves["roc"].empty:
-                    roc_rows.append(curves["roc"])
+                invalid_n, invalid_total, invalid_fraction = _invalid_score_stats(rep_df_reported)
+                metrics_valid = not (invalid_total > 0 and invalid_fraction > 0.5)
+                metric_scope_note = "ok"
+
+                m = calculate_metrics(rep_df, ground_truth=None, reference=ref)
+                metric_row = m.to_dict()
+
+                # reported-only metrics complement full-universe metrics
+                reported_metrics = _compute_subset_metrics(rep_df_reported)
+                if reported_metrics is None:
+                    metric_row["auprc_reported"] = np.nan
+                    metric_row["auroc_reported"] = np.nan
+                    metric_row["f1_reported"] = np.nan
+                    if metrics_valid:
+                        metric_scope_note = "reported_single_class"
+                else:
+                    metric_row.update(reported_metrics)
+
+                if not metrics_valid:
+                    metric_scope_note = "invalid_scores"
+                    for col in [
+                        "auprc",
+                        "auroc",
+                        "f1_optimal",
+                        "precision_optimal",
+                        "recall_optimal",
+                        "optimal_threshold",
+                        "n_true_positives",
+                        "n_false_positives",
+                        "n_false_negatives",
+                        "n_true_negatives",
+                        "auprc_reported",
+                        "auroc_reported",
+                        "f1_reported",
+                    ]:
+                        metric_row[col] = np.nan
+
+                metric_row["metrics_valid"] = bool(metrics_valid)
+                metric_row["invalid_score_fraction"] = invalid_fraction
+                metric_row["invalid_score_n"] = invalid_n
+                metric_row["invalid_score_total"] = invalid_total
+                metric_row["metric_scope_note"] = metric_scope_note
+                metric_rows.append(pd.DataFrame([metric_row]))
+
+                if metrics_valid:
+                    curves = _extract_curve_points(metric_ready, tool=tool, reference=ref, replicate=rep)
+                    if not curves["pr"].empty:
+                        pr_rows.append(curves["pr"])
+                    if not curves["roc"].empty:
+                        roc_rows.append(curves["roc"])
+                else:
+                    logger.warning(
+                        "Skipping curve generation for %s/%s/%s due to invalid score fraction %.3f (%d/%d)",
+                        tool,
+                        ref,
+                        rep,
+                        invalid_fraction,
+                        invalid_n,
+                        invalid_total,
+                    )
 
         # Save standardization reports
         std_report.save(ref_root)
@@ -425,11 +551,21 @@ def run_analysis(
                     auroc_mean=("auroc", "mean"),
                     auroc_std=("auroc", "std"),
                     auroc_median=("auroc", "median"),
+                    auprc_reported_mean=("auprc_reported", "mean"),
+                    auprc_reported_std=("auprc_reported", "std"),
+                    auprc_reported_median=("auprc_reported", "median"),
+                    auroc_reported_mean=("auroc_reported", "mean"),
+                    auroc_reported_std=("auroc_reported", "std"),
+                    auroc_reported_median=("auroc_reported", "median"),
                     f1_optimal_mean=("f1_optimal", "mean"),
                     f1_optimal_std=("f1_optimal", "std"),
                     f1_optimal_median=("f1_optimal", "median"),
+                    f1_reported_mean=("f1_reported", "mean"),
+                    f1_reported_std=("f1_reported", "std"),
+                    f1_reported_median=("f1_reported", "median"),
                     precision_optimal_mean=("precision_optimal", "mean"),
                     recall_optimal_mean=("recall_optimal", "mean"),
+                    metrics_valid_fraction=("metrics_valid", "mean"),
                     no_call_rate_mean=("no_call_rate", "mean"),
                     gt_recall_raw_mean=("gt_recall_raw", "mean"),
                 )
@@ -449,6 +585,57 @@ def run_analysis(
 
         pr_df.to_csv(dirs["curves"] / "pr_curve_points.csv", index=False)
         roc_df.to_csv(dirs["curves"] / "roc_curve_points.csv", index=False)
+
+        # Publication-style per-reference visualizations (non-fatal)
+        try:
+            if not metrics_per_rep.empty:
+                pr_universe = pr_df[pr_df["scope"] == "universe"].copy() if "scope" in pr_df.columns else pr_df
+                roc_universe = roc_df[roc_df["scope"] == "universe"].copy() if "scope" in roc_df.columns else roc_df
+                plot_roc_tool_grid(
+                    curve_df=roc_universe,
+                    metrics_df=metrics_per_rep,
+                    reference=ref,
+                    output_dir=dirs["visualizations"],
+                    ncols=3,
+                    output_stem="roc_tool_grid",
+                )
+                plot_pr_tool_grid(
+                    curve_df=pr_universe,
+                    metrics_df=metrics_per_rep,
+                    reference=ref,
+                    output_dir=dirs["visualizations"],
+                    ncols=3,
+                    output_stem="pr_tool_grid",
+                )
+
+                # reported-only visualization using reported-only metrics and prevalence context
+                metrics_reported = metrics_per_rep.copy()
+                metrics_reported["auroc"] = metrics_reported["auroc_reported"]
+                metrics_reported["auprc"] = metrics_reported["auprc_reported"]
+                metrics_reported["n_gt_total"] = metrics_reported["n_gt_reported"]
+                metrics_reported["n_universe"] = metrics_reported["n_reported"]
+
+                pr_reported = pr_df[pr_df["scope"] == "reported"].copy() if "scope" in pr_df.columns else pd.DataFrame()
+                roc_reported = roc_df[roc_df["scope"] == "reported"].copy() if "scope" in roc_df.columns else pd.DataFrame()
+
+                plot_roc_tool_grid(
+                    curve_df=roc_reported,
+                    metrics_df=metrics_reported,
+                    reference=ref,
+                    output_dir=dirs["visualizations"],
+                    ncols=3,
+                    output_stem="roc_tool_grid_reported",
+                )
+                plot_pr_tool_grid(
+                    curve_df=pr_reported,
+                    metrics_df=metrics_reported,
+                    reference=ref,
+                    output_dir=dirs["visualizations"],
+                    ncols=3,
+                    output_stem="pr_tool_grid_reported",
+                )
+        except Exception as exc:
+            logger.warning("Visualization generation failed for reference %s: %s", ref, exc)
 
         # Tool comparison (reference-specific only)
         if parsed_ref_tools:

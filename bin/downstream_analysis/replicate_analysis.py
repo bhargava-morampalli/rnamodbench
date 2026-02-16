@@ -209,7 +209,7 @@ def calculate_concordance(
 
     if jvals:
         mean_j = float(np.mean(jvals))
-        std_j = float(np.std(jvals))
+        std_j = float(np.std(jvals, ddof=1)) if len(jvals) > 1 else 0.0
         min_j = float(np.min(jvals))
         max_j = float(np.max(jvals))
     else:
