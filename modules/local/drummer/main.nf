@@ -33,9 +33,30 @@ process DRUMMER {
     echo "IVT BAM: $ivt_bam"
     echo "Reference: $reference"
     echo "P-value threshold: $pval_threshold"
-    echo "Odds ratio: $odds_ratio"
+    echo "Requested odds ratio: $odds_ratio"
     echo "Arguments: $args"
     echo "==========================================="
+
+    requested_odds="$odds_ratio"
+    export REQUESTED_ODDS="\$requested_odds"
+    effective_odds=\$(python - <<'PY'
+import math
+import os
+
+raw = os.environ.get("REQUESTED_ODDS", "")
+try:
+    value = float(raw)
+except Exception:
+    value = 1e-6
+
+if not math.isfinite(value) or value <= 0:
+    value = 1e-6
+
+print(f"{value:.6g}")
+PY
+)
+    unset REQUESTED_ODDS
+    echo "Effective odds ratio: \$effective_odds"
 
     mkdir -p ${prefix}
 
@@ -84,6 +105,7 @@ process DRUMMER {
         -o ${prefix} \\
         -a exome \\
         -p ${pval_threshold} \\
+        -z \$effective_odds \\
         $args || true
 
     # DRUMMER outputs summary.txt with per-position data including:

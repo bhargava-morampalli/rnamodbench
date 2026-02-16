@@ -43,6 +43,13 @@ data:
     rep1: ${native_dir}
   ivt:
     rep1: ${ivt_dir}
+criteria:
+  readcount_min: 1
+  readcount_max: 1000000
+method:
+  name: gmm
+  pooling: false
+  prefiltering: false
 YAML
 
     xpore diffmod --config config.yml --n_processes ${task.cpus} $args
