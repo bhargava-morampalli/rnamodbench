@@ -140,6 +140,8 @@ class TestDirectoryOutputLoading:
         assert "tombo" in results
         assert not results["tombo"].empty, "TOMBO flat file loading regressed"
         assert len(results["tombo"]) == 2
+        assert set(results["tombo"]["score_type"].astype(str)) == {"pvalue"}
+        assert results["tombo"]["pvalue"].notna().all()
 
     def test_all_tools_loaded_together(self, standard_tree):
         """All four tools load when requested together."""

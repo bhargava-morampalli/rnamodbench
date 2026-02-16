@@ -1,529 +1,555 @@
 #!/usr/bin/env python3
 """
-Main Analysis Script for RNA Modification Detection Pipeline
+Downstream analysis orchestration.
 
-Orchestrates all downstream analyses including:
-- Output parsing from 9 modification detection tools
-- Benchmark metrics calculation (AUPRC, AUROC, F1)
-- Cross-replicate analysis and consensus calling
-- Cross-tool comparison
-- Visualization and report generation
-
-Usage:
-    python run_analysis.py \\
-        --input-dir /path/to/modifications \\
-        --ground-truth /path/to/known_sites.csv \\
-        --output-dir /path/to/downstream_analysis
-
-    Or provide individual tool outputs:
-    python run_analysis.py \\
-        --tombo /path/to/tombo.csv \\
-        --drummer /path/to/drummer_dir \\
-        --ground-truth /path/to/known_sites.csv \\
-        --output-dir /path/to/downstream_analysis
+Key guarantees:
+- never mixes references (e.g. 16S and 23S)
+- preserves raw tool outputs (writes only to new downstream folder)
+- standardizes each tool/replicate to full reference universe (1..L)
+- emits per-reference metrics + collation-ready long tables
 """
 
+from __future__ import annotations
+
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Set
 
+import numpy as np
 import pandas as pd
+from sklearn.metrics import precision_recall_curve, roc_curve
 
-# Add parent directory to path for imports
+# allow script-mode local imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from parse_outputs import (
-    parse_tool_output,
-    load_all_tool_outputs,
+from parse_outputs import load_all_tool_outputs, parse_tool_output
+from benchmark_metrics import calculate_metrics, load_ground_truth
+from data_quality import generate_quality_summary, validate_all_outputs
+from position_standardization import (
+    build_metric_ready_table,
+    canonicalize_tool_references,
+    compute_no_call_diagnostics,
+    get_reference_lengths,
+    load_reference_catalog,
+    standardize_to_reference_universe,
 )
-from benchmark_metrics import (
-    load_ground_truth,
-    calculate_metrics,
-    calculate_metrics_all_tools,
-)
-from replicate_analysis import (
-    consensus_calling,
-    calculate_concordance,
-    calculate_concordance_all_tools,
-)
+from replicate_analysis import calculate_concordance, consensus_calling
 from tool_comparison import (
+    calculate_pairwise_agreement,
     compare_tools,
     generate_upset_data,
-    calculate_pairwise_agreement,
-    rank_tools,
     get_consensus_positions,
 )
-from visualization import (
-    plot_pr_curves,
-    plot_roc_curves,
-    plot_score_distributions,
-    plot_upset,
-    plot_venn,
-    plot_metrics_comparison,
-    plot_replicate_concordance,
-    plot_correlation_heatmap,
-    plot_coverage_performance,
-    plot_coverage_heatmap,
-    plot_coverage_stability,
-    plot_saturation_curves,
-    plot_multi_metric_coverage,
-    generate_html_report,
-)
-from data_quality import (
-    DataQualityReport,
-    validate_all_outputs,
-    generate_quality_summary,
-)
-from coverage_analysis import (
-    analyze_coverage,
-    compare_tools_by_coverage,
-    generate_coverage_summary,
-    get_coverage_levels,
-)
-from position_standardization import (
-    standardize_all_tool_outputs,
-    StandardizationReport,
-    generate_availability_report,
-)
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-
-# Tool names
 SUPPORTED_TOOLS = [
-    'tombo', 'yanocomp', 'nanocompore', 'xpore', 'eligos',
-    'epinano', 'differr', 'drummer', 'jacusa2'
+    "tombo",
+    "yanocomp",
+    "nanocompore",
+    "xpore",
+    "eligos",
+    "epinano",
+    "differr",
+    "drummer",
+    "jacusa2",
 ]
 
 
 def load_tool_outputs_from_args(args: argparse.Namespace) -> Dict[str, pd.DataFrame]:
-    """Load tool outputs from command line arguments."""
-    tool_outputs = {}
+    tool_outputs: Dict[str, pd.DataFrame] = {}
 
     for tool in SUPPORTED_TOOLS:
-        arg_name = tool.replace('-', '_')
-        filepath = getattr(args, arg_name, None)
+        arg_name = tool.replace("-", "_")
+        p = getattr(args, arg_name, None)
+        if not p:
+            continue
 
-        if filepath:
-            filepath = Path(filepath)
-            if filepath.exists():
-                try:
-                    df = parse_tool_output(tool, filepath)
-                    if not df.empty:
-                        tool_outputs[tool] = df
-                        logger.info(f"Loaded {len(df)} positions from {tool}")
-                except Exception as e:
-                    logger.error(f"Failed to load {tool}: {e}")
+        path = Path(p)
+        if not path.exists():
+            logger.warning("Tool path not found: %s", path)
+            continue
+
+        try:
+            df = parse_tool_output(tool, path)
+            if not df.empty:
+                tool_outputs[tool] = df
+                logger.info("Loaded %d rows for %s", len(df), tool)
+        except Exception as exc:
+            logger.error("Failed loading %s from %s: %s", tool, path, exc)
 
     return tool_outputs
+
+
+def _canonicalize_ground_truth(
+    gt_df: Optional[pd.DataFrame], catalog: Optional[pd.DataFrame]
+) -> Optional[pd.DataFrame]:
+    if gt_df is None or gt_df.empty or catalog is None or catalog.empty:
+        return gt_df
+
+    alias_map = {}
+    for _, row in catalog.iterrows():
+        target = str(row["target"]).lower()
+        ref_id = str(row["reference_id"])
+        alias_map[target] = ref_id
+        alias_map[ref_id.lower()] = ref_id
+
+    out = gt_df.copy()
+
+    def canon(ref: str) -> str:
+        r = str(ref).strip()
+        rl = r.lower()
+        if rl in alias_map:
+            return alias_map[rl]
+        for target, ref_id in alias_map.items():
+            if target in {"16s", "23s", "5s"} and rl.startswith(target):
+                return ref_id
+        return r
+
+    out["reference"] = out["reference"].astype(str).map(canon)
+    out["position"] = pd.to_numeric(out["position"], errors="coerce")
+    out = out[out["position"].notna()].copy()
+    out["position"] = out["position"].astype(int)
+    return out
+
+
+def _infer_reference_lengths(
+    tool_outputs: Dict[str, pd.DataFrame], ground_truth: Optional[pd.DataFrame]
+) -> Dict[str, int]:
+    max_by_ref: Dict[str, int] = {}
+
+    for df in tool_outputs.values():
+        if df.empty:
+            continue
+        tmp = df.copy()
+        tmp["position"] = pd.to_numeric(tmp["position"], errors="coerce")
+        tmp = tmp[tmp["position"].notna()]
+        for ref, grp in tmp.groupby("reference"):
+            max_by_ref[str(ref)] = max(max_by_ref.get(str(ref), 0), int(grp["position"].max()))
+
+    if ground_truth is not None and not ground_truth.empty:
+        gt = ground_truth.copy()
+        gt["position"] = pd.to_numeric(gt["position"], errors="coerce")
+        gt = gt[gt["position"].notna()]
+        for ref, grp in gt.groupby("reference"):
+            max_by_ref[str(ref)] = max(max_by_ref.get(str(ref), 0), int(grp["position"].max()))
+
+    return {k: int(v) for k, v in max_by_ref.items() if v > 0}
+
+
+def _make_dirs(base: Path) -> Dict[str, Path]:
+    dirs = {
+        "parsed": base / "01_parsed_raw",
+        "imputed": base / "02_imputed_nan",
+        "metric_ready": base / "03_metric_ready",
+        "metrics": base / "04_metrics",
+        "curves": base / "05_curves",
+        "comparison": base / "06_tool_comparison",
+        "replicate": base / "07_replicate_analysis",
+    }
+    for d in dirs.values():
+        d.mkdir(parents=True, exist_ok=True)
+    return dirs
+
+
+def _extract_curve_points(
+    metric_ready_df: pd.DataFrame,
+    tool: str,
+    reference: str,
+    replicate: str,
+) -> Dict[str, pd.DataFrame]:
+    rows_pr = []
+    rows_roc = []
+
+    sub = metric_ready_df[
+        (metric_ready_df["tool"] == tool)
+        & (metric_ready_df["reference"] == reference)
+        & (metric_ready_df["replicate"].astype(str) == str(replicate))
+    ].copy()
+
+    if sub.empty:
+        return {
+            "pr": pd.DataFrame(rows_pr),
+            "roc": pd.DataFrame(rows_roc),
+        }
+
+    y_true = pd.to_numeric(sub["label"], errors="coerce").fillna(0).astype(int).values
+    y_score = pd.to_numeric(sub["score_metric"], errors="coerce").fillna(0).astype(float).values
+
+    if len(np.unique(y_true)) < 2:
+        return {
+            "pr": pd.DataFrame(rows_pr),
+            "roc": pd.DataFrame(rows_roc),
+        }
+
+    precision, recall, pr_thresholds = precision_recall_curve(y_true, y_score)
+    for i, (p, r) in enumerate(zip(precision, recall)):
+        rows_pr.append(
+            {
+                "reference": reference,
+                "tool": tool,
+                "replicate": replicate,
+                "index": i,
+                "precision": float(p),
+                "recall": float(r),
+                "threshold": float(pr_thresholds[i]) if i < len(pr_thresholds) else np.nan,
+            }
+        )
+
+    fpr, tpr, roc_thresholds = roc_curve(y_true, y_score)
+    for i, (f, t, th) in enumerate(zip(fpr, tpr, roc_thresholds)):
+        rows_roc.append(
+            {
+                "reference": reference,
+                "tool": tool,
+                "replicate": replicate,
+                "index": i,
+                "fpr": float(f),
+                "tpr": float(t),
+                "threshold": float(th),
+            }
+        )
+
+    return {"pr": pd.DataFrame(rows_pr), "roc": pd.DataFrame(rows_roc)}
 
 
 def run_analysis(
     tool_outputs: Dict[str, pd.DataFrame],
     ground_truth: Optional[pd.DataFrame],
     output_dir: Path,
-    references: list = None,
+    references_csv: Optional[Path] = None,
+    references_filter: Optional[List[str]] = None,
     min_replicates: int = 2,
     score_threshold: float = None,
-    expected_replicates: int = 3
+    expected_replicates: int = 3,
+    run_id: Optional[str] = None,
+    coverage_label: Optional[str] = None,
+    quality_label: Optional[str] = None,
 ) -> None:
-    """
-    Run complete downstream analysis.
-
-    Args:
-        tool_outputs: Dictionary mapping tool names to output DataFrames
-        ground_truth: Ground truth DataFrame (optional)
-        output_dir: Output directory
-        references: List of references to analyze
-        min_replicates: Minimum replicates for consensus
-        score_threshold: Score threshold for significance
-        expected_replicates: Expected number of replicates per tool (for quality checks)
-    """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create subdirectories
-    metrics_dir = output_dir / 'metrics'
-    comparison_dir = output_dir / 'tool_comparison'
-    replicate_dir = output_dir / 'replicate_analysis'
-    viz_dir = output_dir / 'visualizations'
+    metadata_dir = output_dir / "metadata"
+    by_ref_dir = output_dir / "by_reference"
+    collation_dir = output_dir / "collation"
+    metadata_dir.mkdir(exist_ok=True)
+    by_ref_dir.mkdir(exist_ok=True)
+    collation_dir.mkdir(exist_ok=True)
 
-    for d in [metrics_dir, comparison_dir, replicate_dir, viz_dir]:
-        d.mkdir(exist_ok=True)
-
-    logger.info(f"Running analysis with {len(tool_outputs)} tools")
-    logger.info(f"Output directory: {output_dir}")
-
-    # =========================================================================
-    # 0. Data Quality Validation
-    # =========================================================================
-    logger.info("Validating data quality...")
-
+    # Data quality checks
     quality_report = validate_all_outputs(tool_outputs, expected_replicates=expected_replicates)
+    quality_report.save(metadata_dir / "data_quality_report.csv")
+    quality_report.save_warnings(metadata_dir / "analysis_warnings.txt")
+    generate_quality_summary(quality_report).to_csv(metadata_dir / "quality_summary.csv", index=False)
+    with open(metadata_dir / "quality_summary.txt", "w", encoding="utf-8") as handle:
+        handle.write(quality_report.summary())
 
-    # Save quality report and warnings
-    quality_report.save(output_dir / 'data_quality_report.csv')
-    quality_report.save_warnings(output_dir / 'analysis_warnings.txt')
-
-    # Generate and save quality summary
-    quality_summary = generate_quality_summary(quality_report)
-    with open(output_dir / 'quality_summary.txt', 'w') as f:
-        f.write(quality_summary)
-
-    # Log quality summary
-    logger.info(f"Data Quality Summary:\n{quality_report.summary()}")
-
-    # Log any critical warnings
-    critical_warnings = [w for w in quality_report.warnings if w.level.value == 'ERROR']
-    if critical_warnings:
-        for warning in critical_warnings:
-            logger.error(f"[{warning.tool}] {warning.message}")
-
-    # Filter out tools with FAILED status (keep PARTIAL and OK)
-    valid_tool_outputs = {}
+    # Drop hard-failed tools only
+    valid_tools: Dict[str, pd.DataFrame] = {}
     for tool_name, tool_df in tool_outputs.items():
-        tool_status = next(
-            (s for s in quality_report.tool_statuses if s.tool == tool_name),
-            None
-        )
-        if tool_status and tool_status.status.value == 'FAILED':
-            logger.warning(f"Excluding {tool_name} from analysis due to FAILED status")
-        else:
-            valid_tool_outputs[tool_name] = tool_df
+        status_rows = [s for s in quality_report.tool_statuses if s.tool == tool_name]
+        if status_rows and all(s.status.value == "FAILED" for s in status_rows):
+            logger.warning("Excluding %s due to FAILED status", tool_name)
+            continue
+        valid_tools[tool_name] = tool_df
 
-    if not valid_tool_outputs:
-        logger.error("No valid tool outputs to analyze after quality filtering")
+    tool_outputs = valid_tools
+    if not tool_outputs:
+        logger.error("No valid tool outputs after quality filtering")
         return
 
-    tool_outputs = valid_tool_outputs
-    logger.info(f"Proceeding with {len(tool_outputs)} valid tools")
+    # Reference catalog and canonicalization
+    reference_catalog = None
+    reference_lengths: Dict[str, int] = {}
 
-    # =========================================================================
-    # 0.5. Position Standardization
-    # =========================================================================
-    logger.info("Standardizing positions across replicates and tools...")
+    if references_csv is not None:
+        reference_catalog = load_reference_catalog(Path(references_csv))
+        reference_catalog.to_csv(metadata_dir / "reference_catalog.csv", index=False)
+        reference_lengths = get_reference_lengths(reference_catalog)
 
-    standardized_outputs, std_report = standardize_all_tool_outputs(
-        tool_outputs, ground_truth
-    )
+        for tool, df in tool_outputs.items():
+            if not df.empty:
+                tool_outputs[tool] = canonicalize_tool_references(df, reference_catalog)
 
-    # Save standardization reports
-    std_report.save(output_dir)
+        ground_truth = _canonicalize_ground_truth(ground_truth, reference_catalog)
+    else:
+        logger.warning("No --references-csv provided. Reference lengths inferred from observed max positions.")
 
-    # Log summary
-    logger.info(f"Position Standardization Summary:\n{std_report.summary()}")
+    if not reference_lengths:
+        reference_lengths = _infer_reference_lengths(tool_outputs, ground_truth)
 
-    # Use standardized outputs for all downstream analysis
-    tool_outputs = standardized_outputs
+    # Decide references to process
+    refs_from_data: Set[str] = set()
+    for df in tool_outputs.values():
+        if not df.empty:
+            refs_from_data.update(df["reference"].dropna().astype(str).tolist())
 
-    # =========================================================================
-    # 1. Benchmark Metrics (if ground truth provided)
-    # =========================================================================
     if ground_truth is not None and not ground_truth.empty:
-        logger.info("Calculating benchmark metrics...")
+        refs_from_data.update(ground_truth["reference"].dropna().astype(str).tolist())
 
-        # Calculate metrics for all tools
-        metrics_df = calculate_metrics_all_tools(tool_outputs, ground_truth, references)
+    refs = sorted(set(reference_lengths.keys()) | refs_from_data)
 
-        if not metrics_df.empty:
-            metrics_df.to_csv(metrics_dir / 'all_metrics.csv', index=False)
-            logger.info(f"Saved metrics to {metrics_dir / 'all_metrics.csv'}")
+    if references_filter:
+        wanted = {r.lower() for r in references_filter}
+        if reference_catalog is not None and not reference_catalog.empty:
+            for _, row in reference_catalog.iterrows():
+                target = str(row["target"]).lower()
+                ref_id = str(row["reference_id"]).lower()
+                if target in wanted:
+                    wanted.add(ref_id)
+        refs = [r for r in refs if r.lower() in wanted]
 
-            # Generate metrics comparison plot
-            plot_metrics_comparison(metrics_df, viz_dir / 'metrics_comparison.png')
+    if not refs:
+        logger.error("No references detected for downstream analysis")
+        return
 
-            # PR and ROC curves
-            for ref in (references or [None]):
-                ref_suffix = f"_{ref}" if ref else ""
-                plot_pr_curves(tool_outputs, ground_truth,
-                              viz_dir / f'pr_curves{ref_suffix}.png', ref)
-                plot_roc_curves(tool_outputs, ground_truth,
-                               viz_dir / f'roc_curves{ref_suffix}.png', ref)
+    all_metrics_rows: List[pd.DataFrame] = []
+    all_summary_rows: List[pd.DataFrame] = []
 
-            # Tool ranking
-            ranking = rank_tools(tool_outputs, ground_truth)
-            ranking.to_csv(metrics_dir / 'tool_ranking.csv', index=False)
-
-    # =========================================================================
-    # 2. Replicate Analysis
-    # =========================================================================
-    logger.info("Analyzing replicates...")
-
-    concordance_results = []
-    for tool_name, tool_df in tool_outputs.items():
-        if tool_df.empty:
+    for ref in refs:
+        if ref not in reference_lengths:
+            logger.warning("Skipping reference %s: no known length", ref)
             continue
 
-        # Check if there are multiple replicates
-        replicates = tool_df['replicate'].unique()
-        if len(replicates) > 1:
-            # Calculate concordance
-            stats = calculate_concordance(tool_df, score_threshold)
-            concordance_results.append(stats.to_dict())
+        ref_len = int(reference_lengths[ref])
+        logger.info("Processing reference %s (length=%d)", ref, ref_len)
 
-            # Consensus calling
-            consensus = consensus_calling(tool_df, min_replicates, score_threshold)
-            if not consensus.empty:
-                consensus.to_csv(
-                    replicate_dir / f'{tool_name}_consensus.csv',
-                    index=False
+        ref_root = by_ref_dir / ref
+        dirs = _make_dirs(ref_root)
+
+        gt_ref = (
+            ground_truth[ground_truth["reference"].astype(str) == ref].copy()
+            if ground_truth is not None and not ground_truth.empty
+            else pd.DataFrame(columns=["reference", "position"])
+        )
+        gt_positions = set(gt_ref["position"].astype(int).tolist()) if not gt_ref.empty else set()
+
+        # Keep per-reference tool slices
+        parsed_ref_tools: Dict[str, pd.DataFrame] = {}
+
+        # Standardization report for this reference
+        from position_standardization import StandardizationReport
+
+        std_report = StandardizationReport()
+
+        metric_rows = []
+        no_call_rows = []
+        pr_rows = []
+        roc_rows = []
+
+        for tool, df in tool_outputs.items():
+            if df.empty:
+                continue
+
+            tool_ref = df[df["reference"].astype(str) == ref].copy()
+            if tool_ref.empty:
+                continue
+
+            parsed_ref_tools[tool] = tool_ref
+            tool_ref.to_csv(dirs["parsed"] / f"{tool}.csv", index=False)
+
+            reps = sorted(tool_ref["replicate"].astype(str).unique().tolist()) if "replicate" in tool_ref.columns else ["rep1"]
+
+            imputed = standardize_to_reference_universe(
+                tool_ref,
+                reference_id=ref,
+                reference_length=ref_len,
+                replicates=reps,
+                report=std_report,
+            )
+            imputed.to_csv(dirs["imputed"] / f"{tool}.csv", index=False)
+
+            metric_ready = build_metric_ready_table(imputed, gt_positions)
+            metric_ready.to_csv(dirs["metric_ready"] / f"{tool}.csv", index=False)
+
+            # No-call diagnostics
+            no_call = compute_no_call_diagnostics(metric_ready, gt_positions)
+            no_call_rows.append(no_call)
+
+            # Metrics per replicate
+            for rep in sorted(metric_ready["replicate"].astype(str).unique().tolist()):
+                rep_df = metric_ready[metric_ready["replicate"].astype(str) == rep].copy()
+                if rep_df.empty:
+                    continue
+
+                m = calculate_metrics(rep_df, ground_truth=None, reference=ref)
+                metric_rows.append(pd.DataFrame([m.to_dict()]))
+
+                curves = _extract_curve_points(metric_ready, tool=tool, reference=ref, replicate=rep)
+                if not curves["pr"].empty:
+                    pr_rows.append(curves["pr"])
+                if not curves["roc"].empty:
+                    roc_rows.append(curves["roc"])
+
+        # Save standardization reports
+        std_report.save(ref_root)
+
+        # Metrics output files
+        metrics_per_rep = pd.concat(metric_rows, ignore_index=True) if metric_rows else pd.DataFrame()
+        no_call_df = pd.concat(no_call_rows, ignore_index=True) if no_call_rows else pd.DataFrame()
+
+        if not metrics_per_rep.empty and not no_call_df.empty:
+            metrics_per_rep = metrics_per_rep.merge(
+                no_call_df[
+                    [
+                        "reference",
+                        "tool",
+                        "replicate",
+                        "n_universe",
+                        "n_reported",
+                        "n_no_call",
+                        "no_call_rate",
+                        "n_gt_total",
+                        "n_gt_reported",
+                        "gt_recall_raw",
+                    ]
+                ],
+                on=["reference", "tool", "replicate"],
+                how="left",
+            )
+
+        if not metrics_per_rep.empty:
+            summary = (
+                metrics_per_rep.groupby(["reference", "tool"], as_index=False)
+                .agg(
+                    auprc_mean=("auprc", "mean"),
+                    auprc_std=("auprc", "std"),
+                    auprc_median=("auprc", "median"),
+                    auroc_mean=("auroc", "mean"),
+                    auroc_std=("auroc", "std"),
+                    auroc_median=("auroc", "median"),
+                    f1_optimal_mean=("f1_optimal", "mean"),
+                    f1_optimal_std=("f1_optimal", "std"),
+                    f1_optimal_median=("f1_optimal", "median"),
+                    precision_optimal_mean=("precision_optimal", "mean"),
+                    recall_optimal_mean=("recall_optimal", "mean"),
+                    no_call_rate_mean=("no_call_rate", "mean"),
+                    gt_recall_raw_mean=("gt_recall_raw", "mean"),
                 )
+            )
+            all_metrics_rows.append(metrics_per_rep)
+            all_summary_rows.append(summary)
+        else:
+            summary = pd.DataFrame()
 
-    if concordance_results:
-        concordance_df = pd.DataFrame(concordance_results)
-        concordance_df.to_csv(replicate_dir / 'concordance.csv', index=False)
-        plot_replicate_concordance(concordance_df, viz_dir / 'replicate_concordance.png')
+        metrics_per_rep.to_csv(dirs["metrics"] / "metrics_per_replicate.csv", index=False)
+        summary.to_csv(dirs["metrics"] / "metrics_summary.csv", index=False)
 
-    # =========================================================================
-    # 3. Tool Comparison
-    # =========================================================================
-    logger.info("Comparing tools...")
+        no_call_df.to_csv(dirs["metrics"] / "no_call_diagnostics.csv", index=False)
 
-    # Generate UpSet data
-    upset_df = generate_upset_data(tool_outputs, score_threshold)
-    if not upset_df.empty:
-        upset_df.to_csv(comparison_dir / 'upset_data.csv', index=False)
-        try:
-            plot_upset(tool_outputs, viz_dir / 'upset_plot.png',
-                      threshold=score_threshold)
-        except Exception as e:
-            logger.warning(f"Could not generate UpSet plot: {e}")
+        pr_df = pd.concat(pr_rows, ignore_index=True) if pr_rows else pd.DataFrame()
+        roc_df = pd.concat(roc_rows, ignore_index=True) if roc_rows else pd.DataFrame()
 
-    # Pairwise agreement
-    pairwise = calculate_pairwise_agreement(tool_outputs, score_threshold)
-    if not pairwise.empty:
-        pairwise.to_csv(comparison_dir / 'pairwise_agreement.csv', index=False)
-        plot_correlation_heatmap(tool_outputs, viz_dir / 'tool_correlation.png',
-                                threshold=score_threshold)
+        pr_df.to_csv(dirs["curves"] / "pr_curve_points.csv", index=False)
+        roc_df.to_csv(dirs["curves"] / "roc_curve_points.csv", index=False)
 
-    # Consensus positions across tools
-    for min_tools in [2, 3, len(tool_outputs)]:
-        if min_tools <= len(tool_outputs):
-            consensus = get_consensus_positions(
-                tool_outputs, min_tools=min_tools, threshold=score_threshold
+        # Tool comparison (reference-specific only)
+        if parsed_ref_tools:
+            cmp = compare_tools(parsed_ref_tools, threshold=score_threshold, reference=ref)
+            pd.DataFrame([cmp.to_dict()]).to_csv(dirs["comparison"] / "summary.csv", index=False)
+
+            upset = generate_upset_data(parsed_ref_tools, threshold=score_threshold, reference=ref)
+            if not upset.empty:
+                upset.to_csv(dirs["comparison"] / "upset_data.csv", index=False)
+
+            pairwise = calculate_pairwise_agreement(parsed_ref_tools, threshold=score_threshold, reference=ref)
+            if not pairwise.empty:
+                pairwise.to_csv(dirs["comparison"] / "pairwise_agreement.csv", index=False)
+
+            for min_tools in [2, 3, len(parsed_ref_tools)]:
+                if min_tools <= len(parsed_ref_tools):
+                    cons = get_consensus_positions(
+                        parsed_ref_tools,
+                        min_tools=min_tools,
+                        threshold=score_threshold,
+                        reference=ref,
+                    )
+                    if not cons.empty:
+                        cons.to_csv(dirs["comparison"] / f"consensus_{min_tools}tools.csv", index=False)
+
+        # Replicate analysis (reference-specific only)
+        rep_stats_rows = []
+        for tool, df in parsed_ref_tools.items():
+            reps = sorted(df["replicate"].astype(str).unique()) if "replicate" in df.columns else ["rep1"]
+            if len(reps) < 2:
+                continue
+
+            stats_obj = calculate_concordance(df, threshold=score_threshold, reference=ref)
+            rep_stats_rows.append(pd.DataFrame([stats_obj.to_dict()]))
+
+            consensus = consensus_calling(
+                df,
+                min_replicates=min_replicates,
+                threshold=score_threshold,
+                reference=ref,
             )
             if not consensus.empty:
-                consensus.to_csv(
-                    comparison_dir / f'consensus_{min_tools}tools.csv',
-                    index=False
-                )
+                consensus.to_csv(dirs["replicate"] / f"{tool}_consensus.csv", index=False)
 
-    # Tool comparison summary
-    comparison = compare_tools(tool_outputs, score_threshold)
-    summary_data = [{
-        'metric': 'n_tools',
-        'value': comparison.n_tools
-    }, {
-        'metric': 'n_union',
-        'value': comparison.n_union
-    }, {
-        'metric': 'n_intersection',
-        'value': comparison.n_intersection
-    }]
-    for tool, n in comparison.n_positions_per_tool.items():
-        summary_data.append({'metric': f'n_{tool}', 'value': n})
-    pd.DataFrame(summary_data).to_csv(comparison_dir / 'summary.csv', index=False)
+        if rep_stats_rows:
+            pd.concat(rep_stats_rows, ignore_index=True).to_csv(
+                dirs["replicate"] / "concordance.csv", index=False
+            )
 
-    # =========================================================================
-    # 4. Score Distributions
-    # =========================================================================
-    logger.info("Generating score distributions...")
-    plot_score_distributions(tool_outputs, viz_dir / 'score_distributions.png')
+    # Collation-ready long tables
+    if all_metrics_rows:
+        metrics_long = pd.concat(all_metrics_rows, ignore_index=True)
+        metrics_long.insert(0, "run_id", run_id or output_dir.name)
+        metrics_long.insert(1, "coverage_label", coverage_label if coverage_label is not None else "NA")
+        metrics_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
+        metrics_long.to_csv(collation_dir / "metrics_long.csv", index=False)
 
-    # =========================================================================
-    # 5. Venn Diagrams (for top tools)
-    # =========================================================================
-    if len(tool_outputs) >= 2:
-        tools_to_compare = list(tool_outputs.keys())[:3]
-        try:
-            plot_venn(tool_outputs, viz_dir / 'venn_diagram.png',
-                     tools=tools_to_compare, threshold=score_threshold)
-        except Exception as e:
-            logger.warning(f"Could not generate Venn diagram: {e}")
+    if all_summary_rows:
+        summary_long = pd.concat(all_summary_rows, ignore_index=True)
+        summary_long.insert(0, "run_id", run_id or output_dir.name)
+        summary_long.insert(1, "coverage_label", coverage_label if coverage_label is not None else "NA")
+        summary_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
+        summary_long.to_csv(collation_dir / "metrics_summary_long.csv", index=False)
 
-    # =========================================================================
-    # 6. Coverage Analysis (if coverage data available)
-    # =========================================================================
-    coverage_dir = output_dir / 'coverage_analysis'
-    has_coverage_data = False
+    run_meta = {
+        "run_id": run_id or output_dir.name,
+        "coverage_label": coverage_label,
+        "quality_label": quality_label,
+        "references_processed": refs,
+        "reference_lengths": reference_lengths,
+        "tools_loaded": sorted([t for t, df in tool_outputs.items() if not df.empty]),
+    }
+    with open(metadata_dir / "run_metadata.json", "w", encoding="utf-8") as handle:
+        json.dump(run_meta, handle, indent=2)
 
-    # Check if any tool has coverage data
-    for tool_df in tool_outputs.values():
-        if 'coverage' in tool_df.columns and tool_df['coverage'].notna().any():
-            has_coverage_data = True
-            break
-
-    if has_coverage_data and ground_truth is not None:
-        logger.info("Running coverage analysis...")
-        coverage_dir.mkdir(exist_ok=True)
-
-        try:
-            # Analyze coverage
-            coverage_result = analyze_coverage(tool_outputs, ground_truth, references)
-
-            # Save metrics
-            coverage_result.save(coverage_dir / 'coverage_metrics.csv')
-
-            # Save comparison table
-            comparison_table = compare_tools_by_coverage(coverage_result)
-            if not comparison_table.empty:
-                comparison_table.to_csv(coverage_dir / 'coverage_comparison.csv')
-
-            # Save summary
-            cov_summary = generate_coverage_summary(coverage_result)
-            with open(coverage_dir / 'coverage_summary.txt', 'w') as f:
-                f.write(cov_summary)
-
-            # Generate visualizations
-            cov_metrics_df = coverage_result.to_dataframe()
-
-            if not cov_metrics_df.empty:
-                # Performance vs coverage
-                plot_coverage_performance(
-                    cov_metrics_df,
-                    viz_dir / 'coverage_performance.png'
-                )
-
-                # Coverage heatmap
-                plot_coverage_heatmap(
-                    cov_metrics_df,
-                    viz_dir / 'coverage_heatmap.png'
-                )
-
-                # Saturation curves with marked saturation points
-                plot_saturation_curves(
-                    cov_metrics_df,
-                    viz_dir / 'saturation_curves.png',
-                    saturation_points=coverage_result.saturation_points
-                )
-
-                # Stability comparison
-                plot_coverage_stability(
-                    coverage_result.coverage_stability,
-                    viz_dir / 'coverage_stability.png'
-                )
-
-                # Multi-metric coverage plot
-                plot_multi_metric_coverage(
-                    cov_metrics_df,
-                    viz_dir / 'multi_metric_coverage.png'
-                )
-
-            logger.info(f"Coverage analysis complete: {coverage_dir}")
-
-        except Exception as e:
-            logger.warning(f"Coverage analysis failed: {e}")
-    elif has_coverage_data:
-        logger.info("Coverage data found but no ground truth - skipping coverage analysis")
-
-    # =========================================================================
-    # 7. HTML Report
-    # =========================================================================
-    logger.info("Generating HTML report...")
-    if ground_truth is not None:
-        report_path = generate_html_report(
-            tool_outputs, ground_truth, output_dir / 'report'
-        )
-        logger.info(f"Generated HTML report: {report_path}")
-
-    # =========================================================================
-    # Summary
-    # =========================================================================
-    logger.info("=" * 60)
-    logger.info("Analysis Complete!")
-    logger.info("=" * 60)
-    logger.info(f"Tools analyzed: {len(tool_outputs)}")
-    logger.info(f"Output directory: {output_dir}")
-
-    # Quality summary
-    n_warnings = len(quality_report.warnings)
-    n_errors = len([w for w in quality_report.warnings if w.level.value == 'ERROR'])
-    if n_warnings > 0:
-        logger.info(f"Data quality: {n_warnings} warnings ({n_errors} errors)")
-        logger.info(f"See {output_dir / 'analysis_warnings.txt'} for details")
-
-    if ground_truth is not None and 'metrics_df' in dir() and not metrics_df.empty:
-        best_tool = metrics_df.loc[metrics_df['auprc'].idxmax()]
-        logger.info(f"Best performing tool: {best_tool['tool']} (AUPRC={best_tool['auprc']:.4f})")
-
-    logger.info(f"Total unique positions: {comparison.n_union}")
-    logger.info(f"Positions detected by all tools: {comparison.n_intersection}")
+    logger.info("Downstream analysis complete: %s", output_dir)
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Run downstream analysis for RNA modification detection',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
-    )
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run downstream analysis")
 
-    # Input options
-    input_group = parser.add_argument_group('Input Options')
-    input_group.add_argument(
-        '--input-dir', '-i',
-        help='Directory containing all tool outputs (standard pipeline output structure)'
-    )
-
-    # Individual tool inputs
+    input_group = parser.add_argument_group("Input")
+    input_group.add_argument("--input-dir", "-i", help="modifications directory")
     for tool in SUPPORTED_TOOLS:
-        input_group.add_argument(
-            f'--{tool}',
-            help=f'Path to {tool} output file or directory'
-        )
+        input_group.add_argument(f"--{tool}", help=f"{tool} output path")
 
-    # Ground truth
-    parser.add_argument(
-        '--ground-truth', '-g',
-        help='Path to ground truth CSV/TSV file with known modification sites'
-    )
+    parser.add_argument("--ground-truth", "-g", help="ground truth CSV/TSV")
+    parser.add_argument("--references-csv", help="references CSV (target,reference) for canonical IDs and lengths")
 
-    # Output options
-    parser.add_argument(
-        '--output-dir', '-o',
-        required=True,
-        help='Output directory for analysis results'
-    )
+    parser.add_argument("--output-dir", "-o", required=True)
+    parser.add_argument("--references", "-r", nargs="+", help="optional subset of canonical references")
+    parser.add_argument("--min-replicates", type=int, default=2)
+    parser.add_argument("--expected-replicates", type=int, default=3)
+    parser.add_argument("--threshold", type=float, help="score threshold for significance")
+    parser.add_argument("--coverage-dirs", action="store_true")
 
-    # Analysis options
-    parser.add_argument(
-        '--references', '-r',
-        nargs='+',
-        help='Filter to specific references (e.g., 16s 23s)'
-    )
-    parser.add_argument(
-        '--min-replicates',
-        type=int,
-        default=2,
-        help='Minimum replicates for consensus calling (default: 2)'
-    )
-    parser.add_argument(
-        '--expected-replicates',
-        type=int,
-        default=3,
-        help='Expected number of replicates per tool for quality checks (default: 3)'
-    )
-    parser.add_argument(
-        '--threshold',
-        type=float,
-        help='Score threshold for significance (p-value or FDR cutoff)'
-    )
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose logging'
-    )
-    parser.add_argument(
-        '--coverage-dirs',
-        action='store_true',
-        help='Expect {coverage}/tool/ directory structure for coverage analysis'
-    )
+    parser.add_argument("--run-id", help="run identifier for collation tables")
+    parser.add_argument("--coverage-label", help="coverage label for collation (e.g., 100x)")
+    parser.add_argument("--quality-label", help="quality label for collation")
+
+    parser.add_argument("--verbose", "-v", action="store_true")
 
     args = parser.parse_args()
 
@@ -531,46 +557,44 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
 
     # Load tool outputs
-    tool_outputs = {}
-
     if args.input_dir:
-        # Load from standard directory structure
-        input_dir = Path(args.input_dir)
-        if not input_dir.exists():
-            logger.error(f"Input directory not found: {input_dir}")
+        in_dir = Path(args.input_dir)
+        if not in_dir.exists():
+            logger.error("Input directory not found: %s", in_dir)
             sys.exit(1)
-
-        tool_outputs = load_all_tool_outputs(
-            input_dir, SUPPORTED_TOOLS, coverage_dirs=args.coverage_dirs
-        )
+        tool_outputs = load_all_tool_outputs(in_dir, SUPPORTED_TOOLS, coverage_dirs=args.coverage_dirs)
     else:
-        # Load from individual arguments
         tool_outputs = load_tool_outputs_from_args(args)
 
     if not tool_outputs:
-        logger.error("No tool outputs loaded. Provide --input-dir or individual tool paths.")
+        logger.error("No tool outputs loaded")
         sys.exit(1)
 
     # Load ground truth
     ground_truth = None
     if args.ground_truth:
-        ground_truth_path = Path(args.ground_truth)
-        if ground_truth_path.exists():
-            ground_truth = load_ground_truth(ground_truth_path)
+        gt_path = Path(args.ground_truth)
+        if gt_path.exists():
+            ground_truth = load_ground_truth(gt_path)
         else:
-            logger.warning(f"Ground truth file not found: {ground_truth_path}")
+            logger.warning("Ground truth not found: %s", gt_path)
 
-    # Run analysis
+    references_csv = Path(args.references_csv) if args.references_csv else None
+
     run_analysis(
         tool_outputs=tool_outputs,
         ground_truth=ground_truth,
         output_dir=Path(args.output_dir),
-        references=args.references,
+        references_csv=references_csv,
+        references_filter=args.references,
         min_replicates=args.min_replicates,
         score_threshold=args.threshold,
-        expected_replicates=args.expected_replicates
+        expected_replicates=args.expected_replicates,
+        run_id=args.run_id,
+        coverage_label=args.coverage_label,
+        quality_label=args.quality_label,
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

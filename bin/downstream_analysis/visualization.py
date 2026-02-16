@@ -80,7 +80,10 @@ def plot_pr_curves(
         figsize: Figure size
         title: Plot title
     """
-    from .benchmark_metrics import get_precision_recall_curve, calculate_metrics
+    try:
+        from .benchmark_metrics import get_precision_recall_curve, calculate_metrics
+    except Exception:
+        from benchmark_metrics import get_precision_recall_curve, calculate_metrics
 
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -151,7 +154,10 @@ def plot_roc_curves(
         figsize: Figure size
         title: Plot title
     """
-    from .benchmark_metrics import get_roc_curve, calculate_metrics
+    try:
+        from .benchmark_metrics import get_roc_curve, calculate_metrics
+    except Exception:
+        from benchmark_metrics import get_roc_curve, calculate_metrics
 
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -297,7 +303,10 @@ def plot_upset(
         logger.error("upsetplot not installed. Run: pip install upsetplot")
         return
 
-    from .tool_comparison import generate_upset_data
+    try:
+        from .tool_comparison import generate_upset_data
+    except Exception:
+        from tool_comparison import generate_upset_data
 
     # Generate upset data
     upset_df = generate_upset_data(tool_outputs, threshold, reference)
@@ -361,7 +370,10 @@ def plot_venn(
         logger.error("matplotlib-venn not installed. Run: pip install matplotlib-venn")
         return
 
-    from .tool_comparison import generate_venn_data
+    try:
+        from .tool_comparison import generate_venn_data
+    except Exception:
+        from tool_comparison import generate_venn_data
 
     # Generate Venn data
     venn_data = generate_venn_data(tool_outputs, tools, threshold, reference)
@@ -512,7 +524,10 @@ def plot_correlation_heatmap(
         figsize: Figure size
     """
     import seaborn as sns
-    from .tool_comparison import calculate_pairwise_agreement
+    try:
+        from .tool_comparison import calculate_pairwise_agreement
+    except Exception:
+        from tool_comparison import calculate_pairwise_agreement
 
     pairwise = calculate_pairwise_agreement(tool_outputs, threshold, reference)
 
@@ -864,8 +879,14 @@ def generate_html_report(
     Returns:
         Path to HTML report
     """
-    from .benchmark_metrics import calculate_metrics_all_tools
-    from .tool_comparison import summarize_tool_comparison
+    try:
+        from .benchmark_metrics import calculate_metrics_all_tools
+    except Exception:
+        from benchmark_metrics import calculate_metrics_all_tools
+    try:
+        from .tool_comparison import summarize_tool_comparison
+    except Exception:
+        from tool_comparison import summarize_tool_comparison
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

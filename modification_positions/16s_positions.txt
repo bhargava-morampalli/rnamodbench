@@ -1,0 +1,13 @@
+# 16S rRNA modification positions in E. coli
+# Adjusted +200 from actual sites (reference has 200bp flanks)
+716
+727
+1166
+1167
+1407
+1602
+1607
+1698
+1716
+1718
+1719

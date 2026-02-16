@@ -1,0 +1,27 @@
+# 23S rRNA modification positions in E. coli
+# Adjusted +200 from actual sites (reference has 200bp flanks)
+945
+946
+947
+1155
+1818
+2035
+2111
+2115
+2117
+2139
+2162
+2230
+2269
+2451
+2645
+2649
+2657
+2698
+2701
+2703
+2704
+2752
+2780
+2804
+2805

@@ -10,7 +10,10 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": [
+                "input",
+                "outdir"
+            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -42,7 +45,9 @@
             "type": "object",
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options required for the workflow.",
-            "required": ["references"],
+            "required": [
+                "references"
+            ],
             "properties": {
                 "references": {
                     "type": "string",
@@ -102,7 +107,10 @@
                 "tombo_compare_method": {
                     "type": "string",
                     "default": "de_novo",
-                    "enum": ["de_novo", "level_sample_compare"],
+                    "enum": [
+                        "de_novo",
+                        "level_sample_compare"
+                    ],
                     "description": "Method for tombo comparison.",
                     "fa_icon": "fas fa-balance-scale"
                 },
@@ -244,7 +252,14 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
+                    "enum": [
+                        "symlink",
+                        "rellink",
+                        "link",
+                        "copy",
+                        "copyNoFollow",
+                        "move"
+                    ],
                     "hidden": true
                 },
                 "email_on_fail": {
@@ -412,6 +427,41 @@
                     "hidden": true
                 }
             }
+        },
+        "downstream_analysis_options": {
+            "title": "Downstream analysis options",
+            "type": "object",
+            "fa_icon": "fas fa-chart-line",
+            "description": "Optional downstream benchmarking and collation options.",
+            "properties": {
+                "run_downstream": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable downstream analysis stage after modification calling.",
+                    "fa_icon": "fas fa-play"
+                },
+                "ground_truth": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to ground truth CSV/TSV file with known modification positions.",
+                    "fa_icon": "fas fa-file-alt"
+                },
+                "downstream_run_id": {
+                    "type": "string",
+                    "description": "Optional run identifier used in downstream collation tables.",
+                    "fa_icon": "fas fa-tag"
+                },
+                "downstream_coverage_label": {
+                    "type": "string",
+                    "description": "Optional coverage label (e.g. 100x) stored in collation outputs.",
+                    "fa_icon": "fas fa-layer-group"
+                },
+                "downstream_quality_label": {
+                    "type": "string",
+                    "description": "Optional quality label stored in collation outputs.",
+                    "fa_icon": "fas fa-filter"
+                }
+            }
         }
     },
     "allOf": [
@@ -429,6 +479,9 @@
         },
         {
             "$ref": "#/$defs/modification_calling_options"
+        },
+        {
+            "$ref": "#/$defs/downstream_analysis_options"
         },
         {
             "$ref": "#/$defs/generic_options"

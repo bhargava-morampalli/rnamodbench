@@ -14,6 +14,7 @@ include { QC_STATS             } from '../subworkflows/local/qc_stats'
 include { PREPARE_SIGNAL_DATA  } from '../subworkflows/local/prepare_signal_data'
 include { SIGNAL_PROCESSING    } from '../subworkflows/local/signal_processing'
 include { MODIFICATION_CALLING } from '../subworkflows/local/modification_calling'
+include { DOWNSTREAM_ANALYSIS  } from '../modules/local/downstream_analysis'
 
 workflow RNAMODBENCH {
     ch_versions = Channel.empty()
@@ -223,6 +224,25 @@ workflow RNAMODBENCH {
         ch_ref_map
     )
     ch_versions = ch_versions.mix(MODIFICATION_CALLING.out.versions)
+
+    // =========================================================================
+    // OPTIONAL DOWNSTREAM ANALYSIS (default: disabled)
+    // =========================================================================
+
+    if (params.run_downstream) {
+        def gt_input = params.ground_truth ? file(params.ground_truth, checkIfExists: true).toString() : 'NO_FILE'
+        def refs_input = params.references ? file(params.references, checkIfExists: true).toString() : 'NO_FILE'
+
+        ch_modifications_dir = MODIFICATION_CALLING.out.versions
+            .map { _ -> file("${params.outdir}/modifications") }
+
+        DOWNSTREAM_ANALYSIS(
+            ch_modifications_dir,
+            Channel.value(gt_input),
+            Channel.value(refs_input)
+        )
+        ch_versions = ch_versions.mix(DOWNSTREAM_ANALYSIS.out.versions)
+    }
 
     // =========================================================================
     // COLLECT VERSIONS
