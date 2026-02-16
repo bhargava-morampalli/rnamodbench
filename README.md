@@ -1,278 +1,290 @@
 # bhargava-morampalli/rnamodbench
 
-[![Nextflow](https://img.shields.io/badge/version-%E2%89%A525.04.0-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A525.04.0-23aa62.svg)](https://www.nextflow.io/)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 ## Introduction
 
-**bhargava-morampalli/rnamodbench** is a bioinformatics pipeline for detecting RNA modifications in Oxford Nanopore direct RNA sequencing data. The pipeline is specifically designed for analyzing 16S and 23S rRNA modifications in E. coli bacteria by comparing native and in vitro transcribed (IVT) RNA samples.
+`rnamodbench` is a Nextflow DSL2 pipeline for benchmarking RNA modification callers on Oxford Nanopore direct RNA sequencing data.
 
-The pipeline performs the following steps:
+The pipeline uses pairwise native vs IVT comparisons per `target + replicate`, with dynamic target support driven by:
+- input samplesheet `target` column
+- `--references` CSV (`target,reference`)
 
-1. **Input Validation**: Validates and processes input samplesheet
-2. **Read Mapping**: Maps reads to 16S and 23S rRNA references using minimap2
-3. **QC Statistics**: Generates mapping statistics, coverage plots, and read quality metrics
-4. **Signal-Level Preparation**:
-   - Extracts mapped reads and read IDs
-   - Subsets relevant FAST5 files
-   - Converts multi-read to single-read FAST5 format
-   - Performs tombo resquiggling
-   - Creates f5c index
-5. **Signal Processing**: Runs f5c eventalign for signal-level analysis
-6. **Modification Calling**: Detects RNA modifications using multiple tools:
-   - **Tombo**: Statistical comparison of native vs IVT signals
-   - **Yanocomp**: GMM-based modification detection
-   - **Xpore**: Differential modification analysis
+Each sample is mapped once to its designated reference target (no dual mapping), then routed through signal preparation and multi-caller modification analysis.
 
 ## Pipeline Summary
 
+1. Validate inputs, parse samplesheet, and parse target-to-reference mapping.
+2. Map each sample to its designated target reference and generate sorted/indexed BAMs.
+3. Generate QC metrics (flagstat, depth, coverage plots, NanoPlot).
+4. Prepare signal-level data (read IDs, FAST5 subset, multi-to-single FAST5 conversion).
+5. Run signal processing (f5c index/eventalign and tombo resquiggle).
+6. Run modification callers and aggregate software versions/reports.
+
+## Data Flow
+
 ```mermaid
 graph TD
-    A[FastQ Files] --> B[Minimap2 Mapping]
-    B --> C[BAM Processing]
-    C --> D[QC Statistics]
-    C --> E[Extract Mapped Reads]
-    E --> F[Extract Read IDs]
-    F --> G[Subset FAST5 Files]
-    G --> H[Multi-to-Single FAST5]
-    H --> I[Tombo Resquiggle]
-    E --> J[Remap Reads]
-    J --> K[F5C Index]
-    K --> L[F5C Eventalign]
-    I --> M[Tombo Compare]
-    M --> N[Modification Sites]
-    L --> O[Yanocomp]
-    L --> P[Xpore]
-    O --> N
-    P --> N
+    A[samplesheet.csv] --> C[Input validation and metadata build]
+    B[references.csv] --> C
+
+    C --> D[Mapping: minimap2 -> samtools]
+    D --> E[QC: flagstat, depth, coverage, nanoplot]
+
+    D --> F[Extract mapped FASTQ]
+    F --> G[Extract read IDs]
+    G --> H[FAST5 subset]
+    H --> I[Multi-to-single FAST5]
+
+    D --> J[f5c index]
+    H --> J
+    J --> K[f5c eventalign read_name]
+    J --> L[f5c eventalign_xpore read_index]
+
+    I --> M[tombo resquiggle]
+
+    M --> N[Tombo detect + text output]
+    K --> O[Yanocomp prep + gmmtest]
+    K --> P[Nanocompore collapse + sampcomp]
+    L --> Q[xPore dataprep + diffmod]
+
+    D --> R[BAM-based callers]
+    R --> S[ELIGOS]
+    R --> T[EpiNano-Error]
+    R --> U[DiffErr]
+    R --> V[DRUMMER]
+    R --> W[JACUSA2]
+
+    N --> X[modifications/]
+    O --> X
+    P --> X
+    Q --> X
+    S --> X
+    T --> X
+    U --> X
+    V --> X
+    W --> X
+
+    X --> Y[pipeline_info/software_versions.yml]
 ```
+
+Caller input routing:
+- `tombo`: resquiggled single FAST5
+- `yanocomp`, `nanocompore`: `eventalign` output with read names
+- `xpore`: `eventalign_xpore` output with read index
+- `eligos`, `epinano`, `differr`, `drummer`, `jacusa2`: paired native/IVT BAMs + target reference
 
 ## Quick Start
 
-1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=23.04.0`)
-
-2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/) (you can follow [this tutorial](https://singularity-tutorial.github.io/01-installation/)), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility
-
-3. Prepare your samplesheet (see [Usage](#usage) section)
-
-4. Run the pipeline:
+### 1) Clone and run locally
 
 ```bash
-nextflow run bhargava-morampalli/rnamodbench \
-    -profile singularity \
-    --input samplesheet.csv \
-    --ref_16s references/16S.fa \
-    --ref_23s references/23S.fa \
-    --outdir results
+git clone <your-repo-url> rnamodbench
+cd rnamodbench
+
+nextflow run main.nf \
+  --input /absolute/path/samplesheet.csv \
+  --references /absolute/path/references.csv \
+  --outdir /absolute/path/results \
+  -profile singularity
 ```
 
-## Documentation
+### 2) Resume an interrupted run
 
-Detailed documentation for this pipeline is provided below.
+```bash
+nextflow run main.nf \
+  --input /absolute/path/samplesheet.csv \
+  --references /absolute/path/references.csv \
+  --outdir /absolute/path/results \
+  -profile singularity \
+  -resume
+```
 
-### Input Specifications
+### 3) Common profiles
 
-#### Samplesheet Format
+- `singularity`
+- `docker`
+- `conda`
+- `mamba`
+- `apptainer`
+- `podman`
+- `shifter`
+- `charliecloud`
+- `test`
+- `test_full`
 
-The input samplesheet must be a comma-separated file (CSV) with the following columns:
+## Inputs
 
-| Column       | Description                                                       |
-|--------------|-------------------------------------------------------------------|
-| sample       | Unique sample identifier                                          |
-| fastq        | Path to FASTQ file                                                |
-| type         | Sample type: `native` or `ivt`                                    |
-| replicate    | Replicate identifier (e.g., rep1, rep2, rep3)                     |
-| fast5_dir    | Path to directory containing FAST5 files for this sample          |
+### Samplesheet (`--input`)
 
-#### Example Samplesheet
+Required CSV columns:
+
+| Column | Description |
+| --- | --- |
+| `sample` | Unique sample ID (no spaces) |
+| `fastq` | FASTQ path (`.fq`, `.fastq`, optionally `.gz`) |
+| `type` | `native` or `ivt` |
+| `replicate` | Replicate identifier (`rep1`, `rep2`, ...) |
+| `fast5_dir` | Directory containing FAST5 files |
+| `target` | Target label (for example `16s`, `23s`, `5s`) |
+
+Example:
 
 ```csv
-sample,fastq,type,replicate,fast5_dir
-native_rep1,/path/to/native_rep1.fastq,native,rep1,/path/to/native_fast5
-native_rep2,/path/to/native_rep2.fastq,native,rep2,/path/to/native_fast5
-native_rep3,/path/to/native_rep3.fastq,native,rep3,/path/to/native_fast5
-ivt_rep1,/path/to/ivt_rep1.fastq,ivt,rep1,/path/to/ivt_fast5
-ivt_rep2,/path/to/ivt_rep2.fastq,ivt,rep2,/path/to/ivt_fast5
-ivt_rep3,/path/to/ivt_rep3.fastq,ivt,rep3,/path/to/ivt_fast5
+sample,fastq,type,replicate,fast5_dir,target
+native_16s_rep1,/data/native_16s_rep1.fastq.gz,native,rep1,/data/native_fast5,16s
+ivt_16s_rep1,/data/ivt_16s_rep1.fastq.gz,ivt,rep1,/data/ivt_fast5,16s
+native_23s_rep1,/data/native_23s_rep1.fastq.gz,native,rep1,/data/native_fast5,23s
+ivt_23s_rep1,/data/ivt_23s_rep1.fastq.gz,ivt,rep1,/data/ivt_fast5,23s
 ```
 
-### Reference Files
+### Reference map (`--references`)
 
-You need to provide FASTA files for both 16S and 23S rRNA references:
+Required CSV columns:
 
-```bash
---ref_16s references/k12_16S.fa
---ref_23s references/k12_23S.fa
+| Column | Description |
+| --- | --- |
+| `target` | Target label matching samplesheet `target` |
+| `reference` | FASTA path for that target |
+
+Example:
+
+```csv
+target,reference
+16s,/refs/k12_16S.fa
+23s,/refs/k12_23S.fa
 ```
 
-### Pipeline Parameters
+## Required Pairing and FAST5 Assumptions
 
-#### Core Parameters
+- Every `target + replicate` must have both `native` and `ivt` samples.
+  - Missing pairs trigger a pipeline error during validation.
+- Pooled FAST5 mode requires exactly one canonical FAST5 directory per sample type:
+  - one for all `native` rows
+  - one for all `ivt` rows
+- FAST5 directories are canonicalized using real paths, so symlink/path variants collapse to the same directory.
 
-| Parameter    | Description                                      | Default     |
-|--------------|--------------------------------------------------|-------------|
-| `--input`    | Path to input samplesheet                        | Required    |
-| `--outdir`   | Output directory for results                     | `./results` |
-| `--ref_16s`  | Path to 16S rRNA reference FASTA                 | Required    |
-| `--ref_23s`  | Path to 23S rRNA reference FASTA                 | Required    |
+## Modification Callers (Current)
 
-#### Mapping Parameters
+- **Tombo**: de novo modification statistics from resquiggled FAST5; exported as `.tombo.stats` and CSV text output.
+- **Yanocomp**: GMM-based comparison on eventalign-derived HDF5; exports BED and single-molecule JSON.
+- **Nanocompore**: eventalign collapse + sample comparison; exports TSV/DB/log artifacts.
+- **xPore**: dataprep + differential modification testing; exports `diffmod.table` per pair.
+- **ELIGOS**: error signature based differential modification analysis from paired BAMs.
+- **EpiNano-Error**: mismatch/sum_err based native-vs-IVT comparison outputs.
+- **DiffErr**: differential error analysis on paired BAMs with permissive expression filters.
+- **DRUMMER**: odds-ratio/p-value based differential signal from paired BAMs.
+- **JACUSA2**: comparative variant-like site detection on paired BAMs.
+- **NANORMS**: currently disabled in this workflow.
 
-| Parameter          | Description                   | Default                                  |
-|--------------------|-------------------------------|------------------------------------------|
-| `--minimap2_args`  | Additional minimap2 arguments | `-ax splice -uf -k14 --secondary=no`    |
+## Current Default Thresholds and All-sites Behavior
 
-#### Signal Processing Parameters
+Defaults below are from `nextflow.config` and effective module args from `conf/modules.config`.
 
-| Parameter                  | Description                       | Default                                                                |
-|----------------------------|-----------------------------------|------------------------------------------------------------------------|
-| `--tombo_resquiggle_args`  | Tombo resquiggle arguments        | `--rna --overwrite --num-most-common-errors 5`                        |
-| `--tombo_compare_method`   | Tombo comparison method           | `de_novo`                                                              |
-| `--f5c_eventalign_args`    | F5C eventalign arguments          | `--rna --scale-events --signal-index --print-read-names --samples`    |
+### Core caller defaults
 
-#### Modification Calling Parameters
+| Parameter | Default | Notes |
+| --- | --- | --- |
+| `yanocomp_fdr_threshold` | `1.0` | Pass-through to `--fdr-threshold` |
+| `yanocomp_min_ks` | `0.0` | Pass-through to `--min-ks` |
+| `xpore_pvalue_threshold` | `0.05` | Defined in config; not currently injected into `xpore diffmod` command |
+| `xpore_diffmod_threshold` | `0.1` | Defined in config; not currently injected into `xpore diffmod` command |
+| `nanocompore_min_coverage` | `1` | Used in nanocompore args |
+| `eligos_min_depth` | `1` | Broad coverage retention |
+| `eligos_max_depth` | `10000` | Upper depth cap |
+| `eligos_pval_thr` | `1.0` | No p-value filter |
+| `eligos_oddR_thr` | `0` | No OR filter |
+| `eligos_esb_thr` | `0` | No ESB filter |
+| `epinano_zscore_threshold` | `0` | No z-score filter |
+| `epinano_coverage_threshold` | `0` | Script uses `cov > threshold` |
+| `epinano_error_threshold` | `0.1` | Error-rate difference threshold |
+| `differr_fdr_threshold` | `1.0` | Keep all tested sites |
+| `drummer_pval_threshold` | `1.0` | Keep all tested sites |
+| `drummer_odds_ratio` | `0.0` | Runtime-safe guarded to positive epsilon before DRUMMER call |
 
-| Parameter                     | Description                         | Default |
-|-------------------------------|-------------------------------------|---------|
-| `--yanocomp_fdr_threshold`    | Yanocomp FDR threshold              | `1.0`   |
-| `--yanocomp_min_ks`           | Yanocomp minimum KS statistic       | `0.0`   |
-| `--xpore_pvalue_threshold`    | Xpore p-value threshold             | `0.05`  |
-| `--xpore_diffmod_threshold`   | Xpore modification threshold        | `0.1`   |
+### Effective module-level caller args
 
-#### Resource Parameters
+| Caller | Effective module args |
+| --- | --- |
+| Yanocomp | `--fdr-threshold ${params.yanocomp_fdr_threshold} --min-ks ${params.yanocomp_min_ks}` |
+| Nanocompore | `--min_coverage ${params.nanocompore_min_coverage} --sequence_context 2 --pvalue_thr 1 --logit` |
+| ELIGOS | `--min_depth ... --max_depth ... --pval ... --oddR ... --esb ...` |
+| EpiNano-Error | `zscore`, `coverage`, `error_threshold` passed via module `ext.*` |
+| DiffErr | `-f ${params.differr_fdr_threshold}` plus `--median-expr-threshold 0 --min-expr-threshold 0` |
+| DRUMMER | `-p ${params.drummer_pval_threshold} -z <effective_odds>` plus `-f 0` |
+| JACUSA2 | `-c 1 -m 0 -q 0` |
+| xPore | Internal config writes `readcount_min: 1`, `readcount_max: 1000000`, `pooling: false`, `prefiltering: false` |
 
-| Parameter      | Description                        | Default  |
-|----------------|------------------------------------|----------|
-| `--max_cpus`   | Maximum CPUs per job               | `16`     |
-| `--max_memory` | Maximum memory per job             | `128.GB` |
-| `--max_time`   | Maximum time per job               | `240.h`  |
+## Output Structure
 
-### Output Structure
+Main output directories under `--outdir`:
 
-```
-results/
-├── pipeline_info/           # Pipeline execution reports
-├── mapping/                 # Mapped reads (SAM/BAM files)
-│   ├── native/
-│   │   ├── 16s/
-│   │   └── 23s/
-│   └── ivt/
-│       ├── 16s/
-│       └── 23s/
-├── qc/                      # QC statistics and plots
-│   ├── flagstat/
-│   ├── depth/
-│   ├── coverage/
-│   └── nanoplot/
-├── mapped_reads/            # Extracted mapped FASTQ files
-├── read_ids/                # Read ID lists
-├── fast5_subset/            # Subset FAST5 files
-├── single_fast5/            # Single-read FAST5 files
-├── tombo/                   # Tombo resquiggling output
-├── eventalign/              # F5C eventalign output
-├── yanocomp/                # Yanocomp intermediate files
-├── xpore/                   # Xpore intermediate files
-└── modifications/           # Final modification calls
-    ├── tombo/               # Tombo results (BED files)
-    ├── yanocomp/            # Yanocomp results (BED, JSON)
-    └── xpore/               # Xpore results (CSV, tables)
-```
+```text
+<outdir>/
+  pipeline_info/
+  mapping/<type>/<target>/
+  qc/
+    flagstat/<type>/<target>/
+    depth/<type>/<target>/
+    coverage/<type>/<target>/
+    nanoplot/<type>/<target>/
+  mapped_reads/<type>/<target>/
+  read_ids/<type>/<target>/
+  fast5_subset/<type>/<target>/
+  single_fast5/<type>/<target>/
+  eventalign/<type>/<target>/
+  eventalign_xpore/<type>/<target>/
+  yanocomp/prepare/<type>/<target>/
+  nanocompore/eventalign_collapse/<type>/<target>/
+  xpore/dataprep/<type>/<target>/
 
-## Usage Examples
+  modifications/
+    tombo/
+    yanocomp/<target>/
+    nanocompore/
+    xpore/
+    eligos/<target>/
+    epinano/<target>/
+    differr/<target>/
+    drummer/<target>/
+    jacusa2/<target>/
 
-### Basic Usage
-
-```bash
-nextflow run bhargava-morampalli/rnamodbench \
-    -profile singularity \
-    --input samplesheet.csv \
-    --ref_16s references/16S.fa \
-    --ref_23s references/23S.fa \
-    --outdir results
-```
-
-### Custom Resource Limits
-
-```bash
-nextflow run bhargava-morampalli/rnamodbench \
-    -profile singularity \
-    --input samplesheet.csv \
-    --ref_16s references/16S.fa \
-    --ref_23s references/23S.fa \
-    --max_cpus 32 \
-    --max_memory 256.GB \
-    --outdir results
-```
-
-### With Conda
-
-```bash
-nextflow run bhargava-morampalli/rnamodbench \
-    -profile conda \
-    --input samplesheet.csv \
-    --ref_16s references/16S.fa \
-    --ref_23s references/23S.fa \
-    --outdir results
+  logs/
+    tombo/
+    yanocomp/<target>/
+    nanocompore/
+    xpore/
+    eligos/<target>/
+    epinano/<target>/
+    differr/<target>/
+    drummer/<target>/
 ```
 
-### Resume a Run
+Key `pipeline_info/` artifacts:
+- `execution_report_*.html`
+- `execution_timeline_*.html`
+- `execution_trace_*.txt`
+- `pipeline_dag_*.html`
+- `software_versions.yml`
 
-```bash
-nextflow run bhargava-morampalli/rnamodbench \
-    -profile singularity \
-    --input samplesheet.csv \
-    --ref_16s references/16S.fa \
-    --ref_23s references/23S.fa \
-    --outdir results \
-    -resume
-```
+## Documentation, Support, and Credits
 
-## Profiles
+- Additional docs: [`docs/`](docs/README.md)
+- Output details: [`docs/output.md`](docs/output.md)
+- Usage details: [`docs/usage.md`](docs/usage.md)
+- Tool citations: [`CITATIONS.md`](CITATIONS.md)
+- License: [`LICENSE`](LICENSE)
 
-The pipeline provides several configuration profiles:
+For issues and feature requests, open an issue in this repository with:
+- command used
+- profile used
+- relevant logs from `pipeline_info/` and `logs/`
 
-- `conda`: Use Conda for software management
-- `mamba`: Use Mamba for software management (faster than Conda)
-- `docker`: Use Docker containers
-- `singularity`: Use Singularity containers
-- `podman`: Use Podman containers
-- `test`: Run with test data (small dataset)
-- `test_full`: Run with full test data
+## Deprecation Note
 
-## Software Requirements
+`--ref_16s` and `--ref_23s` are deprecated fallback parameters.
 
-The pipeline uses the following main software tools:
-
-- **Minimap2** (v2.24): Read mapping
-- **Samtools** (v1.17): BAM file processing
-- **NanoPlot**: Read quality statistics
-- **Tombo** (v1.5.1): Signal resquiggling and modification detection
-- **F5C** (v1.1): Fast5 indexing and eventalign
-- **Yanocomp**: Signal comparison and modification calling
-- **Xpore**: Differential modification analysis
-
-All software is automatically handled by the pipeline using containers or Conda environments.
-
-## Credits
-
-This pipeline was developed for RNA modification detection in bacterial rRNA using Oxford Nanopore direct RNA sequencing.
-
-## Citations
-
-If you use this pipeline, please cite:
-
-- **Nextflow**: Di Tommaso, P., et al. (2017). Nextflow enables reproducible computational workflows. Nature Biotechnology, 35(4), 316-319.
-- **Minimap2**: Li, H. (2018). Minimap2: pairwise alignment for nucleotide sequences. Bioinformatics, 34(18), 3094-3100.
-- **Tombo**: Stoiber, M., et al. (2017). De novo identification of DNA modifications enabled by genome-guided nanopore signal processing. bioRxiv.
-- **F5C**: Gamaarachchi, H., et al. (2020). Fast nanopore sequencing data analysis with SLOW5. Nature Biotechnology, 40, 1026-1029.
-- **Yanocomp**: Liu, H., et al. (2021). Accurate detection of m6A RNA modifications in native RNA sequences. Nature Communications, 12(1), 2761.
-- **Xpore**: Pratanwanich, P.N., et al. (2021). Identification of differential RNA modifications from nanopore direct RNA sequencing with xPore. Nature Biotechnology, 39, 1394-1402.
-
-## Support
-
-For questions and support:
-- Open an issue on the GitHub repository
-- Check the [Nextflow documentation](https://www.nextflow.io/docs/latest/)
-- Visit the [rnamodbench website](https://github.com/bhargava-morampalli/rnamodbench/)
+Use `--references` as the primary interface for target-to-reference mapping.
