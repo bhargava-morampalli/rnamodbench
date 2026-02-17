@@ -21,30 +21,29 @@ def _read_if_exists(path: Path) -> pd.DataFrame:
 def collate(run_dirs: List[Path], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    metrics_all = []
-    summary_all = []
+    table_names = [
+        "metrics_long.csv",
+        "metrics_summary_long.csv",
+        "window_metrics_long.csv",
+        "window_metrics_summary_long.csv",
+        "lag_metrics_long.csv",
+        "lag_metrics_summary_long.csv",
+    ]
+    collected = {name: [] for name in table_names}
 
     for run_dir in run_dirs:
         coll_dir = run_dir / "collation"
-        metrics = _read_if_exists(coll_dir / "metrics_long.csv")
-        summary = _read_if_exists(coll_dir / "metrics_summary_long.csv")
+        for name in table_names:
+            df = _read_if_exists(coll_dir / name)
+            if not df.empty:
+                collected[name].append(df)
 
-        if not metrics.empty:
-            metrics_all.append(metrics)
-        if not summary.empty:
-            summary_all.append(summary)
-
-    if metrics_all:
-        pd.concat(metrics_all, ignore_index=True).to_csv(output_dir / "metrics_long.csv", index=False)
-    else:
-        pd.DataFrame().to_csv(output_dir / "metrics_long.csv", index=False)
-
-    if summary_all:
-        pd.concat(summary_all, ignore_index=True).to_csv(
-            output_dir / "metrics_summary_long.csv", index=False
-        )
-    else:
-        pd.DataFrame().to_csv(output_dir / "metrics_summary_long.csv", index=False)
+    for name in table_names:
+        frames = collected[name]
+        if frames:
+            pd.concat(frames, ignore_index=True).to_csv(output_dir / name, index=False)
+        else:
+            pd.DataFrame().to_csv(output_dir / name, index=False)
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ Usage:
 import logging
 import math
 from pathlib import Path
-from typing import Union, Dict, List, Optional, Tuple
+from typing import Union, Dict, List, Optional, Tuple, Sequence
 
 import numpy as np
 import pandas as pd
@@ -164,10 +164,14 @@ def _figure_context_text(metrics_df: pd.DataFrame, reference: str) -> str:
     return f"Reference: {reference} | Ground-truth positives: {gt_txt} | Universe positions: {universe_txt}"
 
 
-def _save_figure_outputs(fig, output_prefix: Path) -> List[Path]:
+def _save_figure_outputs(
+    fig,
+    output_prefix: Path,
+    formats: Sequence[str] = ("pdf", "svg", "png"),
+) -> List[Path]:
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
     written: List[Path] = []
-    for ext in ("pdf", "svg", "png"):
+    for ext in formats:
         out = output_prefix.with_suffix(f".{ext}")
         if ext == "png":
             fig.savefig(out, dpi=600, bbox_inches="tight", pad_inches=0.05)
@@ -483,6 +487,140 @@ def plot_pr_tool_grid(
     plt.close(fig)
     logger.info("Saved PR tool grid for %s: %s", reference, ", ".join(str(p) for p in written))
     return written
+
+
+def _plot_two_panel_metric_sweep(
+    sweep_df: pd.DataFrame,
+    reference: str,
+    output_dir: Union[str, Path],
+    output_stem: str,
+    x_col: str,
+    x_label: str,
+    title_prefix: str,
+) -> List[Path]:
+    if not _apply_nature_minimal_style():
+        return []
+
+    if sweep_df is None or sweep_df.empty:
+        logger.warning("No sweep data for %s (%s)", title_prefix, reference)
+        return []
+
+    output_dir = Path(output_dir)
+    ref_df = sweep_df.copy()
+    if "reference" in ref_df.columns:
+        ref_df = ref_df[ref_df["reference"].astype(str) == str(reference)]
+    if ref_df.empty:
+        logger.warning("No reference-specific sweep data for %s (%s)", title_prefix, reference)
+        return []
+
+    if x_col not in ref_df.columns:
+        logger.warning("Sweep x-axis column not found: %s", x_col)
+        return []
+
+    scope = "all"
+    if "scope" in ref_df.columns and not ref_df["scope"].dropna().empty:
+        scope = str(ref_df["scope"].dropna().iloc[0])
+
+    fig, axes = plt.subplots(1, 2, figsize=(10.8, 4.2), constrained_layout=False)
+    metric_specs = [("auroc", "AUROC"), ("auprc", "AUPRC")]
+    tools = sorted(ref_df["tool"].dropna().astype(str).unique().tolist(), key=str.lower)
+    x_ticks = sorted(pd.to_numeric(ref_df[x_col], errors="coerce").dropna().astype(int).unique().tolist())
+
+    for ax, (metric_col, metric_label) in zip(axes, metric_specs):
+        plotted = 0
+        for tool in tools:
+            tdf = ref_df[ref_df["tool"].astype(str) == tool].copy()
+            if tdf.empty:
+                continue
+
+            grp = (
+                tdf.groupby(x_col, as_index=False)[metric_col]
+                .agg(["mean", "std"])
+                .reset_index()
+                .rename(columns={"mean": "metric_mean", "std": "metric_std"})
+                .sort_values(x_col)
+            )
+            x_vals = pd.to_numeric(grp[x_col], errors="coerce").to_numpy(dtype=float)
+            y_vals = pd.to_numeric(grp["metric_mean"], errors="coerce").to_numpy(dtype=float)
+            y_err = pd.to_numeric(grp["metric_std"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
+            valid = np.isfinite(x_vals) & np.isfinite(y_vals)
+            if valid.sum() == 0:
+                continue
+
+            color = get_tool_color(tool)
+            ax.plot(
+                x_vals[valid],
+                y_vals[valid],
+                color=color,
+                linewidth=1.6,
+                marker="o",
+                markersize=3.2,
+                label=_display_name(tool),
+            )
+            y_low = np.clip(y_vals[valid] - y_err[valid], 0.0, 1.0)
+            y_high = np.clip(y_vals[valid] + y_err[valid], 0.0, 1.0)
+            ax.fill_between(x_vals[valid], y_low, y_high, color=color, alpha=0.15, linewidth=0)
+            plotted += 1
+
+        if plotted == 0:
+            ax.text(0.5, 0.5, "No data", ha="center", va="center", fontsize=8, color="#444444", transform=ax.transAxes)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(metric_label)
+        if x_ticks:
+            ax.set_xticks(x_ticks)
+        if x_col == "delta":
+            ax.axvline(0, color="grey", linestyle="--", alpha=0.5, linewidth=0.8)
+        ax.grid(True, which="major", alpha=0.2)
+        ax.set_title(metric_label)
+        handles, labels = ax.get_legend_handles_labels()
+        if handles:
+            ax.legend(loc="lower right", frameon=True, facecolor="white", framealpha=0.9, fontsize=7.5)
+
+    fig.suptitle(f"{title_prefix} | {reference} | scope={scope}", fontsize=11, y=0.99)
+    fig.tight_layout(rect=[0.01, 0.02, 0.99, 0.95])
+    written = _save_figure_outputs(
+        fig,
+        Path(output_dir) / output_stem,
+        formats=("pdf", "png"),
+    )
+    plt.close(fig)
+    logger.info("Saved %s for %s (%s): %s", title_prefix, reference, scope, ", ".join(str(p) for p in written))
+    return written
+
+
+def plot_window_tolerance_panels(
+    sweep_df: pd.DataFrame,
+    reference: str,
+    output_dir: Union[str, Path],
+    output_stem: str = "window_tolerance",
+) -> List[Path]:
+    return _plot_two_panel_metric_sweep(
+        sweep_df=sweep_df,
+        reference=reference,
+        output_dir=output_dir,
+        output_stem=output_stem,
+        x_col="window_size",
+        x_label="Window Size (nt)",
+        title_prefix="Window Tolerance",
+    )
+
+
+def plot_lag_scan_panels(
+    sweep_df: pd.DataFrame,
+    reference: str,
+    output_dir: Union[str, Path],
+    output_stem: str = "lag_scan",
+) -> List[Path]:
+    return _plot_two_panel_metric_sweep(
+        sweep_df=sweep_df,
+        reference=reference,
+        output_dir=output_dir,
+        output_stem=output_stem,
+        x_col="delta",
+        x_label="Signed Offset (nt)",
+        title_prefix="Lag Scan",
+    )
 
 
 def plot_pr_curves(

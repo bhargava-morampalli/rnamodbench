@@ -16,7 +16,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -43,7 +43,12 @@ from tool_comparison import (
     generate_upset_data,
     get_consensus_positions,
 )
-from visualization import plot_pr_tool_grid, plot_roc_tool_grid
+from visualization import (
+    plot_lag_scan_panels,
+    plot_pr_tool_grid,
+    plot_roc_tool_grid,
+    plot_window_tolerance_panels,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -62,6 +67,9 @@ SUPPORTED_TOOLS = [
     "drummer",
     "jacusa2",
 ]
+
+WINDOW_GRID = list(range(0, 11))
+LAG_GRID = list(range(-10, 11))
 
 
 def load_tool_outputs_from_args(args: argparse.Namespace) -> Dict[str, pd.DataFrame]:
@@ -155,6 +163,8 @@ def _make_dirs(base: Path) -> Dict[str, Path]:
         "comparison": base / "06_tool_comparison",
         "replicate": base / "07_replicate_analysis",
         "visualizations": base / "08_visualizations",
+        "tolerance": base / "09_tolerance_analysis",
+        "lag": base / "10_lag_diagnostics",
     }
     for d in dirs.values():
         d.mkdir(parents=True, exist_ok=True)
@@ -288,6 +298,183 @@ def _invalid_score_stats(rep_df_reported: pd.DataFrame) -> tuple[int, int, float
     return invalid_n, invalid_total, invalid_fraction
 
 
+def _expand_positions_by_window(
+    ground_truth_positions: Set[int],
+    window_size: int,
+    reference_length: int,
+) -> Set[int]:
+    if not ground_truth_positions:
+        return set()
+
+    expanded: Set[int] = set()
+    for pos in ground_truth_positions:
+        p = int(pos)
+        for offset in range(-int(window_size), int(window_size) + 1):
+            q = p + offset
+            if 1 <= q <= int(reference_length):
+                expanded.add(q)
+    return expanded
+
+
+def _shift_positions(
+    ground_truth_positions: Set[int],
+    delta: int,
+    reference_length: int,
+) -> Set[int]:
+    if not ground_truth_positions:
+        return set()
+
+    shifted: Set[int] = set()
+    for pos in ground_truth_positions:
+        q = int(pos) + int(delta)
+        if 1 <= q <= int(reference_length):
+            shifted.add(q)
+    return shifted
+
+
+def _compute_labeled_scope_metrics(
+    scope_df: pd.DataFrame,
+    positive_positions: Set[int],
+) -> Dict[str, float]:
+    n_universe = int(len(scope_df))
+    if n_universe == 0:
+        return {
+            "auprc": np.nan,
+            "auroc": np.nan,
+            "f1_optimal": np.nan,
+            "precision_optimal": np.nan,
+            "recall_optimal": np.nan,
+            "n_true_positives": np.nan,
+            "n_false_positives": np.nan,
+            "n_false_negatives": np.nan,
+            "n_true_negatives": np.nan,
+            "optimal_threshold": np.nan,
+            "n_positive": 0,
+            "n_universe": 0,
+            "prevalence": np.nan,
+            "metric_scope_note": "empty_scope",
+        }
+
+    scores = pd.to_numeric(scope_df.get("score_metric", np.nan), errors="coerce")
+    valid = ~np.isnan(scores.to_numpy())
+    if int(valid.sum()) == 0:
+        return {
+            "auprc": np.nan,
+            "auroc": np.nan,
+            "f1_optimal": np.nan,
+            "precision_optimal": np.nan,
+            "recall_optimal": np.nan,
+            "n_true_positives": np.nan,
+            "n_false_positives": np.nan,
+            "n_false_negatives": np.nan,
+            "n_true_negatives": np.nan,
+            "optimal_threshold": np.nan,
+            "n_positive": 0,
+            "n_universe": n_universe,
+            "prevalence": 0.0,
+            "metric_scope_note": "no_finite_scores",
+        }
+
+    sub = scope_df.loc[valid].copy()
+    y_scores = scores.loc[valid].astype(float).to_numpy()
+    y_true = sub["position"].astype(int).isin(positive_positions).astype(int).to_numpy()
+    n_positive = int(y_true.sum())
+    n_total = int(len(y_true))
+    prevalence = float(n_positive / n_total) if n_total else np.nan
+
+    if n_total == 0:
+        return {
+            "auprc": np.nan,
+            "auroc": np.nan,
+            "f1_optimal": np.nan,
+            "precision_optimal": np.nan,
+            "recall_optimal": np.nan,
+            "n_true_positives": np.nan,
+            "n_false_positives": np.nan,
+            "n_false_negatives": np.nan,
+            "n_true_negatives": np.nan,
+            "optimal_threshold": np.nan,
+            "n_positive": 0,
+            "n_universe": 0,
+            "prevalence": np.nan,
+            "metric_scope_note": "empty_scope",
+        }
+
+    if len(np.unique(y_true)) < 2:
+        return {
+            "auprc": np.nan,
+            "auroc": np.nan,
+            "f1_optimal": np.nan,
+            "precision_optimal": np.nan,
+            "recall_optimal": np.nan,
+            "n_true_positives": np.nan,
+            "n_false_positives": np.nan,
+            "n_false_negatives": np.nan,
+            "n_true_negatives": np.nan,
+            "optimal_threshold": np.nan,
+            "n_positive": n_positive,
+            "n_universe": n_total,
+            "prevalence": prevalence,
+            "metric_scope_note": "single_class_labels",
+        }
+
+    (
+        auprc,
+        auroc,
+        f1_optimal,
+        precision_optimal,
+        recall_optimal,
+        optimal_threshold,
+        tp,
+        fp,
+        fn,
+        tn,
+    ) = _metrics_from_arrays(y_true, y_scores)
+
+    return {
+        "auprc": float(auprc),
+        "auroc": float(auroc),
+        "f1_optimal": float(f1_optimal),
+        "precision_optimal": float(precision_optimal),
+        "recall_optimal": float(recall_optimal),
+        "n_true_positives": int(tp),
+        "n_false_positives": int(fp),
+        "n_false_negatives": int(fn),
+        "n_true_negatives": int(tn),
+        "optimal_threshold": float(optimal_threshold),
+        "n_positive": n_positive,
+        "n_universe": n_total,
+        "prevalence": prevalence,
+        "metric_scope_note": "ok",
+    }
+
+
+def _summarize_sweep_metrics(df: pd.DataFrame, sweep_col: str) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame()
+
+    return (
+        df.groupby(["reference", "tool", "scope", sweep_col], as_index=False)
+        .agg(
+            auprc_mean=("auprc", "mean"),
+            auprc_std=("auprc", "std"),
+            auprc_median=("auprc", "median"),
+            auroc_mean=("auroc", "mean"),
+            auroc_std=("auroc", "std"),
+            auroc_median=("auroc", "median"),
+            f1_optimal_mean=("f1_optimal", "mean"),
+            f1_optimal_std=("f1_optimal", "std"),
+            f1_optimal_median=("f1_optimal", "median"),
+            precision_optimal_mean=("precision_optimal", "mean"),
+            recall_optimal_mean=("recall_optimal", "mean"),
+            prevalence_mean=("prevalence", "mean"),
+            n_positive_mean=("n_positive", "mean"),
+            n_universe_mean=("n_universe", "mean"),
+            metrics_valid_fraction=("metrics_valid", "mean"),
+        )
+    )
+
+
 def run_analysis(
     tool_outputs: Dict[str, pd.DataFrame],
     ground_truth: Optional[pd.DataFrame],
@@ -380,6 +567,10 @@ def run_analysis(
 
     all_metrics_rows: List[pd.DataFrame] = []
     all_summary_rows: List[pd.DataFrame] = []
+    all_window_rows: List[pd.DataFrame] = []
+    all_window_summary_rows: List[pd.DataFrame] = []
+    all_lag_rows: List[pd.DataFrame] = []
+    all_lag_summary_rows: List[pd.DataFrame] = []
 
     for ref in refs:
         if ref not in reference_lengths:
@@ -401,6 +592,8 @@ def run_analysis(
 
         # Keep per-reference tool slices
         parsed_ref_tools: Dict[str, pd.DataFrame] = {}
+        metric_ready_by_tool: Dict[str, pd.DataFrame] = {}
+        replicate_gate: Dict[Tuple[str, str], Dict[str, float]] = {}
 
         # Standardization report for this reference
         from position_standardization import StandardizationReport
@@ -436,6 +629,7 @@ def run_analysis(
 
             metric_ready = build_metric_ready_table(imputed, gt_positions)
             metric_ready.to_csv(dirs["metric_ready"] / f"{tool}.csv", index=False)
+            metric_ready_by_tool[tool] = metric_ready
 
             # No-call diagnostics
             no_call = compute_no_call_diagnostics(metric_ready, gt_positions)
@@ -456,6 +650,12 @@ def run_analysis(
                 invalid_n, invalid_total, invalid_fraction = _invalid_score_stats(rep_df_reported)
                 metrics_valid = not (invalid_total > 0 and invalid_fraction > 0.5)
                 metric_scope_note = "ok"
+                replicate_gate[(tool, str(rep))] = {
+                    "metrics_valid": bool(metrics_valid),
+                    "invalid_score_fraction": float(invalid_fraction),
+                    "invalid_score_n": int(invalid_n),
+                    "invalid_score_total": int(invalid_total),
+                }
 
                 m = calculate_metrics(rep_df, ground_truth=None, reference=ref)
                 metric_row = m.to_dict()
@@ -580,6 +780,121 @@ def run_analysis(
 
         no_call_df.to_csv(dirs["metrics"] / "no_call_diagnostics.csv", index=False)
 
+        # Always-on tolerance and lag analyses (additive; exact outputs unchanged)
+        window_rows_ref: List[pd.DataFrame] = []
+        lag_rows_ref: List[pd.DataFrame] = []
+        metric_cols = [
+            "auprc",
+            "auroc",
+            "f1_optimal",
+            "precision_optimal",
+            "recall_optimal",
+            "n_true_positives",
+            "n_false_positives",
+            "n_false_negatives",
+            "n_true_negatives",
+            "optimal_threshold",
+        ]
+
+        for tool, metric_ready in metric_ready_by_tool.items():
+            reps = sorted(metric_ready["replicate"].astype(str).unique().tolist())
+            for rep in reps:
+                rep_df = metric_ready[metric_ready["replicate"].astype(str) == str(rep)].copy()
+                rep_reported = rep_df[rep_df["is_reported"] == True].copy() if "is_reported" in rep_df.columns else rep_df.copy()
+                gate = replicate_gate.get(
+                    (tool, str(rep)),
+                    {
+                        "metrics_valid": True,
+                        "invalid_score_fraction": 0.0,
+                        "invalid_score_n": 0,
+                        "invalid_score_total": 0,
+                    },
+                )
+                for scope_name, scope_df in [("universe", rep_df), ("reported", rep_reported)]:
+                    for window_size in WINDOW_GRID:
+                        positives = _expand_positions_by_window(gt_positions, window_size, ref_len)
+                        row = _compute_labeled_scope_metrics(scope_df, positives)
+                        row.update(
+                            {
+                                "reference": ref,
+                                "tool": tool,
+                                "replicate": str(rep),
+                                "scope": scope_name,
+                                "window_size": int(window_size),
+                                "metrics_valid": bool(gate["metrics_valid"]),
+                                "invalid_score_fraction": float(gate["invalid_score_fraction"]),
+                                "invalid_score_n": int(gate["invalid_score_n"]),
+                                "invalid_score_total": int(gate["invalid_score_total"]),
+                            }
+                        )
+                        if not bool(gate["metrics_valid"]):
+                            for c in metric_cols:
+                                row[c] = np.nan
+                            row["metric_scope_note"] = "invalid_scores"
+                        window_rows_ref.append(pd.DataFrame([row]))
+
+                    for delta in LAG_GRID:
+                        positives = _shift_positions(gt_positions, delta, ref_len)
+                        row = _compute_labeled_scope_metrics(scope_df, positives)
+                        row.update(
+                            {
+                                "reference": ref,
+                                "tool": tool,
+                                "replicate": str(rep),
+                                "scope": scope_name,
+                                "delta": int(delta),
+                                "metrics_valid": bool(gate["metrics_valid"]),
+                                "invalid_score_fraction": float(gate["invalid_score_fraction"]),
+                                "invalid_score_n": int(gate["invalid_score_n"]),
+                                "invalid_score_total": int(gate["invalid_score_total"]),
+                            }
+                        )
+                        if not bool(gate["metrics_valid"]):
+                            for c in metric_cols:
+                                row[c] = np.nan
+                            row["metric_scope_note"] = "invalid_scores"
+                        lag_rows_ref.append(pd.DataFrame([row]))
+
+        window_metrics = pd.concat(window_rows_ref, ignore_index=True) if window_rows_ref else pd.DataFrame()
+        lag_metrics = pd.concat(lag_rows_ref, ignore_index=True) if lag_rows_ref else pd.DataFrame()
+
+        window_summary = _summarize_sweep_metrics(window_metrics, "window_size")
+        lag_summary = _summarize_sweep_metrics(lag_metrics, "delta")
+
+        best_offset = pd.DataFrame()
+        if not lag_summary.empty:
+            tmp = lag_summary.copy()
+            auroc_best = (
+                tmp.sort_values("auroc_mean", ascending=False)
+                .groupby(["reference", "tool", "scope"], as_index=False)
+                .first()[["reference", "tool", "scope", "delta", "auroc_mean"]]
+                .rename(columns={"delta": "best_delta_auroc", "auroc_mean": "best_auroc_mean"})
+            )
+            auprc_best = (
+                tmp.sort_values("auprc_mean", ascending=False)
+                .groupby(["reference", "tool", "scope"], as_index=False)
+                .first()[["reference", "tool", "scope", "delta", "auprc_mean"]]
+                .rename(columns={"delta": "best_delta_auprc", "auprc_mean": "best_auprc_mean"})
+            )
+            best_offset = auroc_best.merge(
+                auprc_best, on=["reference", "tool", "scope"], how="outer"
+            )
+
+        window_metrics.to_csv(dirs["tolerance"] / "window_metrics_per_replicate.csv", index=False)
+        window_summary.to_csv(dirs["tolerance"] / "window_metrics_summary.csv", index=False)
+        lag_metrics.to_csv(dirs["lag"] / "lag_metrics_per_replicate.csv", index=False)
+        lag_summary.to_csv(dirs["lag"] / "lag_metrics_summary.csv", index=False)
+        best_offset.to_csv(dirs["lag"] / "lag_best_offset_by_tool.csv", index=False)
+
+        if not window_metrics.empty:
+            all_window_rows.append(window_metrics)
+        if not window_summary.empty:
+            all_window_summary_rows.append(window_summary)
+        if not lag_metrics.empty:
+            all_lag_rows.append(lag_metrics)
+        if not lag_summary.empty:
+            all_lag_summary_rows.append(lag_summary)
+
         pr_df = pd.concat(pr_rows, ignore_index=True) if pr_rows else pd.DataFrame()
         roc_df = pd.concat(roc_rows, ignore_index=True) if roc_rows else pd.DataFrame()
 
@@ -634,6 +949,26 @@ def run_analysis(
                     ncols=3,
                     output_stem="pr_tool_grid_reported",
                 )
+
+                # always-on tolerance and lag panel figures (AUROC + AUPRC)
+                for scope in ("universe", "reported"):
+                    scope_window = window_metrics[window_metrics["scope"] == scope].copy() if not window_metrics.empty else pd.DataFrame()
+                    scope_lag = lag_metrics[lag_metrics["scope"] == scope].copy() if not lag_metrics.empty else pd.DataFrame()
+
+                    if not scope_window.empty:
+                        plot_window_tolerance_panels(
+                            sweep_df=scope_window,
+                            reference=ref,
+                            output_dir=dirs["visualizations"],
+                            output_stem=f"window_tolerance_{scope}",
+                        )
+                    if not scope_lag.empty:
+                        plot_lag_scan_panels(
+                            sweep_df=scope_lag,
+                            reference=ref,
+                            output_dir=dirs["visualizations"],
+                            output_stem=f"lag_scan_{scope}",
+                        )
         except Exception as exc:
             logger.warning("Visualization generation failed for reference %s: %s", ref, exc)
 
@@ -699,6 +1034,34 @@ def run_analysis(
         summary_long.insert(1, "coverage_label", coverage_label if coverage_label is not None else "NA")
         summary_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
         summary_long.to_csv(collation_dir / "metrics_summary_long.csv", index=False)
+
+    if all_window_rows:
+        window_long = pd.concat(all_window_rows, ignore_index=True)
+        window_long.insert(0, "run_id", run_id or output_dir.name)
+        window_long.insert(1, "coverage_label", coverage_label if coverage_label is not None else "NA")
+        window_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
+        window_long.to_csv(collation_dir / "window_metrics_long.csv", index=False)
+
+    if all_window_summary_rows:
+        window_summary_long = pd.concat(all_window_summary_rows, ignore_index=True)
+        window_summary_long.insert(0, "run_id", run_id or output_dir.name)
+        window_summary_long.insert(1, "coverage_label", coverage_label if coverage_label is not None else "NA")
+        window_summary_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
+        window_summary_long.to_csv(collation_dir / "window_metrics_summary_long.csv", index=False)
+
+    if all_lag_rows:
+        lag_long = pd.concat(all_lag_rows, ignore_index=True)
+        lag_long.insert(0, "run_id", run_id or output_dir.name)
+        lag_long.insert(1, "coverage_label", coverage_label if coverage_label is not None else "NA")
+        lag_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
+        lag_long.to_csv(collation_dir / "lag_metrics_long.csv", index=False)
+
+    if all_lag_summary_rows:
+        lag_summary_long = pd.concat(all_lag_summary_rows, ignore_index=True)
+        lag_summary_long.insert(0, "run_id", run_id or output_dir.name)
+        lag_summary_long.insert(1, "coverage_label", coverage_label if coverage_label is not None else "NA")
+        lag_summary_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
+        lag_summary_long.to_csv(collation_dir / "lag_metrics_summary_long.csv", index=False)
 
     run_meta = {
         "run_id": run_id or output_dir.name,
