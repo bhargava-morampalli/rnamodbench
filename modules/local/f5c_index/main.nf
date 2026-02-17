@@ -24,7 +24,7 @@ process F5C_INDEX {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        f5c: \$(f5c --version 2>&1 | sed 's/^.*f5c //; s/ .*\$//')
+        f5c: \$(f5c --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
     END_VERSIONS
     """
 

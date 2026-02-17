@@ -88,7 +88,7 @@ process JACUSA2 {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        jacusa2: \$(java -jar \$JACUSA_JAR --version 2>&1 | head -1 || echo "2.0.4")
+        jacusa2: \$(java -jar \$JACUSA_JAR 2>&1 | grep -oP '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1 || echo "2.0.4")
         java: \$(java -version 2>&1 | head -1 | sed 's/.*version "\\([^"]*\\)".*/\\1/')
     END_VERSIONS
     """

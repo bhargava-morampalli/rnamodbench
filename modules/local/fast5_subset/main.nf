@@ -25,13 +25,19 @@ process FAST5_SUBSET {
         --save_path fast5_subset \\
         --recursive
 
-    echo -e '"${task.process}":\n  ont-fast5-api: \$(fast5_subset --version | sed -nE "s/fast5_subset, version (.*)/\\1/p")' > versions.yml
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        ont-fast5-api: \$(fast5_subset --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
+    END_VERSIONS
     """
 
     stub:
     """
     mkdir -p fast5_subset
 
-    echo -e '"${task.process}":\n  ont-fast5-api: \$(fast5_subset --version | sed -nE "s/fast5_subset, version (.*)/\\1/p")' > versions.yml
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        ont-fast5-api: unknown
+    END_VERSIONS
     """
 }

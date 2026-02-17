@@ -49,7 +49,7 @@ process NANOCOMPORE_SAMPCOMP {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        nanocompore: \$(echo \$(nanocompore --version 2>&1) | sed 's/^.*nanocompore //; s/ .*\$//')
+        nanocompore: \$(nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
     END_VERSIONS
     """
 
@@ -63,7 +63,7 @@ process NANOCOMPORE_SAMPCOMP {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        nanocompore: \$(echo \$(nanocompore --version 2>&1) | sed 's/^.*nanocompore //; s/ .*\$//')
+        nanocompore: \$(nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
     END_VERSIONS
     """
 }

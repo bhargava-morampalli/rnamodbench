@@ -56,7 +56,7 @@ process ELIGOS_PAIR_DIFF_MOD {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        eligos2: \$(eligos2 --version 2>&1 | sed 's/^.*eligos2 //; s/ .*\$//' || echo "2.1.0")
+        eligos2: \$(eligos2 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
     END_VERSIONS
     """
 

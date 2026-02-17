@@ -30,7 +30,7 @@ process YANOCOMP_PREPARE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        yanocomp: \$(yanocomp --version 2>&1 | sed 's/^.*yanocomp //; s/ .*\$//')
+        yanocomp: \$(yanocomp --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
     END_VERSIONS
     """
 

@@ -47,7 +47,7 @@ process TOMBO_DETECT_MODIFICATIONS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        tombo: \$(tombo --version 2>&1 | sed 's/^.*tombo version //; s/ .*\$//')
+        tombo: \$(tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
     END_VERSIONS
     """
 

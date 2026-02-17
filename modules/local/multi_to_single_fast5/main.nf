@@ -25,7 +25,10 @@ process MULTI_TO_SINGLE_FAST5 {
         --save_path $out_dir \\
         --recursive
 
-    echo -e '"${task.process}":\n  ont-fast5-api: \$(multi_to_single_fast5 --version | sed -nE "s/multi_to_single_fast5, version (.*)/\\1/p")' > versions.yml
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        ont-fast5-api: \$(multi_to_single_fast5 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
+    END_VERSIONS
     """
 
     stub:
@@ -33,6 +36,9 @@ process MULTI_TO_SINGLE_FAST5 {
     """
     mkdir -p $out_dir
 
-    echo -e '"${task.process}":\n  ont-fast5-api: \$(multi_to_single_fast5 --version | sed -nE "s/multi_to_single_fast5, version (.*)/\\1/p")' > versions.yml
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        ont-fast5-api: unknown
+    END_VERSIONS
     """
 }
