@@ -60,7 +60,7 @@ for COV in "${COVERAGES[@]}"; do
     SAMPLESHEET="${SAMPLESHEET_DIR}/samplesheet_${COV}.csv"
     OUTDIR="${RESULTS_BASE}/results_${COV}"
     LOGFILE="${LOG_DIR}/run_${COV}.log"
-    RUN_NAME="covbench_${COV}"
+    RUN_NAME="covbench_${COV}_$(date +%s)"
 
     echo "--- ${COV} ---"
 
@@ -91,17 +91,15 @@ for COV in "${COVERAGES[@]}"; do
         --downstream_run_id "run_${COV}" \
         --downstream_coverage_label "${COV}" \
         --downstream_quality_label "base" \
+        -w /mnt/nvme_work \
         -profile singularity \
         -name "$RUN_NAME" \
-        > "$LOGFILE" 2>&1; then
+        2>&1 | tee "$LOGFILE"; then
 
         echo "  DONE at $(date)"
         completed=$((completed + 1))
 
-        # Clean work directory to save disk space
-        echo "  Cleaning work directory..."
-        rm -rf work/
-        echo "  Cleaned."
+        # NVMe has plenty of space (~6.8 TB) — keep work dirs for -resume capability
     else
         echo "  FAILED at $(date) — see ${LOGFILE}"
         failed=$((failed + 1))

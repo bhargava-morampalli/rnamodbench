@@ -4,6 +4,15 @@ work/
 .nextflow.log*
 docs/review_step1_workflow_dataflow.md
 100x/
+covbench_results/
+*_logs/
+samplesheets_*/
+
+# samplesheet csvs
+samplesheet_*.csv
+
+# bash scripts
+*.sh
 
 # nf-test directories
 .nf-test/
