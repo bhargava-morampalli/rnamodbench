@@ -1,7 +1,0 @@
-sample,type,replicate,fastq,fast5_dir
-native_rep1,native,1,/home/bmorampa/rnamods-nf/native/native_1.fastq,/home/bmorampa/k12_native_fast5
-native_rep2,native,2,/home/bmorampa/rnamods-nf/native/native_2.fastq,/home/bmorampa/k12_native_fast5
-native_rep3,native,3,/home/bmorampa/rnamods-nf/native/native_3.fastq,/home/bmorampa/k12_native_fast5
-ivt_rep1,ivt,1,/home/bmorampa/rnamods-nf/ivt/ivt_1.fastq,/home/bmorampa/k12_ivt_fast5
-ivt_rep2,ivt,2,/home/bmorampa/rnamods-nf/ivt/ivt_2.fastq,/home/bmorampa/k12_ivt_fast5
-ivt_rep3,ivt,3,/home/bmorampa/rnamods-nf/ivt/ivt_3.fastq,/home/bmorampa/k12_ivt_fast5
