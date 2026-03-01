@@ -24,15 +24,6 @@ def _resolve_run_dir(run_dir: Optional[str], outdir: Optional[str]) -> Path:
     return path
 
 
-def _resolve_pipeline_info_dir(pipeline_info_dir: Optional[str]) -> Optional[Path]:
-    if not pipeline_info_dir:
-        return None
-    path = Path(pipeline_info_dir)
-    if path.exists() and not path.is_dir():
-        raise ValueError(f"Pipeline info directory is not a directory: {path}")
-    return path
-
-
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Backfill per-run availability and error reports for a completed run"
@@ -50,24 +41,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         default="error_summary",
         help="Prefix for the HTML/CSV wrapper reports in pipeline_info/ (default: error_summary)",
     )
-    parser.add_argument(
-        "--pipeline-info-dir",
-        help="Optional override for where report files are written (default: <run-dir>/pipeline_info)",
-    )
     args = parser.parse_args(argv)
 
     try:
         run_dir = _resolve_run_dir(args.run_dir, args.outdir)
-        pipeline_info_dir = _resolve_pipeline_info_dir(args.pipeline_info_dir)
     except ValueError as exc:
         parser.error(str(exc))
         return 2
 
-    report = write_run_report(
-        run_dir,
-        output_prefix=args.output,
-        pipeline_info_dir=pipeline_info_dir,
-    )
+    report = write_run_report(run_dir, output_prefix=args.output)
     paths = report["paths"]
     availability_df = report["tool_availability"]
     events_df = report["log_events"]
