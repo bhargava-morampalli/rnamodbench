@@ -1,39 +1,53 @@
 process GENERATE_ERROR_REPORT {
-    tag "error_report"
+    tag "${run_dir}"
     label 'process_single'
 
-    conda "conda-forge::python=3.10"
+    conda "${projectDir}/modules/local/downstream_analysis/environment.yml"
     container null
 
     input:
-    path outdir
-    path logs
+    val run_dir
 
     output:
+    path "process_status.tsv", emit: process_status
+    path "log_events.tsv", emit: log_events
+    path "tool_availability_per_run.tsv", emit: availability
     path "error_summary.html", emit: html
     path "error_summary.csv" , emit: csv
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     """
-    # Copy the error report generator script
-    cp ${projectDir}/bin/generate_error_report.py .
+    echo "=== GENERATE_ERROR_REPORT started at \$(date) ==="
+    echo "Run directory: $run_dir"
 
-    # Generate the error summary report
-    python generate_error_report.py \\
-        --outdir $outdir \\
+    python ${projectDir}/bin/generate_error_report.py \\
+        --run-dir "$run_dir" \\
+        --pipeline-info-dir . \\
         --output error_summary
 
-    # Move reports to current directory
-    mv ${outdir}/pipeline_info/error_summary.html . 2>/dev/null || touch error_summary.html
-    mv ${outdir}/pipeline_info/error_summary.csv . 2>/dev/null || touch error_summary.csv
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        python: \$(python --version 2>&1 | sed 's/Python //')
+        pandas: \$(python -c "import pandas; print(pandas.__version__)")
+    END_VERSIONS
     """
 
     stub:
     """
+    touch process_status.tsv
+    touch log_events.tsv
+    touch tool_availability_per_run.tsv
     touch error_summary.html
     touch error_summary.csv
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        python: 3.10.0
+        pandas: 2.0.0
+    END_VERSIONS
     """
 }

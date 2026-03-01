@@ -141,17 +141,42 @@ FAILURE_SUMMARY_COLUMNS = [
     "success_rate",
 ]
 
-LOG_PATTERN_SPECS: List[Tuple[str, str, re.Pattern[str]]] = [
-    ("traceback", "ERROR", re.compile(r"traceback", re.IGNORECASE)),
-    ("exception", "ERROR", re.compile(r"\bexception\b", re.IGNORECASE)),
-    ("errno", "ERROR", re.compile(r"\berrno\b", re.IGNORECASE)),
-    ("no_reads", "ERROR", re.compile(r"\bno reads?\b", re.IGNORECASE)),
-    ("insufficient", "ERROR", re.compile(r"\binsufficient\b", re.IGNORECASE)),
-    ("cannot", "ERROR", re.compile(r"\bcannot\b", re.IGNORECASE)),
-    ("empty", "ERROR", re.compile(r"\bempty\b", re.IGNORECASE)),
-    ("failed", "ERROR", re.compile(r"\bfailed\b", re.IGNORECASE)),
-    ("error", "ERROR", re.compile(r"\berror\b", re.IGNORECASE)),
-    ("warning", "WARNING", re.compile(r"\bwarning\b|\bwarn\b", re.IGNORECASE)),
+LOG_IGNORE_PATTERNS: List[re.Pattern[str]] = [
+    re.compile(r"^\s*===", re.IGNORECASE),
+    re.compile(r"^\s*error threshold:", re.IGNORECASE),
+    re.compile(r"^\s*warning message:\s*$", re.IGNORECASE),
+    re.compile(r"^\s*failed to locate timezone database\s*$", re.IGNORECASE),
+    re.compile(r"warning:\s+here-document at line", re.IGNORECASE),
+    re.compile(r"\bdeprecationwarning\b", re.IGNORECASE),
+    re.compile(r"^\s*-s\s+suppress open and read errors\s*$", re.IGNORECASE),
+    re.compile(r"\bcannot be improved further\b", re.IGNORECASE),
+    re.compile(r"\bnot empty\b", re.IGNORECASE),
+]
+
+LOG_ERROR_PATTERNS: List[Tuple[str, re.Pattern[str]]] = [
+    ("traceback", re.compile(r"\btraceback\b", re.IGNORECASE)),
+    ("exception", re.compile(r"\bexception\b", re.IGNORECASE)),
+    ("errno", re.compile(r"\berrno\b", re.IGNORECASE)),
+    ("no_reads", re.compile(r"\bno reads?\b", re.IGNORECASE)),
+    ("insufficient", re.compile(r"\binsufficient\b", re.IGNORECASE)),
+    ("error", re.compile(r"^\s*error\b|\berror:", re.IGNORECASE)),
+    ("failed", re.compile(r"\bfailed\b(?=.*\b(to|for|while)\b)", re.IGNORECASE)),
+    (
+        "cannot",
+        re.compile(r"\bcannot\b(?=.*\b(open|create|write|read|find|load|import|mkdir)\b)", re.IGNORECASE),
+    ),
+    (
+        "empty",
+        re.compile(
+            r"\bempty\b(?=.*\b(file|files|output|result|results|table|dataset)\b)|"
+            r"\b(file|files|output|result|results|table|dataset)\s+is\s+empty\b",
+            re.IGNORECASE,
+        ),
+    ),
+]
+
+LOG_WARNING_PATTERNS: List[Tuple[str, re.Pattern[str]]] = [
+    ("warning", re.compile(r"^\s*warning\b|\bwarning:\b|^\W*warning\W*$", re.IGNORECASE)),
 ]
 
 EVENT_SEVERITY_RANK = {"ERROR": 0, "WARNING": 1}
@@ -364,21 +389,23 @@ def _infer_tool_from_log(rel_path: Path) -> Optional[str]:
     return None
 
 
-def _classify_log_event(line: str) -> Optional[Tuple[str, str]]:
+def _should_ignore_log_line(line: str) -> bool:
     lowered = line.lower().strip()
     if not lowered:
+        return True
+    return any(pattern.search(line) for pattern in LOG_IGNORE_PATTERNS)
+
+
+def _classify_log_event(line: str) -> Optional[Tuple[str, str]]:
+    if _should_ignore_log_line(line):
         return None
-    if lowered.startswith("===") and lowered.endswith("==="):
-        return None
-    if lowered.startswith("error threshold:"):
-        return None
-    if lowered == "warning message:":
-        return None
-    if lowered == "failed to locate timezone database":
-        return None
-    for event_code, event_level, pattern in LOG_PATTERN_SPECS:
+
+    for event_code, pattern in LOG_ERROR_PATTERNS:
         if pattern.search(line):
-            return event_code, event_level
+            return event_code, "ERROR"
+    for event_code, pattern in LOG_WARNING_PATTERNS:
+        if pattern.search(line):
+            return event_code, "WARNING"
     return None
 
 
@@ -958,6 +985,7 @@ def write_run_report(
     run_dir: Path,
     *,
     output_prefix: str = "error_summary",
+    pipeline_info_dir: Optional[Path] = None,
 ) -> Dict[str, object]:
     report = build_run_report(run_dir)
     run_context: RunContext = report["context"]  # type: ignore[assignment]
@@ -966,7 +994,7 @@ def write_run_report(
     availability_df: pd.DataFrame = report["tool_availability"]  # type: ignore[assignment]
     summary_df: pd.DataFrame = report["summary"]  # type: ignore[assignment]
 
-    pipeline_info = run_dir / "pipeline_info"
+    pipeline_info = pipeline_info_dir or (run_dir / "pipeline_info")
     pipeline_info.mkdir(parents=True, exist_ok=True)
 
     process_path = pipeline_info / "process_status.tsv"

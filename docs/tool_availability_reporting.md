@@ -1,7 +1,8 @@
 # Tool Availability Reporting
 
 This branch adds backfillable tool-availability and error reporting for completed
-`results_*x` run directories.
+`results_*x` run directories, and it also generates the same per-run reporting
+artifacts automatically for future pipeline runs.
 
 ## Scope
 
@@ -20,6 +21,11 @@ The reporting code reconstructs run-level availability from published artifacts:
 Because deleted `work/` directories are not required, historical runs can be
 backfilled without rerunning the benchmark.
 
+For future runs, the pipeline now triggers the reporting step automatically at
+the end of each workflow run. The automated step is non-blocking: if report
+generation fails, primary benchmark outputs are preserved and the failure is
+left visible in the Nextflow trace/report outputs.
+
 ## Per-run outputs
 
 Running the report on a completed run writes these files into `pipeline_info/`:
@@ -29,6 +35,9 @@ Running the report on a completed run writes these files into `pipeline_info/`:
 - `tool_availability_per_run.tsv`
 - `error_summary.csv`
 - `error_summary.html`
+
+The automated workflow integration writes the same files into
+`${params.outdir}/pipeline_info`.
 
 ## Collated outputs
 
@@ -44,11 +53,24 @@ These outputs are additive and do not replace the six benchmark collation CSVs.
 
 ## Usage
 
+Automatic generation for future runs:
+
+- no extra parameter is required
+- the report is produced automatically in `${params.outdir}/pipeline_info`
+
 Single completed run:
 
 ```bash
 python /home/bmorampa/rnamodbench/bin/generate_error_report.py \
   --run-dir /home/bmorampa/rnamodbench/covbench_results/results_1000x
+```
+
+Workflow-staging usage of the same CLI:
+
+```bash
+python /home/bmorampa/rnamodbench/bin/generate_error_report.py \
+  --run-dir /home/bmorampa/rnamodbench/covbench_results/results_1000x \
+  --pipeline-info-dir /tmp/report_stage_test
 ```
 
 Backfill all historical coverage runs:
@@ -88,6 +110,9 @@ This is designed to distinguish:
 - output present but not parser-readable
 - successful process with usable output
 
+The same status model is used for both historical backfill and automated
+per-run workflow reporting.
+
 ## Limits
 
 Without historical `work/` directories, the report cannot reliably recover:
@@ -98,3 +123,12 @@ Without historical `work/` directories, the report cannot reliably recover:
 
 When that information is unavailable, the report records inferred reasons and
 their source explicitly instead of pretending the diagnosis is complete.
+
+## Notes
+
+- the manual CLI remains supported for historical backfill and ad hoc reruns
+- `--pipeline-info-dir` is an additive internal/staging-oriented option used by
+  the workflow module to write report files into the task work directory before
+  publish
+- no changes are made to downstream benchmark metrics, notebook-facing CSVs, or
+  tool execution behavior

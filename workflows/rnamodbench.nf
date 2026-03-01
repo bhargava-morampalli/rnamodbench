@@ -15,6 +15,7 @@ include { PREPARE_SIGNAL_DATA  } from '../subworkflows/local/prepare_signal_data
 include { SIGNAL_PROCESSING    } from '../subworkflows/local/signal_processing'
 include { MODIFICATION_CALLING } from '../subworkflows/local/modification_calling'
 include { DOWNSTREAM_ANALYSIS  } from '../modules/local/downstream_analysis'
+include { GENERATE_ERROR_REPORT } from '../modules/local/generate_error_report'
 
 workflow RNAMODBENCH {
     ch_versions = Channel.empty()
@@ -224,6 +225,7 @@ workflow RNAMODBENCH {
         ch_ref_map
     )
     ch_versions = ch_versions.mix(MODIFICATION_CALLING.out.versions)
+    ch_report_trigger = MODIFICATION_CALLING.out.versions
 
     // =========================================================================
     // OPTIONAL DOWNSTREAM ANALYSIS (default: disabled)
@@ -242,7 +244,12 @@ workflow RNAMODBENCH {
             Channel.value(refs_input)
         )
         ch_versions = ch_versions.mix(DOWNSTREAM_ANALYSIS.out.versions)
+        ch_report_trigger = DOWNSTREAM_ANALYSIS.out.versions
     }
+
+    ch_report_run_dir = ch_report_trigger.map { _ -> params.outdir.toString() }
+    GENERATE_ERROR_REPORT(ch_report_run_dir)
+    ch_versions = ch_versions.mix(GENERATE_ERROR_REPORT.out.versions)
 
     // =========================================================================
     // COLLECT VERSIONS
