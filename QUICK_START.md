@@ -1,5 +1,8 @@
 # Quick Start Guide
 
+For current day-to-day operator workflows and copy/paste script commands, use the
+canonical runbook: [`docs/operator_scripts_runbook.md`](docs/operator_scripts_runbook.md).
+
 ## What Has Been Created
 
 A complete rnamodbench compliant pipeline structure for RNA modification detection has been created in `/home/bmorampa/rnamodbench/`.

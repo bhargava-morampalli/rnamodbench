@@ -56,7 +56,6 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 
 SUPPORTED_TOOLS = [
     "tombo",
@@ -594,7 +593,6 @@ def run_analysis(
 
         ref_len = int(reference_lengths[ref])
         eval_start, eval_end = evaluation_regions.get(ref, (1, ref_len))
-        eval_positions = list(range(int(eval_start), int(eval_end) + 1))
         logger.info(
             "Processing reference %s (length=%d, eval_start=%d, eval_end=%d)",
             ref,
@@ -611,15 +609,7 @@ def run_analysis(
             if ground_truth is not None and not ground_truth.empty
             else pd.DataFrame(columns=["reference", "position"])
         )
-        gt_positions = (
-            {
-                int(pos)
-                for pos in gt_ref["position"].astype(int).tolist()
-                if int(eval_start) <= int(pos) <= int(eval_end)
-            }
-            if not gt_ref.empty
-            else set()
-        )
+        gt_positions = set(gt_ref["position"].astype(int).tolist()) if not gt_ref.empty else set()
 
         # Keep per-reference tool slices
         parsed_ref_tools: Dict[str, pd.DataFrame] = {}
@@ -653,7 +643,8 @@ def run_analysis(
                 tool_ref,
                 reference_id=ref,
                 reference_length=ref_len,
-                universe_positions=eval_positions,
+                eval_start=eval_start,
+                eval_end=eval_end,
                 replicates=reps,
                 report=std_report,
             )
@@ -844,9 +835,7 @@ def run_analysis(
                 )
                 for scope_name, scope_df in [("universe", rep_df), ("reported", rep_reported)]:
                     for window_size in WINDOW_GRID:
-                        positives = _expand_positions_by_window(
-                            gt_positions, window_size, eval_start, eval_end
-                        )
+                        positives = _expand_positions_by_window(gt_positions, window_size, eval_start, eval_end)
                         row = _compute_labeled_scope_metrics(scope_df, positives)
                         row.update(
                             {
@@ -1097,33 +1086,15 @@ def run_analysis(
         lag_summary_long.insert(2, "quality_label", quality_label if quality_label is not None else "NA")
         lag_summary_long.to_csv(collation_dir / "lag_metrics_summary_long.csv", index=False)
 
-    evaluation_intervals_df = pd.DataFrame(
-        [
-            {
-                "reference": ref,
-                "full_reference_length": int(reference_lengths[ref]),
-                "eval_start": int(start),
-                "eval_end": int(end),
-                "eval_length": int(end - start + 1),
-            }
-            for ref, (start, end) in sorted(evaluation_regions.items())
-            if ref in reference_lengths
-        ]
-    )
-    evaluation_intervals_df.to_csv(metadata_dir / "evaluation_intervals.csv", index=False)
-
     run_meta = {
         "run_id": run_id or output_dir.name,
         "coverage_label": coverage_label,
         "quality_label": quality_label,
         "references_processed": refs,
         "reference_lengths": reference_lengths,
-        "evaluation_intervals": {
+        "evaluation_regions": {
             ref: {"eval_start": int(a), "eval_end": int(b)}
             for ref, (a, b) in evaluation_regions.items()
-        },
-        "evaluation_lengths": {
-            ref: int(b - a + 1) for ref, (a, b) in evaluation_regions.items()
         },
         "tools_loaded": sorted([t for t, df in tool_outputs.items() if not df.empty]),
     }

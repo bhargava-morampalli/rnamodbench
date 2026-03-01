@@ -448,7 +448,7 @@ def parse_xpore(
                 "position": _safe_numeric(df[pos_col]) + 2,
                 "score": bh_fdr,
                 "score_type": "fdr",
-                "pvalue": raw_pvalue,
+                "pvalue": bh_fdr,
                 "raw_pvalue": raw_pvalue,
                 "bh_fdr": bh_fdr,
             }
@@ -556,11 +556,8 @@ def parse_epinano(
             ref_series = parsed.apply(lambda x: x[0])
             pos_series = parsed.apply(lambda x: x[1])
 
-            score_col = _find_column(
-                df,
-                ["delta_sum_err", "delta_mis", "sum_err", "z_scores", "z_score", "zscore"],
-            )
-            score_type = "error"
+            score_col = _find_column(df, ["delta_sum_err", "sum_err", "delta_mis", "z_scores", "z_score", "zscore"])
+            score_type = "score"
             if score_col and "z" in score_col.lower():
                 score_type = "zscore"
 

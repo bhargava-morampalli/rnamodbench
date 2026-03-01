@@ -133,16 +133,6 @@ class ReferenceCatalogEntry:
     eval_length: int
 
 
-def _default_eval_interval(target: str, reference_id: str, reference_length: int) -> Tuple[int, int]:
-    key = str(target).strip().lower()
-    ref_l = str(reference_id).strip().lower()
-    if key == "16s" or ref_l.startswith("16s"):
-        return 201, 1742
-    if key == "23s" or ref_l.startswith("23s"):
-        return 201, 3104
-    return 1, int(reference_length)
-
-
 def _read_fasta_lengths(fasta_path: Path) -> Dict[str, int]:
     lengths: Dict[str, int] = {}
     name: Optional[str] = None
@@ -196,17 +186,8 @@ def load_reference_catalog(references_csv: Path) -> pd.DataFrame:
 
         # Pipeline references are single-target FASTAs; use first sequence as canonical ID
         ref_id, ref_len = next(iter(lengths.items()))
-        default_start, default_end = _default_eval_interval(target, ref_id, int(ref_len))
-        eval_start = (
-            int(row["eval_start"])
-            if "eval_start" in df.columns and pd.notna(row["eval_start"])
-            else default_start
-        )
-        eval_end = (
-            int(row["eval_end"])
-            if "eval_end" in df.columns and pd.notna(row["eval_end"])
-            else default_end
-        )
+        eval_start = int(row["eval_start"]) if "eval_start" in df.columns and pd.notna(row["eval_start"]) else 1
+        eval_end = int(row["eval_end"]) if "eval_end" in df.columns and pd.notna(row["eval_end"]) else int(ref_len)
         if eval_start < 1 or eval_end > int(ref_len) or eval_start > eval_end:
             raise ValueError(
                 f"Invalid evaluation interval for {target}: "
@@ -283,7 +264,6 @@ def standardize_to_reference_universe(
     tool_df: pd.DataFrame,
     reference_id: str,
     reference_length: int,
-    universe_positions: Optional[List[int]] = None,
     eval_start: int = 1,
     eval_end: Optional[int] = None,
     replicates: Optional[List[str]] = None,
@@ -299,26 +279,13 @@ def standardize_to_reference_universe(
     - is_imputed
     - imputation_source
     """
-    if universe_positions is None:
-        eval_end = int(reference_length) if eval_end is None else int(eval_end)
-        eval_start = int(eval_start)
-        if eval_start < 1 or eval_end > int(reference_length) or eval_start > eval_end:
-            raise ValueError(
-                f"Invalid evaluation interval for {reference_id}: "
-                f"eval_start={eval_start}, eval_end={eval_end}, reference_length={reference_length}"
-            )
-        universe = list(range(eval_start, eval_end + 1))
-    else:
-        universe = sorted({int(pos) for pos in universe_positions})
-        if not universe:
-            raise ValueError(f"Empty evaluation universe for {reference_id}")
-        if universe[0] < 1 or universe[-1] > int(reference_length):
-            raise ValueError(
-                f"Invalid evaluation universe for {reference_id}: "
-                f"min={universe[0]}, max={universe[-1]}, reference_length={reference_length}"
-            )
-        eval_start = universe[0]
-        eval_end = universe[-1]
+    eval_end = int(reference_length) if eval_end is None else int(eval_end)
+    eval_start = int(eval_start)
+    if eval_start < 1 or eval_end > int(reference_length) or eval_start > eval_end:
+        raise ValueError(
+            f"Invalid evaluation interval for {reference_id}: "
+            f"eval_start={eval_start}, eval_end={eval_end}, reference_length={reference_length}"
+        )
 
     if replicates is None:
         if tool_df.empty or "replicate" not in tool_df.columns:
@@ -356,7 +323,7 @@ def standardize_to_reference_universe(
         native_positions = len(reported_by_pos)
         added_from_universe = 0
 
-        for pos in universe:
+        for pos in range(eval_start, eval_end + 1):
             if pos in reported_by_pos:
                 row = reported_by_pos[pos]
                 all_rows.append(
@@ -407,18 +374,18 @@ def standardize_to_reference_universe(
 
         if report is not None:
             report.availability.append(
-                PositionAvailability(
-                    tool=tool_name,
-                    replicate=str(rep),
-                    reference=reference_id,
-                    native_positions=native_positions,
-                    added_from_universe=added_from_universe,
-                    full_reference_length=int(reference_length),
-                    eval_start=eval_start,
-                    eval_end=eval_end,
-                    total_positions=len(universe),
+                    PositionAvailability(
+                        tool=tool_name,
+                        replicate=str(rep),
+                        reference=reference_id,
+                        native_positions=native_positions,
+                        added_from_universe=added_from_universe,
+                        full_reference_length=int(reference_length),
+                        eval_start=eval_start,
+                        eval_end=eval_end,
+                        total_positions=int(eval_end - eval_start + 1),
+                    )
                 )
-            )
 
     out = pd.DataFrame(all_rows)
     return out

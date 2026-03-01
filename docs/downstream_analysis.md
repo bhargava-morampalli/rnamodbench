@@ -19,7 +19,8 @@ bin/downstream_analysis/
 ├── data_quality.py              # Data quality validation & error handling
 ├── coverage_analysis.py         # Coverage vs performance analysis
 ├── position_standardization.py  # Position standardization & NaN filling
-└── run_analysis.py              # Main orchestration script
+├── run_analysis.py              # Main orchestration script
+└── collate_runs.py              # Standalone multi-run collation + diagnostics
 
 modules/local/downstream_analysis/
 ├── main.nf                  # Nextflow process
@@ -382,6 +383,11 @@ report.save(output_dir)
 
 ## Usage
 
+Operational CLI workflows are documented in the canonical runbook:
+[`operator_scripts_runbook.md`](operator_scripts_runbook.md)
+
+This section focuses on module-level command and API examples.
+
 ### Command Line
 
 ```bash
@@ -422,6 +428,78 @@ python bin/downstream_analysis/run_analysis.py \
 | `--coverage-dirs` | Enable {coverage}/tool/ directory structure |
 | `--references, -r` | Filter to specific references |
 | `--verbose, -v` | Enable verbose logging |
+
+### Standalone Multi-Run Collation (`collate_runs.py`)
+
+For operational playbooks, recovery steps, and verification checklists, use:
+[`operator_scripts_runbook.md`](operator_scripts_runbook.md)
+
+Use this script when you have multiple completed downstream-analysis runs (for example, one run per coverage) and want to merge their collation tables into one combined dataset.
+
+**Typical explicit-input run:**
+```bash
+python bin/downstream_analysis/collate_runs.py \
+    --runs \
+      covbench_results/results_5x/downstream_analysis \
+      covbench_results/results_10x/downstream_analysis \
+      covbench_results/results_100x/downstream_analysis \
+    --output covbench_results/collated_multi_cov
+```
+
+**Typical discovery run (recommended for many coverages):**
+```bash
+python bin/downstream_analysis/collate_runs.py \
+    --runs-root covbench_results \
+    --run-glob 'results_*/downstream_analysis' \
+    --output covbench_results/collated_multi_cov
+```
+
+**Strict mode (non-zero exit on soft issues like missing/empty tables):**
+```bash
+python bin/downstream_analysis/collate_runs.py \
+    --runs-root covbench_results \
+    --run-glob 'results_*/downstream_analysis' \
+    --output covbench_results/collated_multi_cov \
+    --strict
+```
+
+**Collate only selected tables:**
+```bash
+python bin/downstream_analysis/collate_runs.py \
+    --runs-root covbench_results \
+    --run-glob 'results_*/downstream_analysis' \
+    --tables metrics_long.csv metrics_summary_long.csv \
+    --output covbench_results/collated_metrics_only
+```
+
+**Useful options:**
+| Option | Description |
+|--------|-------------|
+| `--runs` | Explicit run paths (`results_*`, `downstream_analysis`, or `collation`) |
+| `--runs-root` | Root directory for auto-discovery |
+| `--run-glob` | Discovery pattern under `--runs-root` (default: `results_*/downstream_analysis`) |
+| `--output, -o` | Output directory for merged CSVs and diagnostics |
+| `--tables` | Optional list of table names to collate |
+| `--report-prefix` | Prefix for report files (default: `collate_report`) |
+| `--strict` | Return non-zero exit if soft issues are detected |
+| `--quiet` | Suppress per-issue stderr lines; keep summary output |
+
+**Outputs generated in `--output`:**
+- Merged tables:
+  - `metrics_long.csv`
+  - `metrics_summary_long.csv`
+  - `window_metrics_long.csv`
+  - `window_metrics_summary_long.csv`
+  - `lag_metrics_long.csv`
+  - `lag_metrics_summary_long.csv`
+- Diagnostics:
+  - `collate_report.json` (machine-readable full diagnostics)
+  - `collate_report.md` (digestible summary report)
+
+**Exit codes:**
+- `0` completed (may include warnings if `--strict` is not used)
+- `1` strict mode was enabled and soft issues were found
+- `2` hard failure (for example, output directory write failure or no usable runs)
 
 ### Python API
 

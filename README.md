@@ -79,6 +79,9 @@ Caller input routing:
 
 ## Quick Start
 
+Canonical operator runbook for multi-coverage execution and downstream collation:
+[`docs/operator_scripts_runbook.md`](docs/operator_scripts_runbook.md)
+
 ### 1) Clone and run locally
 
 ```bash
@@ -273,6 +276,7 @@ Key `pipeline_info/` artifacts:
 ## Documentation, Support, and Credits
 
 - Additional docs: [`docs/`](docs/README.md)
+- Canonical operator scripts runbook: [`docs/operator_scripts_runbook.md`](docs/operator_scripts_runbook.md)
 - Output details: [`docs/output.md`](docs/output.md)
 - Usage details: [`docs/usage.md`](docs/usage.md)
 - Tool citations: [`CITATIONS.md`](CITATIONS.md)

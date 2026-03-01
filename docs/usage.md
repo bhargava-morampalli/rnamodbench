@@ -4,7 +4,12 @@
 
 bhargava-morampalli/rnamodbench is a bioinformatics pipeline for detecting RNA modifications from Oxford Nanopore direct RNA sequencing data. It compares native RNA samples against in-vitro transcribed (IVT) controls to identify modified positions using multiple detection algorithms.
 
+For operational script workflows (samplesheet generation, multi-coverage execution, standalone downstream analysis, and multi-run collation), use the canonical runbook:
+[`operator_scripts_runbook.md`](operator_scripts_runbook.md)
+
 ## Running the pipeline
+
+If you are running the operator scripts directly (`generate_samplesheets.sh`, `run_all_coverages.sh`, `bin/downstream_analysis/run_analysis.py`, `bin/downstream_analysis/collate_runs.py`), use [`operator_scripts_runbook.md`](operator_scripts_runbook.md) as the source of truth.
 
 The typical command for running the pipeline is as follows:
 
