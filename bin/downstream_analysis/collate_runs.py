@@ -16,6 +16,18 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import pandas as pd
 from pandas.errors import EmptyDataError
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tool_availability_reporting import (
+    FAILURE_SUMMARY_COLUMNS,
+    LOG_EVENT_COLUMNS,
+    TOOL_AVAILABILITY_COLUMNS,
+    build_availability_matrix,
+    build_failure_summary,
+    build_log_event_matrix,
+    render_availability_report_markdown,
+)
+
 
 DEFAULT_TABLES = [
     "metrics_long.csv",
@@ -492,6 +504,44 @@ def _write_reports(report: CollateReport, output_dir: Path, report_prefix: str) 
     md_path.write_text(_render_markdown(report), encoding="utf-8")
 
 
+def _run_root_from_downstream(downstream_dir: Path) -> Path:
+    return downstream_dir.parent
+
+
+def _write_reporting_outputs(
+    report: CollateReport,
+    usable_runs: List[Tuple[str, Path, Path]],
+    output_dir: Path,
+) -> None:
+    run_roots = [_run_root_from_downstream(downstream_dir) for _name, downstream_dir, _collation in usable_runs]
+
+    availability_df = build_availability_matrix(run_roots)
+    log_events_df = build_log_event_matrix(run_roots)
+    failure_summary_df = build_failure_summary(availability_df, log_events_df)
+
+    availability_path = output_dir / "tool_availability_matrix.tsv"
+    failure_summary_path = output_dir / "tool_failure_summary.tsv"
+    log_events_path = output_dir / "tool_log_events.tsv"
+    availability_md_path = output_dir / "availability_report.md"
+
+    availability_df.reindex(columns=TOOL_AVAILABILITY_COLUMNS).to_csv(
+        availability_path, sep="\t", index=False
+    )
+    failure_summary_df.reindex(columns=FAILURE_SUMMARY_COLUMNS).to_csv(
+        failure_summary_path, sep="\t", index=False
+    )
+    log_events_df.reindex(columns=LOG_EVENT_COLUMNS).to_csv(log_events_path, sep="\t", index=False)
+    availability_md_path.write_text(
+        render_availability_report_markdown(availability_df, failure_summary_df, log_events_df),
+        encoding="utf-8",
+    )
+
+    report.output_files["tool_availability_matrix.tsv"] = str(availability_path)
+    report.output_files["tool_failure_summary.tsv"] = str(failure_summary_path)
+    report.output_files["tool_log_events.tsv"] = str(log_events_path)
+    report.output_files["availability_report.md"] = str(availability_md_path)
+
+
 def collate(
     run_dirs: List[Path],
     output_dir: Path,
@@ -798,6 +848,7 @@ def collate(
             )
         )
 
+    _write_reporting_outputs(report, usable_runs, output_dir)
     _write_reports(report, output_dir=output_dir, report_prefix=report_prefix)
 
     counts = report.issue_counts
