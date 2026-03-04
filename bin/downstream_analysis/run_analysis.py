@@ -90,7 +90,11 @@ def load_tool_outputs_from_args(args: argparse.Namespace) -> Dict[str, pd.DataFr
             continue
 
         try:
-            df = parse_tool_output(tool, path)
+            df = parse_tool_output(
+                tool,
+                path,
+                differr_score_field=args.differr_score_field,
+            )
             if not df.empty:
                 tool_outputs[tool] = df
                 logger.info("Loaded %d rows for %s", len(df), tool)
@@ -498,6 +502,7 @@ def run_analysis(
     run_id: Optional[str] = None,
     coverage_label: Optional[str] = None,
     quality_label: Optional[str] = None,
+    differr_score_field: str = "g_fdr_neglog10",
 ) -> None:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1126,6 +1131,13 @@ def run_analysis(
             ref: int(b - a + 1) for ref, (a, b) in evaluation_regions.items()
         },
         "tools_loaded": sorted([t for t, df in tool_outputs.items() if not df.empty]),
+        "tool_score_overrides": {
+            "differr": {
+                "score_field": str(differr_score_field),
+                "score_type": "g_stat" if str(differr_score_field) == "g_stat" else "neglog10_fdr",
+                "higher_is_better": True,
+            }
+        },
     }
     with open(metadata_dir / "run_metadata.json", "w", encoding="utf-8") as handle:
         json.dump(run_meta, handle, indent=2)
@@ -1150,6 +1162,12 @@ def main() -> None:
     parser.add_argument("--expected-replicates", type=int, default=3)
     parser.add_argument("--threshold", type=float, help="score threshold for significance")
     parser.add_argument("--coverage-dirs", action="store_true")
+    parser.add_argument(
+        "--differr-score-field",
+        choices=["g_fdr_neglog10", "g_stat"],
+        default="g_fdr_neglog10",
+        help="Primary DiffErr score field to benchmark",
+    )
 
     parser.add_argument("--run-id", help="run identifier for collation tables")
     parser.add_argument("--coverage-label", help="coverage label for collation (e.g., 100x)")
@@ -1168,7 +1186,12 @@ def main() -> None:
         if not in_dir.exists():
             logger.error("Input directory not found: %s", in_dir)
             sys.exit(1)
-        tool_outputs = load_all_tool_outputs(in_dir, SUPPORTED_TOOLS, coverage_dirs=args.coverage_dirs)
+        tool_outputs = load_all_tool_outputs(
+            in_dir,
+            SUPPORTED_TOOLS,
+            coverage_dirs=args.coverage_dirs,
+            differr_score_field=args.differr_score_field,
+        )
     else:
         tool_outputs = load_tool_outputs_from_args(args)
 
@@ -1199,6 +1222,7 @@ def main() -> None:
         run_id=args.run_id,
         coverage_label=args.coverage_label,
         quality_label=args.quality_label,
+        differr_score_field=args.differr_score_field,
     )
 
 

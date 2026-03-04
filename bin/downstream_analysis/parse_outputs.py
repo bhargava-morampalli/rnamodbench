@@ -44,6 +44,7 @@ SUPPORTED_TOOLS = [
     "jacusa2",
     "nanodoc",
 ]
+DIFFERR_SCORE_FIELDS = {"g_fdr_neglog10", "g_stat"}
 
 
 def _empty_dataframe() -> pd.DataFrame:
@@ -607,7 +608,10 @@ def parse_epinano(
 
 
 def parse_differr(
-    filepath: Union[str, Path], sample_id: str = None, replicate: str = None
+    filepath: Union[str, Path],
+    sample_id: str = None,
+    replicate: str = None,
+    score_field: str = "g_fdr_neglog10",
 ) -> pd.DataFrame:
     filepath = Path(filepath)
     logger.info("Parsing DiffErr output: %s", filepath)
@@ -616,6 +620,12 @@ def parse_differr(
         return _empty_dataframe()
 
     try:
+        if score_field not in DIFFERR_SCORE_FIELDS:
+            raise ValueError(
+                f"Unsupported DiffErr score field: {score_field}. "
+                f"Expected one of {sorted(DIFFERR_SCORE_FIELDS)}"
+            )
+
         df = pd.read_csv(filepath, sep="\t", comment="#", header=None)
         if df.empty:
             return _empty_dataframe()
@@ -629,12 +639,14 @@ def parse_differr(
         n_cols = df.shape[1]
 
         if n_cols >= 14:
+            score_col = 7 if score_field == "g_stat" else 9
+            score_type = "g_stat" if score_field == "g_stat" else "neglog10_fdr"
             out = pd.DataFrame(
                 {
                     "reference": df.iloc[:, 0].astype(str),
                     "position": _safe_numeric(df.iloc[:, 1]) + 1,
-                    "score": _safe_numeric(df.iloc[:, 9]),  # explicit -log10(FDR)
-                    "score_type": "neglog10_fdr",
+                    "score": _safe_numeric(df.iloc[:, score_col]),
+                    "score_type": score_type,
                     "pvalue": np.nan,
                     "bed_score_rounded": _safe_numeric(df.iloc[:, 4]),
                     "strand": df.iloc[:, 5].astype(str),
@@ -645,12 +657,14 @@ def parse_differr(
                 }
             )
         elif n_cols >= 7:
+            score_col = 4 if score_field == "g_stat" else 6
+            score_type = "g_stat" if score_field == "g_stat" else "neglog10_fdr"
             out = pd.DataFrame(
                 {
                     "reference": df.iloc[:, 0].astype(str),
                     "position": _safe_numeric(df.iloc[:, 1]) + 1,
-                    "score": _safe_numeric(df.iloc[:, 6]),
-                    "score_type": "neglog10_fdr",
+                    "score": _safe_numeric(df.iloc[:, score_col]),
+                    "score_type": score_type,
                     "pvalue": np.nan,
                     "odds_ratio": _safe_numeric(df.iloc[:, 3]),
                     "g_stat": _safe_numeric(df.iloc[:, 4]),
@@ -830,6 +844,7 @@ def parse_tool_output(
     sample_id: str = None,
     replicate: str = None,
     coverage: str = None,
+    differr_score_field: str = "g_fdr_neglog10",
     **kwargs,
 ) -> pd.DataFrame:
     parsers = {
@@ -849,7 +864,11 @@ def parse_tool_output(
     if tool_l not in parsers:
         raise ValueError(f"Unknown tool: {tool}")
 
-    df = parsers[tool_l](filepath, sample_id=sample_id, replicate=replicate, **kwargs)
+    parser_kwargs = dict(kwargs)
+    if tool_l == "differr":
+        parser_kwargs["score_field"] = differr_score_field
+
+    df = parsers[tool_l](filepath, sample_id=sample_id, replicate=replicate, **parser_kwargs)
     if df.empty:
         return df
 
@@ -917,6 +936,7 @@ def load_all_tool_outputs(
     output_dir: Union[str, Path],
     tools: Optional[List[str]] = None,
     coverage_dirs: bool = False,
+    differr_score_field: str = "g_fdr_neglog10",
 ) -> Dict[str, pd.DataFrame]:
     output_dir = Path(output_dir)
 
@@ -924,11 +944,15 @@ def load_all_tool_outputs(
         tools = SUPPORTED_TOOLS
 
     if coverage_dirs:
-        return _load_with_coverage_dirs(output_dir, tools)
-    return _load_standard_structure(output_dir, tools)
+        return _load_with_coverage_dirs(output_dir, tools, differr_score_field=differr_score_field)
+    return _load_standard_structure(output_dir, tools, differr_score_field=differr_score_field)
 
 
-def _load_standard_structure(output_dir: Path, tools: List[str]) -> Dict[str, pd.DataFrame]:
+def _load_standard_structure(
+    output_dir: Path,
+    tools: List[str],
+    differr_score_field: str = "g_fdr_neglog10",
+) -> Dict[str, pd.DataFrame]:
     results: Dict[str, pd.DataFrame] = {}
 
     for tool in tools:
@@ -943,7 +967,7 @@ def _load_standard_structure(output_dir: Path, tools: List[str]) -> Dict[str, pd
 
         for inp in inputs:
             try:
-                df = parse_tool_output(tool, inp)
+                df = parse_tool_output(tool, inp, differr_score_field=differr_score_field)
                 if not df.empty:
                     dfs.append(df)
             except Exception as exc:
@@ -955,7 +979,11 @@ def _load_standard_structure(output_dir: Path, tools: List[str]) -> Dict[str, pd
     return results
 
 
-def _load_with_coverage_dirs(output_dir: Path, tools: List[str]) -> Dict[str, pd.DataFrame]:
+def _load_with_coverage_dirs(
+    output_dir: Path,
+    tools: List[str],
+    differr_score_field: str = "g_fdr_neglog10",
+) -> Dict[str, pd.DataFrame]:
     results: Dict[str, List[pd.DataFrame]] = {tool: [] for tool in tools}
 
     coverage_pattern = re.compile(r"^(?:coverage[_-]?)?(\d+)[xX]?$")
@@ -977,7 +1005,12 @@ def _load_with_coverage_dirs(output_dir: Path, tools: List[str]) -> Dict[str, pd
 
             for inp in _discover_tool_inputs(tool, tool_dir):
                 try:
-                    df = parse_tool_output(tool, inp, coverage=coverage)
+                    df = parse_tool_output(
+                        tool,
+                        inp,
+                        coverage=coverage,
+                        differr_score_field=differr_score_field,
+                    )
                     if not df.empty:
                         results[tool].append(df)
                 except Exception as exc:
