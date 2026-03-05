@@ -17,4 +17,4 @@ dependencies:
   - click
   - pip:
      - click_log
-     - git+https://github.com/bartongroup/yanocomp.git@v0.2
+     - git+https://github.com/bhargava-morampalli/yanocomp.git@866c695b97d5a17c81730d9f126b1ccf8e76222a
