@@ -262,7 +262,7 @@ python3 /DENA/step4_predict/LSTM_extract.py predict --fast5 ${params.resultsDir}
 python3 /DENA/step4_predict/LSTM_predict.py -i ${params.resultsDir}/${condition1}/dena/ -m /DENA/denaModels/ -o ${params.resultsDir}/${condition1}/dena/ -p "dena_label"
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L584C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L584C1).
 
 #### DiffErr
 
@@ -274,7 +274,7 @@ $(for file in minimap.sortG.1*.bam; do echo -b $file; done) \
 -f ${params.differrFDR}
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L467C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L467C1).
 
 #### DRUMMER
 
@@ -292,7 +292,7 @@ do
 done < ${params.resultsDir}/drummer/chromosomes.txt || true
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L842C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L842C1).
 
 #### ELIGOS
 
@@ -314,7 +314,7 @@ Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L842C1).
 -o ${params.resultsDir}/eligos/
 ```
 
-Only the merged output is postprocessed downstream. Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L504C1).
+Only the merged output is postprocessed downstream. Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L504C1).
 
 #### EpiNano-Error
 
@@ -329,7 +329,7 @@ Only the merged output is postprocessed downstream. Source: [pipeline.nf](/Users
 /bin/miniconda3/bin/Rscript /EpiNano-Epinano1.2.1/Epinano_DiffErr.R -k minimap.sort.2.minus.sumErrOut.csv -w minimap.sort.1.minus.sumErrOut.csv -d ${params.epinanoErrorSumErr} -t 3 -p -o diffErr -f sum_err
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L703C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L703C1).
 
 #### EpiNano-SVM
 
@@ -341,7 +341,7 @@ Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L703C1).
 /usr/bin/python3 /EpiNano-Epinano1.2.1/Epinano_Predict.py --model /EpiNano-Epinano1.2.1/models/rrach.q3.mis3.del3.linear.dump --predict minimap.sort.1.minus_strand.per.site.5mer.csv --columns 8,13,23 --out_prefix minus_mod_prediction
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L631C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L631C1).
 
 #### m6Anet
 
@@ -353,7 +353,7 @@ m6anet-run_inference --input_dir $preprocessing_dirs --out_dir ${params.resultsD
 zcat ${params.resultsDir}/m6anet/data.result.csv.gz > ${params.resultsDir}/m6anet/data.result.csv
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L1038C1) and [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L1068C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L1038C1) and [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L1068C1).
 
 #### MINES
 
@@ -362,7 +362,7 @@ wig2bed < ${params.resultsDir}/${condition1}/tomboDenovo/output_filename.fractio
 python3 /MINES/cDNA_MINES.py --fraction_modified ${params.resultsDir}/${condition1}/mines/output_filename.fraction_modified_reads.plus.wig.bed --coverage ${params.resultsDir}/${condition1}/tomboDenovo/output_filename.coverage.plus.bedgraph --output ${params.resultsDir}/${condition1}/mines/m6A_output_filename.bed --ref transcriptome.fa --kmer_models /MINES/Final_Models/names.txt
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L553C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L553C1).
 
 #### Nanocompore
 
@@ -381,7 +381,7 @@ nanocompore sampcomp --file_list1 "${f1[*]}" --file_list2 "${f2[*]}" \
 --overwrite
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L968C1) and [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L1005C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L968C1) and [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L1005C1).
 
 #### NanoDoc
 
@@ -391,7 +391,7 @@ Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L968C1) and [pi
 cat genome.bed | while read line; do chr=$(echo $line | cut -d' ' -f1); start=$(echo $line | cut -d' ' -f2); end=$(echo $line | cut -d' ' -f3); /bin/miniconda3/bin/python /nanoDoc/src/nanoDoc.py analysis -w /nanoDoc/weight5mer/ -p /nanoDoc/param20.txt -r genome.fa -rraw ${params.resultsDir}/nanodoc/${condition2}_output/ -traw ${params.resultsDir}/nanodoc/${condition1}_output/ -chrom $chr --start $start --end $end -o "nanoDoc_results_"$chr"_"$start"_"$end".txt"; done
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L789C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L789C1).
 
 #### Nanom6A
 
@@ -400,7 +400,7 @@ Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L789C1).
 for prob in ${params.nanom6AP}; do /nanom6A_2021_10_22/bin/predict_sites --cpu ${task.cpus} -i ${params.resultsDir}/${condition1}/nanom6a/result -o ${params.resultsDir}/${condition1}/nanom6a/result_final -r transcriptome.fa -g genome.fa -b ${params.genes2transcripts} --model /nanom6A_2021_10_22/bin/model/ --proba $prob; done
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L425C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L425C1).
 
 #### Tombo (sample comparison)
 
@@ -416,7 +416,7 @@ Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L425C1).
 --browser-file-basename ${params.resultsDir}/tomboComparison/sample.level_samp_comp_detect --file-types statistic
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L381C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L381C1).
 
 #### xPore
 
@@ -427,7 +427,7 @@ xpore diffmod --config ${params.resultsDir}/xpore/xpore.yaml --n_processes ${tas
 xpore postprocessing --diffmod_dir ${params.resultsDir}/xpore/
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L913C1) and [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L939C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L913C1) and [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L939C1).
 
 #### Yanocomp
 
@@ -444,4 +444,4 @@ $(for file in outputG.2.*.hdf5; do echo -t $file; done) \
 -f ${params.yanocompFDR}
 ```
 
-Source: [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L1091C1) and [pipeline.nf](/Users/bmorampa/NanOlympicsMod/pipeline.nf#L1126C1).
+Source: [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L1091C1) and [pipeline.nf](/path/to/NanOlympicsMod/pipeline.nf#L1126C1).
