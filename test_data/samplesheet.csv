@@ -1,7 +1,7 @@
 sample,fastq,type,replicate,fast5_dir
-native_rep1,test_data/fastq/native_rep1.fastq,native,rep1,/home/bmorampa/k12_native_fast5
-native_rep2,test_data/fastq/native_rep2.fastq,native,rep2,/home/bmorampa/k12_native_fast5
-native_rep3,test_data/fastq/native_rep3.fastq,native,rep3,/home/bmorampa/k12_native_fast5
-ivt_rep1,test_data/fastq/ivt_rep1.fastq,ivt,rep1,/home/bmorampa/k12_ivt_fast5
-ivt_rep2,test_data/fastq/ivt_rep2.fastq,ivt,rep2,/home/bmorampa/k12_ivt_fast5
-ivt_rep3,test_data/fastq/ivt_rep3.fastq,ivt,rep3,/home/bmorampa/k12_ivt_fast5
+native_rep1,test_data/fastq/native_rep1.fastq,native,rep1,/absolute/path/to/k12_native_fast5
+native_rep2,test_data/fastq/native_rep2.fastq,native,rep2,/absolute/path/to/k12_native_fast5
+native_rep3,test_data/fastq/native_rep3.fastq,native,rep3,/absolute/path/to/k12_native_fast5
+ivt_rep1,test_data/fastq/ivt_rep1.fastq,ivt,rep1,/absolute/path/to/k12_ivt_fast5
+ivt_rep2,test_data/fastq/ivt_rep2.fastq,ivt,rep2,/absolute/path/to/k12_ivt_fast5
+ivt_rep3,test_data/fastq/ivt_rep3.fastq,ivt,rep3,/absolute/path/to/k12_ivt_fast5

@@ -25,6 +25,8 @@ results_*/
 .idea/
 *.iml
 .vscode/
+.c[l]aude/
+.g[e]mini/
 
 # OS
 .DS_Store

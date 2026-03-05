@@ -8,12 +8,12 @@ workflow {
     
     // Native inputs
     ch_native_ids = Channel.fromPath("${projectDir}/tests/data/ids_native.txt")
-    ch_native_dir = Channel.fromPath('/home/bmorampa/k12_native_fast5', type: 'dir')
+    ch_native_dir = Channel.fromPath('/absolute/path/to/k12_native_fast5', type: 'dir')
     ch_native_meta = Channel.value([ id: 'native_rep1' ])
 
     // IVT inputs
     ch_ivt_ids = Channel.fromPath("${projectDir}/tests/data/ids_ivt.txt")
-    ch_ivt_dir = Channel.fromPath('/home/bmorampa/k12_ivt_fast5', type: 'dir')
+    ch_ivt_dir = Channel.fromPath('/absolute/path/to/k12_ivt_fast5', type: 'dir')
     ch_ivt_meta = Channel.value([ id: 'ivt_rep1' ])
 
     // Run subsetting

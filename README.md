@@ -119,11 +119,19 @@ nextflow run main.nf \
 - `test`
 - `test_full`
 
+## Public Release Checklist
+
+- Revoke any previously exposed Seqera Tower token before changing repository visibility.
+- Set Tower credentials only via environment variable (`TOWER_ACCESS_TOKEN`), not in tracked files.
+- If git history is not rewritten, assume old commits may still contain revoked token text.
+
 ## Inputs
 
 ### Samplesheet (`--input`)
 
 Required CSV columns:
+
+Note: sample CSVs in this repository use placeholder paths and must be edited for your local filesystems and datasets.
 
 | Column | Description |
 | --- | --- |

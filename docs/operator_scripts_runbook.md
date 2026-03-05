@@ -16,7 +16,7 @@ Use this document when you need reproducible command history, clear success/fail
 All commands are written assuming you run from repo root:
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 ```
 
 ### Pipeline runtime prerequisites
@@ -27,10 +27,10 @@ cd /home/bmorampa/rnamodbench
 
 ### Data path assumptions used by helper scripts
 `generate_samplesheets.sh` currently expects FASTQ and FAST5 at:
-1. `/home/bmorampa/covbench/results_all_tools_16S/filtlong`
-2. `/home/bmorampa/covbench/results_all_tools_23S/filtlong`
-3. `/home/bmorampa/k12_native_fast5`
-4. `/home/bmorampa/k12_ivt_fast5`
+1. `/absolute/path/to/covbench/results_all_tools_16S/filtlong`
+2. `/absolute/path/to/covbench/results_all_tools_23S/filtlong`
+3. `/absolute/path/to/k12_native_fast5`
+4. `/absolute/path/to/k12_ivt_fast5`
 
 If your data lives elsewhere, update `generate_samplesheets.sh` before running.
 
@@ -78,7 +78,7 @@ Typical files:
 ### Playbook A: First full multi-coverage run
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 
 # 1) Build and validate samplesheets
 ./generate_samplesheets.sh
@@ -96,7 +96,7 @@ python bin/downstream_analysis/collate_runs.py \
 ### Playbook B: Rerun selected coverages only
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 
 # Re-run only selected coverages; completed ones are auto-skipped
 ./run_all_coverages.sh 50x 100x 500x
@@ -109,7 +109,7 @@ cd /home/bmorampa/rnamodbench
 3. Re-run batch script with same coverage list or all coverages:
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 ./run_all_coverages.sh
 ```
 
@@ -118,7 +118,7 @@ The script skips already-completed outputs (where downstream `metrics_long.csv` 
 ### Playbook D: Collate all coverages (discovery mode)
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 python bin/downstream_analysis/collate_runs.py \
   --runs-root covbench_results \
   --run-glob 'results_*/downstream_analysis' \
@@ -128,7 +128,7 @@ python bin/downstream_analysis/collate_runs.py \
 ### Playbook E: Collate explicit subset and strict QA mode
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 
 # Explicit subset
 python bin/downstream_analysis/collate_runs.py \
@@ -149,7 +149,7 @@ python bin/downstream_analysis/collate_runs.py \
 ### Playbook F: Re-run standalone downstream analysis for one run
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 python bin/downstream_analysis/run_analysis.py \
   --input-dir covbench_results/results_100x/modifications \
   --ground-truth ground_truth_mod_positions.csv \
@@ -175,7 +175,7 @@ Before running multi-coverage Nextflow batches, to generate and validate all `sa
 
 ### Run command
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 ./generate_samplesheets.sh
 ```
 
@@ -185,7 +185,7 @@ cd /home/bmorampa/rnamodbench
 
 ### How to verify success
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 ls samplesheets/samplesheet_*.csv | wc -l
 wc -l samplesheets/samplesheet_100x.csv
 ```
@@ -211,7 +211,7 @@ To run the full RNAModBench pipeline sequentially across all coverages or a sele
 
 ### Run command
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 
 # all configured coverages
 ./run_all_coverages.sh
@@ -239,7 +239,7 @@ cd /home/bmorampa/rnamodbench
 
 ### How to verify success
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 ls covbench_logs/run_*.log | wc -l
 ls covbench_results/results_*/downstream_analysis/collation/metrics_long.csv | wc -l
 ```
@@ -260,7 +260,7 @@ After multiple runs are complete, to produce one merged downstream table set plu
 
 ### Run command
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 
 # discovery collation
 python bin/downstream_analysis/collate_runs.py \
@@ -294,7 +294,7 @@ python bin/downstream_analysis/collate_runs.py \
 
 ### How to verify success
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 python bin/downstream_analysis/collate_runs.py \
   --runs-root covbench_results \
   --run-glob 'results_*/downstream_analysis' \
@@ -324,7 +324,7 @@ To re-run downstream analysis independently for a run without rerunning mapping/
 
 ### Run command
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 python bin/downstream_analysis/run_analysis.py \
   --input-dir covbench_results/results_100x/modifications \
   --ground-truth ground_truth_mod_positions.csv \
@@ -360,7 +360,7 @@ Under output directory:
 
 ### How to verify success
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 ls covbench_results/results_100x/downstream_analysis_rerun/collation/
 ```
 
@@ -374,7 +374,7 @@ ls covbench_results/results_100x/downstream_analysis_rerun/collation/
 Run this full checklist from repo root:
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 
 # CLI surface checks
 python bin/downstream_analysis/collate_runs.py --help
@@ -444,7 +444,7 @@ Before sharing or archiving a completed batch, capture:
 Suggested manifest command:
 
 ```bash
-cd /home/bmorampa/rnamodbench
+cd ${PROJECT_DIR}
 {
   echo "commit: $(git rev-parse HEAD)"
   echo "date: $(date -Iseconds)"

@@ -3,15 +3,15 @@
 ## Main Methods
 
 ### 1. Workflow engine and runtime profile
-RNAModBench was executed as a Nextflow DSL2 workflow (`main.nf`) that orchestrates mapping, signal processing, multi-tool RNA modification calling, and optional downstream benchmarking. The representative execution context used for this methods description is the February 17, 2026 run recorded in `results_rasusa/results_100x/pipeline_info/execution_report_2026-02-17_13-26-10.html`, launched from `/home/bmorampa/rnamodbench` with profile `singularity`, work directory `/mnt/nvme_work`, and command-line parameters:
+RNAModBench was executed as a Nextflow DSL2 workflow (`main.nf`) that orchestrates mapping, signal processing, multi-tool RNA modification calling, and optional downstream benchmarking. The representative execution context used for this methods description is the February 17, 2026 run recorded in `results_rasusa/results_100x/pipeline_info/execution_report_2026-02-17_13-26-10.html`, launched from `${PROJECT_DIR}` with profile `singularity`, work directory `/mnt/nvme_work`, and command-line parameters:
 
 ```bash
 nextflow run main.nf \
-  --input /home/bmorampa/rnamodbench/samplesheets_rasusa/samplesheet_rasusa_100x.csv \
-  --references /home/bmorampa/rnamodbench/references.csv \
-  --outdir /home/bmorampa/rnamodbench/results_rasusa/results_100x \
+  --input ${PROJECT_DIR}/samplesheets_rasusa/samplesheet_rasusa_100x.csv \
+  --references ${PROJECT_DIR}/references.csv \
+  --outdir ${PROJECT_DIR}/results_rasusa/results_100x \
   --run_downstream true \
-  --ground_truth /home/bmorampa/rnamodbench/ground_truth_mod_positions.csv \
+  --ground_truth ${PROJECT_DIR}/ground_truth_mod_positions.csv \
   --downstream_run_id run_rasusa_100x \
   --downstream_coverage_label 100x \
   --downstream_quality_label base \

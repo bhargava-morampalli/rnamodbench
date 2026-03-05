@@ -61,23 +61,23 @@ Automatic generation for future runs:
 Single completed run:
 
 ```bash
-python /home/bmorampa/rnamodbench/bin/generate_error_report.py \
-  --run-dir /home/bmorampa/rnamodbench/covbench_results/results_1000x
+python ${PROJECT_DIR}/bin/generate_error_report.py \
+  --run-dir ${PROJECT_DIR}/covbench_results/results_1000x
 ```
 
 Workflow-staging usage of the same CLI:
 
 ```bash
-python /home/bmorampa/rnamodbench/bin/generate_error_report.py \
-  --run-dir /home/bmorampa/rnamodbench/covbench_results/results_1000x \
+python ${PROJECT_DIR}/bin/generate_error_report.py \
+  --run-dir ${PROJECT_DIR}/covbench_results/results_1000x \
   --pipeline-info-dir /tmp/report_stage_test
 ```
 
 Backfill all historical coverage runs:
 
 ```bash
-python /home/bmorampa/rnamodbench/bin/backfill_run_reports.py \
-  --runs-root /home/bmorampa/rnamodbench/covbench_results \
+python ${PROJECT_DIR}/bin/backfill_run_reports.py \
+  --runs-root ${PROJECT_DIR}/covbench_results \
   --run-glob 'results_*x'
 ```
 
@@ -85,8 +85,8 @@ Collate benchmark outputs and the new reporting artifacts into a separate output
 directory:
 
 ```bash
-python /home/bmorampa/rnamodbench/bin/downstream_analysis/collate_runs.py \
-  --runs-root /home/bmorampa/rnamodbench/covbench_results \
+python ${PROJECT_DIR}/bin/downstream_analysis/collate_runs.py \
+  --runs-root ${PROJECT_DIR}/covbench_results \
   --run-glob 'results_*/downstream_20260301_parserfix_rernaeval' \
   --output /tmp/rnamodbench_tool_availability_collate_test
 ```

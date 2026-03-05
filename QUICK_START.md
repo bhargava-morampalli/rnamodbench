@@ -5,7 +5,7 @@ canonical runbook: [`docs/operator_scripts_runbook.md`](docs/operator_scripts_ru
 
 ## What Has Been Created
 
-A complete rnamodbench compliant pipeline structure for RNA modification detection has been created in `/home/bmorampa/rnamodbench/`.
+A complete rnamodbench compliant pipeline structure for RNA modification detection has been created in `${PROJECT_DIR}/`.
 
 ## Pipeline Architecture
 
@@ -106,7 +106,7 @@ Create `lib/` directory with:
 
 ```bash
 # Create the module file
-nano /home/bmorampa/rnamodbench/modules/local/samtools_sort.nf
+nano ${PROJECT_DIR}/modules/local/samtools_sort.nf
 ```
 
 Copy this template:
@@ -191,7 +191,7 @@ ivt_rep1,/path/to/ivt_rep1.fastq,ivt,rep1,/path/to/ivt_fast5
 EOF
 
 # 2. Run the pipeline
-nextflow run /home/bmorampa/rnamodbench/main.nf \\
+nextflow run ${PROJECT_DIR}/main.nf \\
     -profile singularity \\
     --input samplesheet.csv \\
     --ref_16s /path/to/16S.fa \\
@@ -288,7 +288,7 @@ rnamodbench/
 
 ```bash
 # Run pipeline
-nextflow run /home/bmorampa/rnamodbench/main.nf \\
+nextflow run ${PROJECT_DIR}/main.nf \\
     -profile singularity \\
     --input samplesheet.csv \\
     --ref_16s refs/16S.fa \\
@@ -302,10 +302,10 @@ nextflow run ... -resume
 nextflow clean -f
 
 # Check pipeline syntax
-nextflow run /home/bmorampa/rnamodbench/main.nf --help
+nextflow run ${PROJECT_DIR}/main.nf --help
 
 # View DAG
-nextflow run /home/bmorampa/rnamodbench/main.nf -with-dag flowchart.html
+nextflow run ${PROJECT_DIR}/main.nf -with-dag flowchart.html
 ```
 
 ## Success Criteria
