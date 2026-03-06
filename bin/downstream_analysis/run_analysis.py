@@ -107,31 +107,40 @@ SUPPORTED_TOOLS = [
     "nanodoc",
 ]
 
-# Tool names
-SUPPORTED_TOOLS = [
-    'tombo', 'yanocomp', 'nanocompore', 'xpore', 'eligos',
-    'epinano', 'differr', 'drummer', 'jacusa2'
-]
+WINDOW_GRID = list(range(0, 11))
+LAG_GRID = list(range(-10, 11))
+DIFFERR_PRIMARY_SCORE_FIELD = "g_fdr_neglog10"
+DIFFERR_SECONDARY_SCORE_FIELD = "g_stat"
+DIFFERR_BOTH_SCORE_FIELD = "both"
+DIFFERR_GSTAT_SUBDIR = "differr_gstat"
 
 
-def load_tool_outputs_from_args(args: argparse.Namespace) -> Dict[str, pd.DataFrame]:
-    """Load tool outputs from command line arguments."""
-    tool_outputs = {}
+def load_tool_outputs_from_args(
+    args: argparse.Namespace,
+    differr_score_field: str = DIFFERR_PRIMARY_SCORE_FIELD,
+) -> Dict[str, pd.DataFrame]:
+    tool_outputs: Dict[str, pd.DataFrame] = {}
 
     for tool in SUPPORTED_TOOLS:
         arg_name = tool.replace('-', '_')
         filepath = getattr(args, arg_name, None)
 
-        if filepath:
-            filepath = Path(filepath)
-            if filepath.exists():
-                try:
-                    df = parse_tool_output(tool, filepath)
-                    if not df.empty:
-                        tool_outputs[tool] = df
-                        logger.info(f"Loaded {len(df)} positions from {tool}")
-                except Exception as e:
-                    logger.error(f"Failed to load {tool}: {e}")
+        path = Path(p)
+        if not path.exists():
+            logger.warning("Tool path not found: %s", path)
+            continue
+
+        try:
+            df = parse_tool_output(
+                tool,
+                path,
+                differr_score_field=differr_score_field,
+            )
+            if not df.empty:
+                tool_outputs[tool] = df
+                logger.info("Loaded %d rows for %s", len(df), tool)
+        except Exception as exc:
+            logger.error("Failed loading %s from %s: %s", tool, path, exc)
 
     return tool_outputs
 
@@ -1203,11 +1212,70 @@ def run_analysis(
     logger.info(f"Positions detected by all tools: {comparison.n_intersection}")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Run downstream analysis for RNA modification detection',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
+def _load_tool_outputs_for_mode(
+    args: argparse.Namespace,
+    differr_score_field: str,
+) -> Dict[str, pd.DataFrame]:
+    if args.input_dir:
+        in_dir = Path(args.input_dir)
+        if not in_dir.exists():
+            raise FileNotFoundError(f"Input directory not found: {in_dir}")
+        return load_all_tool_outputs(
+            in_dir,
+            SUPPORTED_TOOLS,
+            coverage_dirs=args.coverage_dirs,
+            differr_score_field=differr_score_field,
+        )
+
+    return load_tool_outputs_from_args(args, differr_score_field=differr_score_field)
+
+
+def _resolve_differr_runs(
+    output_dir: Path,
+    differr_score_field: str,
+) -> List[Tuple[str, Path]]:
+    requested = str(differr_score_field).strip()
+    if requested == DIFFERR_BOTH_SCORE_FIELD:
+        return [
+            (DIFFERR_PRIMARY_SCORE_FIELD, output_dir),
+            (DIFFERR_SECONDARY_SCORE_FIELD, output_dir / DIFFERR_GSTAT_SUBDIR),
+        ]
+    if requested in {DIFFERR_PRIMARY_SCORE_FIELD, DIFFERR_SECONDARY_SCORE_FIELD}:
+        return [(requested, output_dir)]
+    raise ValueError(
+        f"Unsupported DiffErr score field mode: {requested}. "
+        f"Expected one of {DIFFERR_PRIMARY_SCORE_FIELD}, "
+        f"{DIFFERR_SECONDARY_SCORE_FIELD}, {DIFFERR_BOTH_SCORE_FIELD}"
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run downstream analysis")
+
+    input_group = parser.add_argument_group("Input")
+    input_group.add_argument("--input-dir", "-i", help="modifications directory")
+    for tool in SUPPORTED_TOOLS:
+        input_group.add_argument(f"--{tool}", help=f"{tool} output path")
+
+    parser.add_argument("--ground-truth", "-g", help="ground truth CSV/TSV")
+    parser.add_argument("--references-csv", help="references CSV (target,reference) for canonical IDs and lengths")
+
+    parser.add_argument("--output-dir", "-o", required=True)
+    parser.add_argument("--references", "-r", nargs="+", help="optional subset of canonical references")
+    parser.add_argument("--min-replicates", type=int, default=2)
+    parser.add_argument("--expected-replicates", type=int, default=3)
+    parser.add_argument("--threshold", type=float, help="score threshold for significance")
+    parser.add_argument("--coverage-dirs", action="store_true")
+    parser.add_argument(
+        "--differr-score-field",
+        choices=[DIFFERR_PRIMARY_SCORE_FIELD, DIFFERR_SECONDARY_SCORE_FIELD, DIFFERR_BOTH_SCORE_FIELD],
+        default=DIFFERR_BOTH_SCORE_FIELD,
+        help=(
+            "DiffErr score mode: "
+            "'g_fdr_neglog10' (single run), "
+            "'g_stat' (single run), or "
+            "'both' (write canonical g_fdr_neglog10 and differr_gstat sub-run)"
+        ),
     )
 
     # Input options
@@ -1276,27 +1344,6 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    # Load tool outputs
-    tool_outputs = {}
-
-    if args.input_dir:
-        # Load from standard directory structure
-        input_dir = Path(args.input_dir)
-        if not input_dir.exists():
-            logger.error(f"Input directory not found: {input_dir}")
-            sys.exit(1)
-
-        tool_outputs = load_all_tool_outputs(
-            input_dir, SUPPORTED_TOOLS, coverage_dirs=args.coverage_dirs
-        )
-    else:
-        # Load from individual arguments
-        tool_outputs = load_tool_outputs_from_args(args)
-
-    if not tool_outputs:
-        logger.error("No tool outputs loaded. Provide --input-dir or individual tool paths.")
-        sys.exit(1)
-
     # Load ground truth
     ground_truth = None
     if args.ground_truth:
@@ -1306,16 +1353,42 @@ def main():
         else:
             logger.warning(f"Ground truth file not found: {ground_truth_path}")
 
-    # Run analysis
-    run_analysis(
-        tool_outputs=tool_outputs,
-        ground_truth=ground_truth,
-        output_dir=Path(args.output_dir),
-        references=args.references,
-        min_replicates=args.min_replicates,
-        score_threshold=args.threshold,
-        expected_replicates=args.expected_replicates
-    )
+    try:
+        planned_runs = _resolve_differr_runs(Path(args.output_dir), args.differr_score_field)
+    except ValueError as exc:
+        logger.error(str(exc))
+        sys.exit(1)
+
+    for score_field, mode_output_dir in planned_runs:
+        logger.info(
+            "Running downstream analysis with DiffErr score field '%s' -> %s",
+            score_field,
+            mode_output_dir,
+        )
+        try:
+            tool_outputs = _load_tool_outputs_for_mode(args, differr_score_field=score_field)
+        except FileNotFoundError as exc:
+            logger.error(str(exc))
+            sys.exit(1)
+
+        if not tool_outputs:
+            logger.error("No tool outputs loaded for DiffErr score field '%s'", score_field)
+            sys.exit(1)
+
+        run_analysis(
+            tool_outputs=tool_outputs,
+            ground_truth=ground_truth,
+            output_dir=mode_output_dir,
+            references_csv=references_csv,
+            references_filter=args.references,
+            min_replicates=args.min_replicates,
+            score_threshold=args.threshold,
+            expected_replicates=args.expected_replicates,
+            run_id=args.run_id,
+            coverage_label=args.coverage_label,
+            quality_label=args.quality_label,
+            differr_score_field=score_field,
+        )
 
 
 if __name__ == '__main__':

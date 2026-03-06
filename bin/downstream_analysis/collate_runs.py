@@ -334,9 +334,16 @@ def _add_issue(
 
 
 def _run_name_from_downstream(downstream_dir: Path) -> str:
-    if downstream_dir.name == "downstream_analysis":
-        return downstream_dir.parent.name
-    return downstream_dir.name
+    return _run_root_from_downstream(downstream_dir).name
+
+
+def _nearest_downstream_anchor(path: Path) -> Optional[Path]:
+    if path.name == "downstream_analysis":
+        return path
+    for parent in path.parents:
+        if parent.name == "downstream_analysis":
+            return parent
+    return None
 
 
 def _normalize_input_path(input_path: Path) -> Tuple[Optional[Path], Optional[Path], str]:
@@ -505,7 +512,10 @@ def _write_reports(report: CollateReport, output_dir: Path, report_prefix: str) 
 
 
 def _run_root_from_downstream(downstream_dir: Path) -> Path:
-    return downstream_dir.parent
+    anchor = _nearest_downstream_anchor(downstream_dir)
+    if anchor is not None:
+        return anchor.parent
+    return downstream_dir
 
 
 def _write_reporting_outputs(

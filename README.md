@@ -281,6 +281,10 @@ Key `pipeline_info/` artifacts:
 - `pipeline_dag_*.html`
 - `software_versions.yml`
 
+Optional downstream output (`--run_downstream true`):
+- canonical downstream collation in `downstream_analysis/` uses DiffErr `g_fdr_neglog10`
+- default dual-mode also writes DiffErr `g_stat` analysis under `downstream_analysis/differr_gstat/`
+
 ## Documentation, Support, and Credits
 
 - Additional docs: [`docs/`](docs/README.md)

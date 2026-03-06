@@ -460,6 +460,17 @@
                     "type": "string",
                     "description": "Optional quality label stored in collation outputs.",
                     "fa_icon": "fas fa-filter"
+                },
+                "downstream_differr_score_field": {
+                    "type": "string",
+                    "default": "both",
+                    "enum": [
+                        "both",
+                        "g_fdr_neglog10",
+                        "g_stat"
+                    ],
+                    "description": "DiffErr downstream score mode: run canonical -log10(FDR), g_stat, or both.",
+                    "fa_icon": "fas fa-sliders-h"
                 }
             }
         }

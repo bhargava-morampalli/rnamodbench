@@ -39,7 +39,7 @@ modules/local/downstream_analysis/
 | **xPore** | diffmod.table | position, diff_mod_rate, pval | probability |
 | **ELIGOS** | TXT (test_paired_diff_mod_result.txt) | start_loc, pval, oddR | p-value |
 | **EpiNano** | CSV (*_diff_err.csv) | pos, z-score, diff_error | z-score |
-| **DiffErr** | BED | start, pval, fdr, odds_ratio | FDR |
+| **DiffErr** | BED | start, pval, fdr, odds_ratio, g_stat | neglog10_fdr (default) or g_stat |
 | **DRUMMER** | summary.txt | position, pval, odds_ratio | p-value |
 | **JACUSA2** | BED | start, score | score |
 
@@ -57,7 +57,7 @@ Standardizes outputs from all 9 tools into a common DataFrame format:
     "reference": str,      # Reference/chromosome name
     "position": int,       # 1-based position
     "score": float,        # Primary score for ranking (NaN for missing)
-    "score_type": str,     # pvalue, fdr, zscore, probability, score
+    "score_type": str,     # pvalue, fdr, zscore, probability, score, neglog10_fdr, g_stat
     "pvalue": float,       # P-value if available (NaN for missing)
     "replicate": str,      # Replicate identifier
     "sample_id": str,      # Full sample identifier
@@ -414,6 +414,15 @@ python bin/downstream_analysis/run_analysis.py \
     --coverage-dirs \
     --ground-truth known_sites.csv \
     --output-dir downstream_analysis
+
+# Dual DiffErr automation (default mode)
+# Writes canonical g_fdr_neglog10 outputs to downstream_analysis/
+# and g_stat outputs to downstream_analysis/differr_gstat/
+python bin/downstream_analysis/run_analysis.py \
+    --input-dir results/modifications \
+    --ground-truth known_sites.csv \
+    --output-dir downstream_analysis \
+    --differr-score-field both
 ```
 
 **Command Line Options:**
@@ -426,8 +435,11 @@ python bin/downstream_analysis/run_analysis.py \
 | `--expected-replicates` | Expected replicates for quality check (default: 3) |
 | `--threshold` | Score threshold for significance |
 | `--coverage-dirs` | Enable {coverage}/tool/ directory structure |
+| `--differr-score-field` | DiffErr mode: `both` (default), `g_fdr_neglog10`, or `g_stat` |
 | `--references, -r` | Filter to specific references |
 | `--verbose, -v` | Enable verbose logging |
+
+When `--differr-score-field both` is used, `g_fdr_neglog10` remains the canonical output under `--output-dir`, and `g_stat` is written under `--output-dir/differr_gstat`.
 
 ### Standalone Multi-Run Collation (`collate_runs.py`)
 
@@ -470,6 +482,14 @@ python bin/downstream_analysis/collate_runs.py \
     --run-glob 'results_*/downstream_analysis' \
     --tables metrics_long.csv metrics_summary_long.csv \
     --output covbench_results/collated_metrics_only
+```
+
+**Collate g_stat runs produced by dual-mode downstream:**
+```bash
+python bin/downstream_analysis/collate_runs.py \
+    --runs-root covbench_results \
+    --run-glob 'results_*/downstream_analysis/differr_gstat' \
+    --output covbench_results/collated_multi_cov_gstat
 ```
 
 **Useful options:**

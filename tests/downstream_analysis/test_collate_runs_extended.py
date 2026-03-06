@@ -185,6 +185,33 @@ def test_discovery_mode_finds_expected_runs(tmp_path):
     assert report.runs_discovered == 2
 
 
+def test_discovery_mode_nested_differr_gstat_paths_use_run_root_names(tmp_path):
+    root = tmp_path / "covbench_results"
+    run1 = root / "results_5x" / "downstream_analysis" / "differr_gstat" / "collation"
+    run2 = root / "results_10x" / "downstream_analysis" / "differr_gstat" / "collation"
+    run1.mkdir(parents=True)
+    run2.mkdir(parents=True)
+
+    _write_csv(run1 / "metrics_long.csv", {"run_id": ["r1"], "tool": ["differr"]})
+    _write_csv(run2 / "metrics_long.csv", {"run_id": ["r2"], "tool": ["differr"]})
+
+    out = tmp_path / "out"
+    report = collate(
+        [],
+        out,
+        tables=["metrics_long.csv"],
+        runs_root=root,
+        run_glob="results_*/downstream_analysis/differr_gstat",
+        quiet=True,
+    )
+
+    merged = pd.read_csv(out / "metrics_long.csv")
+    assert len(merged) == 2
+    assert report.runs_usable == 2
+    usable_names = {rec.run_name for rec in report.run_records if rec.status == "usable"}
+    assert usable_names == {"results_5x", "results_10x"}
+
+
 def test_strict_mode_returns_nonzero_on_soft_issues(tmp_path):
     run1 = tmp_path / "run1" / "collation"
     run1.mkdir(parents=True)

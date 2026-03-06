@@ -33,6 +33,16 @@ process DOWNSTREAM_ANALYSIS {
     def threshold = task.ext.threshold ?: ''
     def threshold_arg = threshold ? "--threshold ${threshold}" : ''
     def min_reps = task.ext.min_replicates ?: '2'
+    def expected_reps = task.ext.expected_replicates ?: '3'
+
+    def gt_arg = (ground_truth && ground_truth != 'NO_FILE') ? "--ground-truth ${ground_truth}" : ''
+    def ref_arg = (references_csv && references_csv != 'NO_FILE') ? "--references-csv ${references_csv}" : ''
+
+    def run_id_arg = params.downstream_run_id ? "--run-id ${params.downstream_run_id}" : ''
+    def coverage_label_arg = params.downstream_coverage_label ? "--coverage-label ${params.downstream_coverage_label}" : ''
+    def quality_label_arg = params.downstream_quality_label ? "--quality-label ${params.downstream_quality_label}" : ''
+    def differr_score_field_arg = params.downstream_differr_score_field ? "--differr-score-field ${params.downstream_differr_score_field}" : ''
+
     """
     # Capture stdout and stderr to log file
     exec > >(tee -a downstream_analysis.log) 2>&1
@@ -141,9 +151,11 @@ process DOWNSTREAM_ANALYSIS {
     python ${projectDir}/bin/downstream_analysis/run_analysis.py \\
         \$TOOL_ARGS \\
         $gt_arg \\
-        $threshold_arg \\
-        --min-replicates $min_reps \\
-        --output-dir downstream_analysis \\
+        $ref_arg \\
+        $run_id_arg \\
+        $coverage_label_arg \\
+        $quality_label_arg \\
+        $differr_score_field_arg \\
         $args
 
     echo "=== DOWNSTREAM_ANALYSIS completed at \$(date) ==="
