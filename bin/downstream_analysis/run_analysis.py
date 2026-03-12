@@ -356,10 +356,14 @@ def _expand_positions_by_window(
     ground_truth_positions: Set[int],
     window_size: int,
     eval_start: int,
-    eval_end: int,
+    eval_end: Optional[int] = None,
 ) -> Set[int]:
     if not ground_truth_positions:
         return set()
+
+    if eval_end is None:
+        eval_end = int(eval_start)
+        eval_start = 1
 
     expanded: Set[int] = set()
     for pos in ground_truth_positions:
@@ -375,10 +379,14 @@ def _shift_positions(
     ground_truth_positions: Set[int],
     delta: int,
     eval_start: int,
-    eval_end: int,
+    eval_end: Optional[int] = None,
 ) -> Set[int]:
     if not ground_truth_positions:
         return set()
+
+    if eval_end is None:
+        eval_end = int(eval_start)
+        eval_start = 1
 
     shifted: Set[int] = set()
     for pos in ground_truth_positions:

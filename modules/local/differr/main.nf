@@ -55,7 +55,7 @@ process DIFFERR {
         -r $reference \\
         -o ${prefix}.bed \\
         -f ${fdr_threshold} \\
-        $args || true
+        $args
 
     # Also try to get raw output files if differr creates intermediate files
     find . -name "*.bed" -o -name "*.csv" -o -name "*.tsv" | xargs -I {} cp {} . 2>/dev/null || true

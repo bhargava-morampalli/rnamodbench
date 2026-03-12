@@ -58,6 +58,9 @@ PY
     unset REQUESTED_ODDS
     echo "Effective odds ratio: \$effective_odds"
 
+    export MPLCONFIGDIR="\$PWD/.mplconfig"
+    mkdir -p "\$MPLCONFIGDIR"
+
     mkdir -p ${prefix}
 
     # Clone DRUMMER at pinned commit (not pip-installable — standalone scripts)
@@ -106,7 +109,7 @@ PY
         -a exome \\
         -p ${pval_threshold} \\
         -z \$effective_odds \\
-        $args || true
+        $args
 
     # DRUMMER outputs summary.txt with per-position data including:
     # transcript_id, chrom, ref_base, position, read_depth, base_fractions, odds_ratio, pval, motif, g_test, genomic_pos

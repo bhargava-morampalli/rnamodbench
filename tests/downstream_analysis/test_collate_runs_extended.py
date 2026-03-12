@@ -24,6 +24,31 @@ def _write_csv(path: Path, data: dict) -> None:
     pd.DataFrame(data).to_csv(path, index=False)
 
 
+def _write_tool_availability(path: Path, *, run_name: str, run_dir: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    row = {col: "" for col in _mod.TOOL_AVAILABILITY_COLUMNS}
+    row.update(
+        {
+            "run_name": run_name,
+            "run_dir": str(run_dir),
+            "run_id": run_name,
+            "coverage_label": "5x" if "5x" in run_name else "10x",
+            "quality_label": "base",
+            "tool": "differr",
+            "target": "16s",
+            "replicate": "rep1",
+            "nf_status": "COMPLETED",
+            "output_state": "parsed_nonempty",
+            "parsed_rows": 1,
+            "failure_reason_code": "",
+            "failure_reason_text": "",
+            "reason_source": "unknown",
+            "diagnostic_completeness": "trace_only",
+        }
+    )
+    pd.DataFrame([row]).reindex(columns=_mod.TOOL_AVAILABILITY_COLUMNS).to_csv(path, sep="\t", index=False)
+
+
 def test_collate_writes_all_expected_tables(tmp_path):
     run1 = tmp_path / "run1" / "collation"
     run2 = tmp_path / "run2" / "collation"
@@ -210,6 +235,48 @@ def test_discovery_mode_nested_differr_gstat_paths_use_run_root_names(tmp_path):
     assert report.runs_usable == 2
     usable_names = {rec.run_name for rec in report.run_records if rec.status == "usable"}
     assert usable_names == {"results_5x", "results_10x"}
+
+
+def test_discovery_mode_named_downstream_paths_resolve_run_roots_for_availability(tmp_path):
+    root = tmp_path / "covbench_results"
+    run1_root = root / "results_5x"
+    run2_root = root / "results_10x"
+    run1 = run1_root / "downstream_20260301_parserfix_rernaeval" / "collation"
+    run2 = run2_root / "downstream_20260301_parserfix_rernaeval" / "collation"
+    run1.mkdir(parents=True)
+    run2.mkdir(parents=True)
+
+    _write_csv(run1 / "metrics_long.csv", {"run_id": ["r1"], "tool": ["differr"]})
+    _write_csv(run2 / "metrics_long.csv", {"run_id": ["r2"], "tool": ["differr"]})
+
+    _write_tool_availability(
+        run1_root / "pipeline_info" / "tool_availability_per_run.tsv",
+        run_name="results_5x",
+        run_dir=run1_root,
+    )
+    _write_tool_availability(
+        run2_root / "pipeline_info" / "tool_availability_per_run.tsv",
+        run_name="results_10x",
+        run_dir=run2_root,
+    )
+
+    out = tmp_path / "out"
+    report = collate(
+        [],
+        out,
+        tables=["metrics_long.csv"],
+        runs_root=root,
+        run_glob="results_*/downstream_20260301_parserfix_rernaeval",
+        quiet=True,
+    )
+
+    merged = pd.read_csv(out / "metrics_long.csv")
+    availability = pd.read_csv(out / "tool_availability_matrix.tsv", sep="\t")
+
+    assert len(merged) == 2
+    assert report.runs_usable == 2
+    assert len(availability) == 2
+    assert set(availability["run_name"]) == {"results_5x", "results_10x"}
 
 
 def test_strict_mode_returns_nonzero_on_soft_issues(tmp_path):

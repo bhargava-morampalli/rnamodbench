@@ -337,11 +337,15 @@ def _run_name_from_downstream(downstream_dir: Path) -> str:
     return _run_root_from_downstream(downstream_dir).name
 
 
+def _is_downstream_anchor_name(name: str) -> bool:
+    return name == "downstream_analysis" or name.startswith("downstream_")
+
+
 def _nearest_downstream_anchor(path: Path) -> Optional[Path]:
-    if path.name == "downstream_analysis":
+    if _is_downstream_anchor_name(path.name):
         return path
     for parent in path.parents:
-        if parent.name == "downstream_analysis":
+        if _is_downstream_anchor_name(parent.name):
             return parent
     return None
 

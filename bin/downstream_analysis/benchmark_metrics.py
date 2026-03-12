@@ -217,6 +217,72 @@ def prepare_labels(
     return y_true, scores, positions
 
 
+def _metrics_from_arrays(
+    y_true: np.ndarray,
+    y_scores: np.ndarray,
+) -> Tuple[float, float, float, float, float, float, int, int, int, int]:
+    """Compute AUPRC/AUROC/optimal F1 and confusion values."""
+    if len(y_true) == 0:
+        return 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0
+
+    # AUPRC
+    try:
+        auprc = float(average_precision_score(y_true, y_scores))
+    except Exception:
+        auprc = 0.0
+
+    # AUROC
+    try:
+        auroc = float(roc_auc_score(y_true, y_scores))
+    except Exception:
+        auroc = 0.5
+
+    # optimal threshold from PR curve (max F1)
+    try:
+        precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
+        f1_scores = 2 * (precision * recall) / (precision + recall + 1e-10)
+
+        if len(thresholds) == 0:
+            optimal_threshold = 0.0
+            f1_optimal = 0.0
+            precision_optimal = 0.0
+            recall_optimal = 0.0
+        else:
+            optimal_idx = int(np.argmax(f1_scores[:-1]))
+            optimal_threshold = float(thresholds[optimal_idx])
+            f1_optimal = float(f1_scores[optimal_idx])
+            precision_optimal = float(precision[optimal_idx])
+            recall_optimal = float(recall[optimal_idx])
+    except Exception:
+        optimal_threshold = 0.0
+        f1_optimal = 0.0
+        precision_optimal = 0.0
+        recall_optimal = 0.0
+
+    y_pred = (y_scores >= optimal_threshold).astype(int)
+    try:
+        cm_flat = np.asarray(confusion_matrix(y_true, y_pred, labels=[0, 1]), dtype=int).reshape(-1)
+        if cm_flat.size >= 4:
+            tn, fp, fn, tp = (int(cm_flat[0]), int(cm_flat[1]), int(cm_flat[2]), int(cm_flat[3]))
+        else:
+            tn = fp = fn = tp = 0
+    except Exception:
+        tn = fp = fn = tp = 0
+
+    return (
+        auprc,
+        auroc,
+        f1_optimal,
+        precision_optimal,
+        recall_optimal,
+        optimal_threshold,
+        int(tp),
+        int(fp),
+        int(fn),
+        int(tn),
+    )
+
+
 def calculate_metrics(
     tool_output: pd.DataFrame,
     ground_truth: pd.DataFrame,

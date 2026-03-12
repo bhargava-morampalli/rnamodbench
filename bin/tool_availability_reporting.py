@@ -195,7 +195,7 @@ class RunContext:
     run_id: str
     coverage_label: str
     quality_label: str
-    trace_file: Optional[Path]
+    trace_files: Tuple[Path, ...]
     extra_tools: Tuple[str, ...] = ()
 
 
@@ -258,11 +258,9 @@ def _relative_to(path: Path, base: Path) -> str:
         return str(path)
 
 
-def _latest_trace_file(run_dir: Path) -> Optional[Path]:
+def _all_trace_files(run_dir: Path) -> List[Path]:
     traces = sorted((run_dir / "pipeline_info").glob("execution_trace_*.txt"))
-    if not traces:
-        return None
-    return max(traces, key=lambda path: path.stat().st_mtime)
+    return [path for path in traces if path.exists() and path.is_file()]
 
 
 def _score_metadata_candidate(path: Path) -> Tuple[float, int]:
@@ -296,7 +294,7 @@ def build_run_context(run_dir: Path) -> RunContext:
     coverage_label = metadata.get("coverage_label") or infer_coverage_label(run_name)
     run_id = metadata.get("run_id") or run_name
     quality_label = metadata.get("quality_label") or "unknown"
-    trace_file = _latest_trace_file(run_dir)
+    trace_files = tuple(_all_trace_files(run_dir))
 
     modifications_dir = run_dir / "modifications"
     extra_tools: List[str] = []
@@ -311,7 +309,7 @@ def build_run_context(run_dir: Path) -> RunContext:
         run_id=run_id,
         coverage_label=coverage_label,
         quality_label=quality_label,
-        trace_file=trace_file,
+        trace_files=trace_files,
         extra_tools=tuple(extra_tools),
     )
 
@@ -335,44 +333,66 @@ def parse_trace_name(name: str) -> Dict[str, Optional[str]]:
 
 
 def load_process_status(run_context: RunContext) -> pd.DataFrame:
-    trace_file = run_context.trace_file
-    if trace_file is None or not trace_file.exists():
+    trace_files = [path for path in run_context.trace_files if path.exists() and path.is_file()]
+    if not trace_files:
         return _empty_dataframe(PROCESS_STATUS_COLUMNS)
 
     rows: List[Dict[str, object]] = []
-    with open(trace_file, "r", encoding="utf-8", errors="replace") as handle:
-        reader = csv.DictReader(handle, delimiter="\t")
-        for raw in reader:
-            parsed = parse_trace_name(raw.get("name", ""))
-            process_family = parsed["process_family"]
-            tool = PROCESS_TO_TOOL.get(process_family or "")
-            if tool is None:
-                continue
-            rows.append(
-                {
-                    "run_name": run_context.run_name,
-                    "run_dir": str(run_context.run_dir),
-                    "run_id": run_context.run_id,
-                    "coverage_label": run_context.coverage_label,
-                    "quality_label": run_context.quality_label,
-                    "task_id": raw.get("task_id", ""),
-                    "native_id": raw.get("native_id", ""),
-                    "process_name": raw.get("name", ""),
-                    "process_family": process_family,
-                    "tool": tool,
-                    "target": parsed["target"] or "",
-                    "replicate": parsed["replicate"] or "",
-                    "status": raw.get("status", ""),
-                    "exit_code": raw.get("exit", ""),
-                    "error_action": raw.get("error_action", ""),
-                    "workdir": raw.get("workdir", ""),
-                    "trace_file": str(trace_file),
-                }
-            )
+    for trace_file in trace_files:
+        trace_mtime = trace_file.stat().st_mtime
+        with open(trace_file, "r", encoding="utf-8", errors="replace") as handle:
+            reader = csv.DictReader(handle, delimiter="\t")
+            for row_idx, raw in enumerate(reader):
+                parsed = parse_trace_name(raw.get("name", ""))
+                process_family = parsed["process_family"]
+                tool = PROCESS_TO_TOOL.get(process_family or "")
+                if tool is None:
+                    continue
+
+                native_id = str(raw.get("native_id", "") or "").strip()
+                task_id = str(raw.get("task_id", "") or "").strip()
+                workdir = str(raw.get("workdir", "") or "").strip()
+                process_name = str(raw.get("name", "") or "").strip()
+                if native_id:
+                    identity = f"native:{native_id}"
+                elif task_id:
+                    identity = f"task:{task_id}"
+                elif workdir:
+                    identity = f"workdir:{workdir}"
+                else:
+                    identity = f"name:{process_name}:{row_idx}"
+
+                rows.append(
+                    {
+                        "run_name": run_context.run_name,
+                        "run_dir": str(run_context.run_dir),
+                        "run_id": run_context.run_id,
+                        "coverage_label": run_context.coverage_label,
+                        "quality_label": run_context.quality_label,
+                        "task_id": task_id,
+                        "native_id": native_id,
+                        "process_name": raw.get("name", ""),
+                        "process_family": process_family,
+                        "tool": tool,
+                        "target": parsed["target"] or "",
+                        "replicate": parsed["replicate"] or "",
+                        "status": raw.get("status", ""),
+                        "exit_code": raw.get("exit", ""),
+                        "error_action": raw.get("error_action", ""),
+                        "workdir": workdir,
+                        "trace_file": str(trace_file),
+                        "_identity": identity,
+                        "_trace_mtime": trace_mtime,
+                        "_trace_row_idx": row_idx,
+                    }
+                )
 
     df = pd.DataFrame(rows)
     if df.empty:
         return _empty_dataframe(PROCESS_STATUS_COLUMNS)
+
+    # Prefer the latest record per task identity across all trace snapshots.
+    df = df.sort_values(["_trace_mtime", "_trace_row_idx"]).drop_duplicates(subset=["_identity"], keep="last")
     return df.reindex(columns=PROCESS_STATUS_COLUMNS)
 
 
@@ -421,15 +441,22 @@ def _event_excerpt(lines: Sequence[str], index: int, line: str) -> str:
 
 def discover_logs(run_context: RunContext) -> Tuple[pd.DataFrame, pd.DataFrame]:
     logs_root = run_context.run_dir / "logs"
-    if not logs_root.exists():
+    log_paths: List[Path] = []
+    if logs_root.exists():
+        log_paths.extend(sorted(logs_root.rglob("*.log")))
+    downstream_log = run_context.run_dir / "downstream_analysis.log"
+    if downstream_log.exists():
+        log_paths.append(downstream_log)
+
+    if not log_paths:
         log_records = pd.DataFrame(columns=["tool", "target", "replicate", "log_file"])
         return log_records, _empty_dataframe(LOG_EVENT_COLUMNS)
 
     log_rows: List[Dict[str, object]] = []
     event_rows: List[Dict[str, object]] = []
 
-    for log_path in sorted(logs_root.rglob("*.log")):
-        rel_path = log_path.relative_to(run_context.run_dir)
+    for log_path in sorted(set(log_paths)):
+        rel_path = Path(_relative_to(log_path, run_context.run_dir))
         rel_str = str(rel_path)
         tool = _infer_tool_from_log(rel_path)
         target = _infer_target_from_text(rel_str) or ""
@@ -733,15 +760,6 @@ def build_tool_availability(
             best_event = _best_event(evt_sub)
             best_event_level = str(best_event["event_level"]) if best_event is not None else ""
             if best_event is not None and best_event_level == "ERROR":
-                failure_reason_code = str(best_event["event_code"])
-                failure_reason_text = str(best_event["event_text"])
-                reason_source = "log"
-            elif (
-                best_event is not None
-                and best_event_level == "WARNING"
-                and nf_status == "COMPLETED"
-                and output_state == "parsed_nonempty"
-            ):
                 failure_reason_code = str(best_event["event_code"])
                 failure_reason_text = str(best_event["event_text"])
                 reason_source = "log"
