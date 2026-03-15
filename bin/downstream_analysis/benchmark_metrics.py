@@ -20,12 +20,15 @@ Usage:
 """
 
 import logging
+import warnings
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Union, Dict, List, Tuple, Optional
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.metrics import (
     precision_recall_curve,
     average_precision_score,
@@ -225,39 +228,43 @@ def _metrics_from_arrays(
     if len(y_true) == 0:
         return 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0
 
-    # AUPRC
-    try:
-        auprc = float(average_precision_score(y_true, y_scores))
-    except Exception:
-        auprc = 0.0
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        warnings.simplefilter("ignore", category=UndefinedMetricWarning)
 
-    # AUROC
-    try:
-        auroc = float(roc_auc_score(y_true, y_scores))
-    except Exception:
-        auroc = 0.5
+        # AUPRC
+        try:
+            auprc = float(average_precision_score(y_true, y_scores))
+        except Exception:
+            auprc = 0.0
 
-    # optimal threshold from PR curve (max F1)
-    try:
-        precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
-        f1_scores = 2 * (precision * recall) / (precision + recall + 1e-10)
+        # AUROC
+        try:
+            auroc = float(roc_auc_score(y_true, y_scores))
+        except Exception:
+            auroc = 0.5
 
-        if len(thresholds) == 0:
+        # optimal threshold from PR curve (max F1)
+        try:
+            precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
+            f1_scores = 2 * (precision * recall) / (precision + recall + 1e-10)
+
+            if len(thresholds) == 0:
+                optimal_threshold = 0.0
+                f1_optimal = 0.0
+                precision_optimal = 0.0
+                recall_optimal = 0.0
+            else:
+                optimal_idx = int(np.argmax(f1_scores[:-1]))
+                optimal_threshold = float(thresholds[optimal_idx])
+                f1_optimal = float(f1_scores[optimal_idx])
+                precision_optimal = float(precision[optimal_idx])
+                recall_optimal = float(recall[optimal_idx])
+        except Exception:
             optimal_threshold = 0.0
             f1_optimal = 0.0
             precision_optimal = 0.0
             recall_optimal = 0.0
-        else:
-            optimal_idx = int(np.argmax(f1_scores[:-1]))
-            optimal_threshold = float(thresholds[optimal_idx])
-            f1_optimal = float(f1_scores[optimal_idx])
-            precision_optimal = float(precision[optimal_idx])
-            recall_optimal = float(recall[optimal_idx])
-    except Exception:
-        optimal_threshold = 0.0
-        f1_optimal = 0.0
-        precision_optimal = 0.0
-        recall_optimal = 0.0
 
     y_pred = (y_scores >= optimal_threshold).astype(int)
     try:
