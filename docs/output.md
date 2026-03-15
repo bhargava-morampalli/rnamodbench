@@ -195,24 +195,4 @@ JACUSA2 detects modifications using a variant-calling approach.
 
 ## Interpreting results
 
-### Modification significance
-
-Each tool uses different statistical approaches:
-
-| Tool        | Key Metric            | Significance Threshold |
-| ----------- | --------------------- | ---------------------- |
-| Tombo       | Statistic             | Tool-specific          |
-| Yanocomp    | FDR                   | < 0.05                 |
-| Nanocompore | GMM_logit_pvalue      | < 0.05                 |
-| Xpore       | pval_A_vs_B           | < 0.05                 |
-| ELIGOS      | pval, oddR            | pval < 0.05            |
-| DiffErr     | FDR                   | < 0.05                 |
-| DRUMMER     | pvalue, odds_ratio    | pval < 0.05, OR > 1.5  |
-| JACUSA2     | score                 | Tool-specific          |
-
-### Recommended workflow
-
-1. Start with tools that have the best coverage (Tombo, Nanocompore)
-2. Cross-reference positions called by multiple tools
-3. Apply appropriate significance thresholds
-4. Validate top candidates experimentally
+Each tool outputs different score types. The pipeline defaults report all tested positions (permissive thresholds) to enable downstream ROC/PR curve analysis. See [downstream_analysis.md](downstream_analysis.md) for benchmark metrics and tool comparison.
