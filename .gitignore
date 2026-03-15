@@ -1,66 +1,10 @@
-# Nextflow work directory
+.nextflow*
 work/
-.nextflow/
-.nextflow.log*
-docs/review_step1_workflow_dataflow.md
-100x/
-covbench_results/
-*_logs/
-samplesheets_*/
-
-# samplesheet csvs
-samplesheet_*.csv
-
-# bash scripts
-*.sh
-
-# nf-test directories
-.nf-test/
-
-# Results directories (test outputs)
+data/
 results/
 results_*/
-
-# IDE
-.idea/
-*.iml
-.vscode/
-.c[l]aude/
-.g[e]mini/
-
-# OS
 .DS_Store
-Thumbs.db
-
-# Python
+testing/
+testing*
+*.pyc
 __pycache__/
-*.py[cod]
-*$py.class
-.Python
-*.egg-info/
-.eggs/
-*.egg
-.pytest_cache/
-.mypy_cache/
-
-# R
-.Rproj.user/
-.Rhistory
-
-# Conda/virtual environments
-.conda/
-venv/
-env/
-.env
-
-# Test outputs
-test_samplesheet.csv
-*.log
-
-# Build artifacts
-*.tar.gz
-*.zip
-
-# Documentation builds
-docs/_build/
-site/
