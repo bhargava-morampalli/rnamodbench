@@ -193,10 +193,15 @@ def consensus_calling(
         reps_with_pos = [rep for rep, positions in replicate_positions.items() if pos in positions]
         n_reps = len(reps_with_pos)
 
-        if n_reps >= min_replicates:
-            # Get scores from replicates that have this position
-            scores = df[(df['position'] == pos) & (df['replicate'].isin(reps_with_pos))]['score'].values
-            mean_score = np.nanmean(scores) if len(scores) > 0 else np.nan
+        rows.append(
+            {
+                "reference": ref,
+                "position": int(pos),
+                "n_replicates": len(hit_reps),
+                "mean_score": float(np.nanmean(scores)) if scores.notna().any() else np.nan,
+                "replicates": ",".join(hit_reps),
+            }
+        )
 
             # Get reference for this position
             ref = df[df['position'] == pos]['reference'].iloc[0]

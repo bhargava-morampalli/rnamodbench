@@ -2,28 +2,9 @@
 """
 Position Standardization Module for RNA Modification Detection Pipeline
 
-Ensures all tools report the same universe of positions, with NaN for missing
-scores. This enables proper true negative calculation and fair comparisons.
-
-Features:
-- Within-file NaN handling (blank scores → NaN)
-- Across-replicate position standardization (union of positions)
-- Ground-truth position filling (add GT positions not in tool output)
-- Position availability reporting (track what was imputed)
-
-Usage:
-    from position_standardization import (
-        standardize_replicate_positions,
-        fill_ground_truth_positions,
-        standardize_all_tool_outputs,
-        generate_availability_report,
-    )
-
-    # Standardize positions across replicates
-    tool_df = standardize_replicate_positions(tool_df)
-
-    # Fill missing ground truth positions
-    tool_df = fill_ground_truth_positions(tool_df, ground_truth)
+Implements reference-universe standardization per tool/replicate while keeping
+raw parsed outputs intact. The evaluation universe can be the full reference or
+an explicitly defined sub-interval within padded coordinates.
 """
 
 import logging
@@ -58,20 +39,23 @@ class PositionAvailability:
     tool: str
     replicate: str
     native_positions: int
-    within_file_nan: int
-    added_from_reps: int
-    added_from_gt: int
+    added_from_universe: int
+    full_reference_length: int
+    eval_start: int
+    eval_end: int
     total_positions: int
 
     def to_dict(self) -> dict:
         return {
-            'tool': self.tool,
-            'replicate': self.replicate,
-            'native_positions': self.native_positions,
-            'within_file_nan': self.within_file_nan,
-            'added_from_reps': self.added_from_reps,
-            'added_from_gt': self.added_from_gt,
-            'total_positions': self.total_positions,
+            "tool": self.tool,
+            "replicate": self.replicate,
+            "reference": self.reference,
+            "native_positions": self.native_positions,
+            "added_from_universe": self.added_from_universe,
+            "full_reference_length": self.full_reference_length,
+            "eval_start": self.eval_start,
+            "eval_end": self.eval_end,
+            "total_positions": self.total_positions,
         }
 
 
@@ -84,10 +68,19 @@ class StandardizationReport:
     def to_availability_dataframe(self) -> pd.DataFrame:
         """Convert availability summaries to DataFrame."""
         if not self.availability:
-            return pd.DataFrame(columns=[
-                'tool', 'replicate', 'native_positions', 'within_file_nan',
-                'added_from_reps', 'added_from_gt', 'total_positions'
-            ])
+            return pd.DataFrame(
+                columns=[
+                    "tool",
+                    "replicate",
+                    "reference",
+                    "native_positions",
+                    "added_from_universe",
+                    "full_reference_length",
+                    "eval_start",
+                    "eval_end",
+                    "total_positions",
+                ]
+            )
         return pd.DataFrame([a.to_dict() for a in self.availability])
 
     def to_imputation_dataframe(self) -> pd.DataFrame:
@@ -167,7 +160,113 @@ class StandardizationReport:
         return '\n'.join(lines)
 
 
-def standardize_replicate_positions(
+@dataclass
+class ReferenceCatalogEntry:
+    target: str
+    reference_path: str
+    reference_id: str
+    length: int
+    eval_start: int
+    eval_end: int
+    eval_length: int
+
+
+def _default_eval_interval(target: str, reference_id: str, reference_length: int) -> Tuple[int, int]:
+    key = str(target).strip().lower()
+    ref_l = str(reference_id).strip().lower()
+    if key == "16s" or ref_l.startswith("16s"):
+        return 201, 1742
+    if key == "23s" or ref_l.startswith("23s"):
+        return 201, 3104
+    return 1, int(reference_length)
+
+
+def _read_fasta_lengths(fasta_path: Path) -> Dict[str, int]:
+    lengths: Dict[str, int] = {}
+    name: Optional[str] = None
+    seq_len = 0
+
+    with open(fasta_path, "r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith(">"):
+                if name is not None:
+                    lengths[name] = seq_len
+                name = line[1:].split()[0]
+                seq_len = 0
+            else:
+                seq_len += len(line)
+
+    if name is not None:
+        lengths[name] = seq_len
+
+    return lengths
+
+
+def load_reference_catalog(references_csv: Path) -> pd.DataFrame:
+    """
+    Load reference mapping and lengths from references CSV.
+
+    Expected columns: target,reference
+    Optional columns: eval_start,eval_end
+    """
+    references_csv = Path(references_csv)
+    if not references_csv.exists():
+        raise FileNotFoundError(f"references CSV not found: {references_csv}")
+
+    df = pd.read_csv(references_csv)
+    if "target" not in df.columns or "reference" not in df.columns:
+        raise ValueError("references CSV must have columns: target,reference")
+
+    rows: List[ReferenceCatalogEntry] = []
+
+    for _, row in df.iterrows():
+        target = str(row["target"]).strip().lower()
+        ref_path = Path(str(row["reference"]).strip())
+        if not ref_path.exists():
+            raise FileNotFoundError(f"reference FASTA not found: {ref_path}")
+
+        lengths = _read_fasta_lengths(ref_path)
+        if not lengths:
+            raise ValueError(f"No FASTA records found in {ref_path}")
+
+        # Pipeline references are single-target FASTAs; use first sequence as canonical ID
+        ref_id, ref_len = next(iter(lengths.items()))
+        default_start, default_end = _default_eval_interval(target, ref_id, int(ref_len))
+        eval_start = (
+            int(row["eval_start"])
+            if "eval_start" in df.columns and pd.notna(row["eval_start"])
+            else default_start
+        )
+        eval_end = (
+            int(row["eval_end"])
+            if "eval_end" in df.columns and pd.notna(row["eval_end"])
+            else default_end
+        )
+        if eval_start < 1 or eval_end > int(ref_len) or eval_start > eval_end:
+            raise ValueError(
+                f"Invalid evaluation interval for {target}: "
+                f"eval_start={eval_start}, eval_end={eval_end}, reference_length={ref_len}"
+            )
+        rows.append(
+            ReferenceCatalogEntry(
+                target=target,
+                reference_path=str(ref_path),
+                reference_id=ref_id,
+                length=int(ref_len),
+                eval_start=eval_start,
+                eval_end=eval_end,
+                eval_length=int(eval_end - eval_start + 1),
+            )
+        )
+
+    out = pd.DataFrame([r.__dict__ for r in rows])
+    return out
+
+
+def canonicalize_tool_references(
     tool_df: pd.DataFrame,
     report: Optional[StandardizationReport] = None
 ) -> pd.DataFrame:
@@ -198,10 +297,89 @@ def standardize_replicate_positions(
     tool_name = tool_df['tool'].iloc[0] if 'tool' in tool_df.columns else 'unknown'
     logger.info(f"Standardizing positions across {len(replicates)} replicates for {tool_name}")
 
-    # Build position -> reference mapping from all replicates
-    position_ref_map = {}
-    for _, row in tool_df[['reference', 'position']].drop_duplicates().iterrows():
-        position_ref_map[row['position']] = row['reference']
+        # loose match for prefixes (e.g., 16s_...)
+        for target, ref_id in alias_map.items():
+            if target in {"16s", "23s", "5s"} and rl.startswith(target):
+                return ref_id
+
+        return r
+
+    out["reference"] = out["reference"].astype(str).map(_canon)
+    return out
+
+
+def get_reference_lengths(reference_catalog: pd.DataFrame) -> Dict[str, int]:
+    return {str(r["reference_id"]): int(r["length"]) for _, r in reference_catalog.iterrows()}
+
+
+def get_reference_eval_regions(reference_catalog: pd.DataFrame) -> Dict[str, Tuple[int, int]]:
+    return {
+        str(r["reference_id"]): (int(r["eval_start"]), int(r["eval_end"]))
+        for _, r in reference_catalog.iterrows()
+    }
+
+
+def standardize_to_reference_universe(
+    tool_df: pd.DataFrame,
+    reference_id: str,
+    reference_length: int,
+    universe_positions: Optional[List[int]] = None,
+    eval_start: int = 1,
+    eval_end: Optional[int] = None,
+    replicates: Optional[List[str]] = None,
+    report: Optional[StandardizationReport] = None,
+) -> pd.DataFrame:
+    """
+    Standardize one tool to the evaluation universe for one reference.
+
+    Output includes:
+    - score_raw
+    - pvalue_raw
+    - is_reported
+    - is_imputed
+    - imputation_source
+    """
+    if universe_positions is None:
+        eval_end = int(reference_length) if eval_end is None else int(eval_end)
+        eval_start = int(eval_start)
+        if eval_start < 1 or eval_end > int(reference_length) or eval_start > eval_end:
+            raise ValueError(
+                f"Invalid evaluation interval for {reference_id}: "
+                f"eval_start={eval_start}, eval_end={eval_end}, reference_length={reference_length}"
+            )
+        universe = list(range(eval_start, eval_end + 1))
+    else:
+        universe = sorted({int(pos) for pos in universe_positions})
+        if not universe:
+            raise ValueError(f"Empty evaluation universe for {reference_id}")
+        if universe[0] < 1 or universe[-1] > int(reference_length):
+            raise ValueError(
+                f"Invalid evaluation universe for {reference_id}: "
+                f"min={universe[0]}, max={universe[-1]}, reference_length={reference_length}"
+            )
+        eval_start = universe[0]
+        eval_end = universe[-1]
+
+    if replicates is None:
+        if tool_df.empty or "replicate" not in tool_df.columns:
+            replicates = ["rep1"]
+        else:
+            replicates = sorted(tool_df["replicate"].astype(str).unique().tolist())
+
+    tool_name = (
+        str(tool_df["tool"].iloc[0])
+        if (not tool_df.empty and "tool" in tool_df.columns)
+        else "unknown"
+    )
+
+    df_ref = tool_df.copy()
+    if not df_ref.empty:
+        df_ref = df_ref[df_ref["reference"].astype(str) == str(reference_id)].copy()
+        df_ref["position"] = pd.to_numeric(df_ref["position"], errors="coerce")
+        df_ref = df_ref[df_ref["position"].notna()].copy()
+        df_ref["position"] = df_ref["position"].astype(int)
+
+    all_rows: List[dict] = []
 
     # Get positions per replicate
     rep_positions = {}
@@ -220,8 +398,43 @@ def standardize_replicate_positions(
         current_positions = rep_positions[rep]
         missing_positions = all_positions - current_positions
 
-        if missing_positions:
-            logger.debug(f"Adding {len(missing_positions)} positions to replicate {rep}")
+        for pos in universe:
+            if pos in reported_by_pos:
+                row = reported_by_pos[pos]
+                all_rows.append(
+                    {
+                        "tool": tool_name,
+                        "reference": reference_id,
+                        "position": pos,
+                        "replicate": str(rep),
+                        "sample_id": row.get("sample_id", f"{tool_name}_{rep}"),
+                        "score_type": row.get("score_type", "unknown"),
+                        "score_raw": pd.to_numeric(row.get("score", np.nan), errors="coerce"),
+                        "pvalue_raw": pd.to_numeric(row.get("pvalue", np.nan), errors="coerce"),
+                        "coverage": row.get("coverage", None),
+                        "is_reported": True,
+                        "is_imputed": False,
+                        "imputation_source": "reported",
+                    }
+                )
+            else:
+                added_from_universe += 1
+                all_rows.append(
+                    {
+                        "tool": tool_name,
+                        "reference": reference_id,
+                        "position": pos,
+                        "replicate": str(rep),
+                        "sample_id": f"{tool_name}_{rep}",
+                        "score_type": rep_df["score_type"].iloc[0] if not rep_df.empty else "unknown",
+                        "score_raw": np.nan,
+                        "pvalue_raw": np.nan,
+                        "coverage": rep_df["coverage"].iloc[0] if (not rep_df.empty and "coverage" in rep_df.columns) else None,
+                        "is_reported": False,
+                        "is_imputed": True,
+                        "imputation_source": "reference_universe",
+                    }
+                )
 
             # Create rows for missing positions
             missing_rows = []
@@ -335,11 +548,16 @@ def fill_ground_truth_positions(
             if report is not None:
                 report.imputation_records.append(ImputationRecord(
                     tool=tool_name,
-                    replicate=rep,
-                    reference=ref,
-                    position=pos,
-                    source='ground_truth',
-                ))
+                    replicate=str(rep),
+                    reference=reference_id,
+                    native_positions=native_positions,
+                    added_from_universe=added_from_universe,
+                    full_reference_length=int(reference_length),
+                    eval_start=eval_start,
+                    eval_end=eval_end,
+                    total_positions=len(universe),
+                )
+            )
 
     missing_df = pd.DataFrame(missing_rows)
     return pd.concat([tool_df, missing_df], ignore_index=True)
@@ -350,9 +568,65 @@ def count_within_file_nan(tool_df: pd.DataFrame) -> int:
     if tool_df.empty:
         return 0
 
-    # NaN scores that are not imputed = within-file NaN
-    if '_imputed' in tool_df.columns:
-        native_rows = tool_df[~tool_df['_imputed']]
+    st = str(score_type).lower()
+    value = float(score_raw)
+
+    if st in {"pvalue", "fdr"}:
+        value = max(min(value, 1.0), 1e-300)
+        return float(-np.log10(value))
+
+    if st == "neglog10_fdr":
+        return float(value)
+
+    if st == "zscore":
+        return float(abs(value))
+
+    return float(value)
+
+
+def _sanitize_score_metric(series: pd.Series) -> pd.Series:
+    values = pd.to_numeric(series, errors="coerce").astype(float)
+    arr = values.to_numpy(copy=True)
+
+    pos_inf = np.isposinf(arr)
+    neg_inf = np.isneginf(arr)
+    if not (pos_inf.any() or neg_inf.any()):
+        return values
+
+    finite = arr[np.isfinite(arr)]
+    if finite.size:
+        upper = float(finite.max() + 1.0)
+        lower = float(finite.min() - 1.0)
+    else:
+        upper = 1000.0
+        lower = -1000.0
+
+    arr[pos_inf] = upper
+    arr[neg_inf] = lower
+    return pd.Series(arr, index=series.index, dtype=float)
+
+
+def build_metric_ready_table(
+    imputed_df: pd.DataFrame,
+    ground_truth_positions: Optional[Set[int]] = None,
+) -> pd.DataFrame:
+    """
+    Add score_metric + label columns to imputed table.
+
+    ground_truth_positions must be position integers already filtered to one reference.
+    """
+    if imputed_df.empty:
+        return imputed_df
+
+    out = imputed_df.copy()
+    out["score_metric"] = [
+        _score_metric_from_raw(st, sc)
+        for st, sc in zip(out["score_type"].values, out["score_raw"].values)
+    ]
+    out["score_metric"] = _sanitize_score_metric(out["score_metric"])
+
+    if ground_truth_positions is None:
+        out["label"] = 0
     else:
         native_rows = tool_df
 

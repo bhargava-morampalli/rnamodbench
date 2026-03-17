@@ -44,6 +44,234 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+DIR_CAPABLE_TOOLS = {"nanocompore", "xpore", "eligos", "epinano", "drummer"}
+SUPPORTED_TOOLS = [
+    "tombo",
+    "yanocomp",
+    "nanocompore",
+    "xpore",
+    "eligos",
+    "epinano",
+    "differr",
+    "drummer",
+    "jacusa2",
+    "nanodoc",
+]
+
+
+def _empty_dataframe() -> pd.DataFrame:
+    return pd.DataFrame(
+        columns=[
+            "tool",
+            "reference",
+            "position",
+            "score",
+            "score_type",
+            "pvalue",
+            "replicate",
+            "sample_id",
+            "coverage",
+            "_imputed",
+        ]
+    )
+
+
+def _safe_numeric(series: pd.Series) -> pd.Series:
+    return pd.to_numeric(series, errors="coerce")
+
+
+def _find_column(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
+    """Find best matching column by exact or case-insensitive name."""
+    lower_map = {c.lower(): c for c in df.columns}
+    for c in candidates:
+        if c in df.columns:
+            return c
+        if c.lower() in lower_map:
+            return lower_map[c.lower()]
+    return None
+
+
+def _extract_reference_from_path(filepath: Path) -> str:
+    """Best-effort reference extraction from filename/path tokens."""
+    tokens = [filepath.stem] + [p.name for p in list(filepath.parents)[:4]]
+    for token in tokens:
+        token_l = token.lower()
+        if "16s" in token_l:
+            return "16s"
+        if "23s" in token_l:
+            return "23s"
+        if "5s" in token_l:
+            return "5s"
+    return "unknown"
+
+
+def _extract_replicate_from_path(filepath: Path) -> str:
+    """Extract replicate from full path (filename + parent directories)."""
+    patterns = [
+        r"rep(?:licate)?[_-]?(\d+)",
+        r"(?:^|[_-])r(\d+)(?:$|[_-])",
+    ]
+
+    candidates = [filepath.stem]
+    candidates.extend([p.name for p in list(filepath.parents)[:6]])
+
+    for text in candidates:
+        for pat in patterns:
+            m = re.search(pat, text, flags=re.IGNORECASE)
+            if m:
+                return f"rep{m.group(1)}"
+    return "rep1"
+
+
+def _extract_coverage_from_path(filepath: Path) -> Optional[str]:
+    for part in filepath.parts:
+        m = re.search(r"(?:coverage[_-]?)?(\d+)[xX]", part)
+        if m:
+            return f"{m.group(1)}x"
+        if re.fullmatch(r"\d+", part):
+            return f"{part}x"
+    return None
+
+
+def _read_auto_delim(filepath: Path) -> pd.DataFrame:
+    """Read CSV/TSV where delimiter may vary."""
+    try:
+        return pd.read_csv(filepath, sep=None, engine="python")
+    except Exception:
+        # fallback to comma first, then tab
+        try:
+            return pd.read_csv(filepath)
+        except Exception:
+            return pd.read_csv(filepath, sep="\t")
+
+
+def _benjamini_hochberg(pvalues: pd.Series) -> pd.Series:
+    """Return Benjamini-Hochberg adjusted p-values with NaNs preserved."""
+    vals = pd.to_numeric(pvalues, errors="coerce").astype(float)
+    arr = vals.to_numpy(copy=True)
+    valid = np.isfinite(arr)
+    if not valid.any():
+        return pd.Series(np.nan, index=pvalues.index, dtype=float)
+
+    clipped = np.clip(arr[valid], 0.0, 1.0)
+    order = np.argsort(clipped)
+    ranked = clipped[order]
+    n = ranked.size
+    ranks = np.arange(1, n + 1, dtype=float)
+    adjusted = ranked * n / ranks
+    adjusted = np.minimum.accumulate(adjusted[::-1])[::-1]
+    adjusted = np.clip(adjusted, 0.0, 1.0)
+
+    out = np.full(arr.shape, np.nan, dtype=float)
+    valid_idx = np.flatnonzero(valid)
+    out[valid_idx[order]] = adjusted
+    return pd.Series(out, index=pvalues.index, dtype=float)
+
+
+def _parse_epinano_chr_pos(value: str) -> Tuple[str, Optional[int]]:
+    """Parse chr_pos like '16s_88_rrsE 100 A +' -> (reference, position)."""
+    if pd.isna(value):
+        return "unknown", None
+
+    tokens = str(value).strip().split()
+    if len(tokens) < 2:
+        return "unknown", None
+
+    reference = tokens[0]
+    try:
+        pos = int(tokens[1])
+    except Exception:
+        pos = None
+    return reference, pos
+
+
+def _finalize_result(
+    df: pd.DataFrame,
+    tool: str,
+    filepath: Path,
+    sample_id: Optional[str],
+    replicate: Optional[str],
+    coverage: Optional[str],
+) -> pd.DataFrame:
+    if df.empty:
+        return _empty_dataframe()
+
+    result = df.copy()
+    result["tool"] = tool
+    result["replicate"] = replicate or _extract_replicate_from_path(filepath)
+    result["sample_id"] = sample_id or filepath.stem
+    result["coverage"] = coverage if coverage is not None else _extract_coverage_from_path(filepath)
+    result["_imputed"] = False
+
+    # enforce required columns
+    for col in ["reference", "position", "score", "score_type", "pvalue"]:
+        if col not in result.columns:
+            result[col] = np.nan
+
+    result["reference"] = result["reference"].astype(str)
+    result["position"] = _safe_numeric(result["position"]).astype("Int64")
+    result["score"] = _safe_numeric(result["score"])
+    result["pvalue"] = _safe_numeric(result["pvalue"])
+
+    # drop rows without parseable position/reference
+    result = result[result["reference"].notna()]
+    result = result[result["reference"].astype(str).str.lower() != "unknown"]
+    result = result[result["position"].notna()]
+
+    if result.empty:
+        return _empty_dataframe()
+
+    # cast positions back to int after filtering
+    result["position"] = result["position"].astype(int)
+
+    keep_cols = [
+        "tool",
+        "reference",
+        "position",
+        "score",
+        "score_type",
+        "pvalue",
+        "replicate",
+        "sample_id",
+        "coverage",
+        "_imputed",
+    ]
+
+    # keep extra context columns if present
+    extra_cols = [
+        c
+        for c in [
+            "bed_score_rounded",
+            "strand",
+            "odds_ratio",
+            "g_stat",
+            "g_pval",
+            "g_fdr",
+            "g_pval_neglog10",
+            "g_fdr_neglog10",
+            "or_pval",
+            "or_fdr",
+            "log_odds_ratio",
+            "diff_mod_rate",
+            "raw_pvalue",
+            "bh_fdr",
+            "delta_mis",
+            "delta_sum_err",
+            "z_scores",
+            "z_score_prediction",
+            "max.G_padj",
+            "OR_padj",
+            "G_padj",
+        ]
+        if c in result.columns
+    ]
+
+    return result[keep_cols + extra_cols].reset_index(drop=True)
+
+
+# -----------------------------------------------------------------------------
+# Tool-specific parsers
+# -----------------------------------------------------------------------------
 
 def parse_tombo(
     filepath: Union[str, Path],
@@ -180,8 +408,26 @@ def parse_yanocomp(
             'sample_id': sample_id or bed_filepath.stem
         })
 
-        logger.info(f"Parsed {len(result)} positions from Yanocomp")
-        return result
+            out = pd.DataFrame(
+                {
+                    "reference": ref_series,
+                    "position": _safe_numeric(raw.iloc[:, 1]) + 2,  # center of 5-mer
+                    "score": _safe_numeric(raw.iloc[:, 8]),  # FDR
+                    "score_type": "fdr",
+                    "pvalue": _safe_numeric(raw.iloc[:, 7]),  # p-value column
+                }
+            )
+        else:
+            # Legacy 6-col BED fallback
+            out = pd.DataFrame(
+                {
+                    "reference": raw.iloc[:, 0].astype(str),
+                    "position": _safe_numeric(raw.iloc[:, 1]) + 1,
+                    "score": _safe_numeric(raw.iloc[:, 4]),
+                    "score_type": "fdr",
+                    "pvalue": np.nan,
+                }
+            )
 
     except Exception as e:
         logger.error(f"Error parsing Yanocomp file {bed_filepath}: {e}")
@@ -238,16 +484,34 @@ def parse_nanocompore(
             logger.warning(f"Empty Nanocompore file: {filepath}")
             return _empty_dataframe()
 
-        # Find position column
-        pos_col = _find_column(df, ['ref_pos', 'pos', 'position'])
-        ref_col = _find_column(df, ['ref_id', 'ref', 'reference', 'chr', 'chrom'])
+        pos_col = _find_column(df, ["genomicPos", "pos", "ref_pos", "position"])
+        raw_pos_col = _find_column(df, ["pos", "ref_pos", "position"])
+        ref_col = _find_column(df, ["ref_id", "reference", "chr", "chrom", "contig"])
+        pval_col = _find_column(df, [pvalue_col, "GMM_logit_pvalue", "KS_dwell_pvalue", "pvalue"])
 
         if pos_col is None:
             logger.error(f"Could not find position column in Nanocompore: {df.columns.tolist()}")
             return _empty_dataframe()
 
-        # Find best p-value column
-        pval_col = _find_column(df, [pvalue_col, 'GMM_logit_pvalue', 'KS_pvalue', 'pvalue'])
+        pos_vals = _safe_numeric(df[pos_col])
+        if raw_pos_col is not None:
+            fallback_pos = _safe_numeric(df[raw_pos_col])
+            if pos_col.lower() == "genomicpos":
+                pos_vals = pos_vals.where(pos_vals.notna(), fallback_pos) + 2
+            else:
+                pos_vals = pos_vals + 2
+        else:
+            pos_vals = pos_vals + 2
+
+        out = pd.DataFrame(
+            {
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "position": pos_vals,
+                "score": _safe_numeric(df[pval_col]) if pval_col else np.nan,
+                "score_type": "pvalue",
+                "pvalue": _safe_numeric(df[pval_col]) if pval_col else np.nan,
+            }
+        )
 
         result = pd.DataFrame({
             'tool': 'nanocompore',
@@ -327,16 +591,20 @@ def parse_xpore(
         rate_cols = [c for c in df.columns if 'diff_mod_rate' in c]
         rate_col = rate_cols[0] if rate_cols else None
 
-        result = pd.DataFrame({
-            'tool': 'xpore',
-            'reference': df[ref_col] if ref_col else _extract_reference_from_filename(filepath),
-            'position': df[pos_col].astype(int) if pos_col else np.nan,
-            'score': df[pval_col].astype(float) if pval_col else np.nan,
-            'score_type': 'pvalue',
-            'pvalue': df[pval_col].astype(float) if pval_col else np.nan,
-            'replicate': replicate or _extract_replicate_from_filename(filepath),
-            'sample_id': sample_id or filepath.stem
-        })
+        raw_pvalue = _safe_numeric(df[pval_col]) if pval_col else pd.Series(np.nan, index=df.index)
+        bh_fdr = _benjamini_hochberg(raw_pvalue)
+
+        out = pd.DataFrame(
+            {
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "position": _safe_numeric(df[pos_col]) + 2,
+                "score": bh_fdr,
+                "score_type": "fdr",
+                "pvalue": raw_pvalue,
+                "raw_pvalue": raw_pvalue,
+                "bh_fdr": bh_fdr,
+            }
+        )
 
         # Add diff_mod_rate as additional column if available
         if rate_col:
@@ -448,9 +716,14 @@ def parse_epinano(
 
     # Handle directory input - look for diff_err file first
     if filepath.is_dir():
-        diff_files = list(filepath.glob('*diff_err*.csv'))
-        if diff_files:
-            filepath = diff_files[0]
+        # Prefer the direct sum-error prediction output used for ranking.
+        preferred = sorted(filepath.glob("*delta-sum_err*.prediction.csv"))
+        if not preferred:
+            preferred = sorted(filepath.glob("*sumerr*.prediction.csv"))
+        if not preferred:
+            preferred = sorted(filepath.glob("*mismatch*.prediction.csv"))
+        if preferred:
+            filepath = preferred[0]
         else:
             # Fall back to native per_site file
             per_site_files = list(filepath.glob('native_per_site.csv'))
@@ -479,13 +752,27 @@ def parse_epinano(
         zscore_col = _find_column(df, ['z_score', 'zscore', 'z-score', 'SumErr_z'])
         error_col = _find_column(df, ['sum_err', 'sumerr', 'diff_err', 'mis', 'error'])
 
-        # Use z-score if available, otherwise error difference
-        if zscore_col:
-            score_values = df[zscore_col].astype(float)
-            score_type = 'zscore'
-        elif error_col:
-            score_values = df[error_col].astype(float)
-            score_type = 'error'
+            score_col = _find_column(
+                df,
+                ["delta_sum_err", "delta_mis", "sum_err", "z_scores", "z_score", "zscore"],
+            )
+            score_type = "error"
+            if score_col and "z" in score_col.lower():
+                score_type = "zscore"
+
+            out = pd.DataFrame(
+                {
+                    "reference": ref_series,
+                    "position": _safe_numeric(pos_series),
+                    "score": _safe_numeric(df[score_col]) if score_col else np.nan,
+                    "score_type": score_type,
+                    "pvalue": np.nan,
+                    "delta_sum_err": _safe_numeric(df["delta_sum_err"]) if "delta_sum_err" in df.columns else np.nan,
+                    "delta_mis": _safe_numeric(df["delta_mis"]) if "delta_mis" in df.columns else np.nan,
+                    "z_scores": _safe_numeric(df["z_scores"]) if "z_scores" in df.columns else np.nan,
+                    "z_score_prediction": df["z_score_prediction"].astype(str) if "z_score_prediction" in df.columns else np.nan,
+                }
+            )
         else:
             score_values = np.nan
             score_type = 'unknown'
@@ -549,8 +836,39 @@ def parse_differr(
         if df.iloc[0]['chr'] == 'chr':
             df = df.iloc[1:].reset_index(drop=True)
 
-        if df.empty:
-            logger.warning(f"Empty DiffErr file: {filepath}")
+        n_cols = df.shape[1]
+
+        if n_cols >= 14:
+            out = pd.DataFrame(
+                {
+                    "reference": df.iloc[:, 0].astype(str),
+                    "position": _safe_numeric(df.iloc[:, 1]) + 1,
+                    "score": _safe_numeric(df.iloc[:, 9]),  # explicit -log10(FDR)
+                    "score_type": "neglog10_fdr",
+                    "pvalue": np.nan,
+                    "bed_score_rounded": _safe_numeric(df.iloc[:, 4]),
+                    "strand": df.iloc[:, 5].astype(str),
+                    "log_odds_ratio": _safe_numeric(df.iloc[:, 6]),
+                    "g_stat": _safe_numeric(df.iloc[:, 7]),
+                    "g_pval_neglog10": _safe_numeric(df.iloc[:, 8]),
+                    "g_fdr_neglog10": _safe_numeric(df.iloc[:, 9]),
+                }
+            )
+        elif n_cols >= 7:
+            out = pd.DataFrame(
+                {
+                    "reference": df.iloc[:, 0].astype(str),
+                    "position": _safe_numeric(df.iloc[:, 1]) + 1,
+                    "score": _safe_numeric(df.iloc[:, 6]),
+                    "score_type": "neglog10_fdr",
+                    "pvalue": np.nan,
+                    "odds_ratio": _safe_numeric(df.iloc[:, 3]),
+                    "g_stat": _safe_numeric(df.iloc[:, 4]),
+                    "g_pval": _safe_numeric(df.iloc[:, 5]),
+                    "g_fdr": _safe_numeric(df.iloc[:, 6]),
+                }
+            )
+        else:
             return _empty_dataframe()
 
         result = pd.DataFrame({
@@ -619,11 +937,9 @@ def parse_drummer(
             logger.warning(f"Empty DRUMMER file: {filepath}")
             return _empty_dataframe()
 
-        # Find relevant columns
-        pos_col = _find_column(df, ['position', 'pos', 'genomic_pos'])
-        ref_col = _find_column(df, ['chrom', 'chr', 'transcript_id', 'reference'])
-        pval_col = _find_column(df, ['pval', 'pvalue', 'p_value'])
-        odds_col = _find_column(df, ['odds_ratio', 'oddsratio', 'oddR'])
+        pos_col = _find_column(df, ["transcript_pos", "position", "pos", "genomic_pos"])
+        ref_col = _find_column(df, ["transcript_id", "chrom", "chr", "reference"])
+        score_col = _find_column(df, ["max.G_padj", "G_padj", "OR_padj", "pval", "pvalue", "p_value"])
 
         result = pd.DataFrame({
             'tool': 'drummer',
@@ -640,8 +956,10 @@ def parse_drummer(
         if odds_col:
             result['odds_ratio'] = df[odds_col].astype(float)
 
-        logger.info(f"Parsed {len(result)} positions from DRUMMER")
-        return result
+        for extra in ["max.G_padj", "OR_padj", "G_padj", "odds_ratio"]:
+            col = _find_column(df, [extra])
+            if col:
+                out[extra] = _safe_numeric(df[col])
 
     except Exception as e:
         logger.error(f"Error parsing DRUMMER file {filepath}: {e}")
@@ -726,6 +1044,47 @@ def parse_jacusa2(
         return _empty_dataframe()
 
 
+def parse_nanodoc(
+    filepath: Union[str, Path], sample_id: str = None, replicate: str = None
+) -> pd.DataFrame:
+    filepath = Path(filepath)
+    logger.info("Parsing nanoDoc output: %s", filepath)
+
+    if not filepath.exists():
+        return _empty_dataframe()
+
+    try:
+        col_names = [
+            "pos", "kmer", "depth_tgt", "depth_ref",
+            "med_current", "mad_current", "med_currentR", "mad_currentR",
+            "current_ratio", "scoreSide1", "scoreSide2", "scoreTotal",
+        ]
+        df = pd.read_csv(filepath, sep="\t", header=None, names=col_names)
+        if df.empty:
+            return _empty_dataframe()
+
+        # Extract replicate from nanodoc filename pattern: {cov}x_ndoc_{ref}_{rep}.txt
+        if replicate is None:
+            m = re.search(r"_(\d+)$", filepath.stem)
+            if m:
+                replicate = f"rep{m.group(1)}"
+
+        out = pd.DataFrame(
+            {
+                "reference": _extract_reference_from_path(filepath),
+                "position": _safe_numeric(df["pos"]),
+                "score": _safe_numeric(df["scoreTotal"]),
+                "score_type": "score",
+                "pvalue": np.nan,
+            }
+        )
+
+        return _finalize_result(out, "nanodoc", filepath, sample_id, replicate, None)
+    except Exception as exc:
+        logger.error("Error parsing nanoDoc file %s: %s", filepath, exc)
+        return _empty_dataframe()
+
+
 def parse_tool_output(
     tool: str,
     filepath: Union[str, Path],
@@ -750,15 +1109,16 @@ def parse_tool_output(
         Standardized DataFrame
     """
     parsers = {
-        'tombo': parse_tombo,
-        'yanocomp': parse_yanocomp,
-        'nanocompore': parse_nanocompore,
-        'xpore': parse_xpore,
-        'eligos': parse_eligos,
-        'epinano': parse_epinano,
-        'differr': parse_differr,
-        'drummer': parse_drummer,
-        'jacusa2': parse_jacusa2,
+        "tombo": parse_tombo,
+        "yanocomp": parse_yanocomp,
+        "nanocompore": parse_nanocompore,
+        "xpore": parse_xpore,
+        "eligos": parse_eligos,
+        "epinano": parse_epinano,
+        "differr": parse_differr,
+        "drummer": parse_drummer,
+        "jacusa2": parse_jacusa2,
+        "nanodoc": parse_nanodoc,
     }
 
     tool_lower = tool.lower()
@@ -782,6 +1142,56 @@ def parse_tool_output(
             df['pvalue'] = pd.to_numeric(df['pvalue'], errors='coerce')
 
     return df
+
+
+# -----------------------------------------------------------------------------
+# Loader
+# -----------------------------------------------------------------------------
+
+def _discover_tool_inputs(tool: str, tool_dir: Path) -> List[Path]:
+    """Return canonical input paths for each tool."""
+    inputs: List[Path] = []
+
+    if not tool_dir.exists():
+        return inputs
+
+    if tool == "tombo":
+        # Support both flat (tool/*.csv) and nested (tool/<ref>/*.csv) layouts.
+        inputs.extend(sorted(tool_dir.glob("*.csv")))
+        inputs.extend(sorted(tool_dir.glob("*/*.csv")))
+    elif tool == "yanocomp":
+        inputs.extend(sorted(tool_dir.glob("*/*.bed")))
+    elif tool == "nanocompore":
+        inputs.extend(sorted(tool_dir.glob("*_sampcomp")))
+    elif tool == "xpore":
+        # Prefer explicit diffmod.table files
+        tables = sorted(tool_dir.glob("*_diffmod/diffmod.table"))
+        if tables:
+            inputs.extend(tables)
+        else:
+            inputs.extend(sorted(tool_dir.glob("*_diffmod")))
+    elif tool == "eligos":
+        inputs.extend(sorted(tool_dir.glob("*/*_eligos")))
+    elif tool == "epinano":
+        inputs.extend(sorted(tool_dir.glob("*/*_epinano*")))
+    elif tool == "differr":
+        inputs.extend(sorted(tool_dir.glob("*/*.bed")))
+    elif tool == "drummer":
+        inputs.extend(sorted(tool_dir.glob("*/*_drummer")))
+    elif tool == "jacusa2":
+        inputs.extend(sorted(tool_dir.glob("*/*.bed")))
+    elif tool == "nanodoc":
+        inputs.extend(sorted(tool_dir.glob("*.txt")))
+
+    # Generic fallback
+    if not inputs:
+        for item in sorted(tool_dir.iterdir()):
+            if item.is_file() and item.suffix in {".csv", ".tsv", ".txt", ".bed", ".table"}:
+                inputs.append(item)
+            elif item.is_dir() and tool in DIR_CAPABLE_TOOLS:
+                inputs.append(item)
+
+    return inputs
 
 
 def load_all_tool_outputs(
