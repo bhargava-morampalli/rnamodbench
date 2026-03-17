@@ -268,34 +268,32 @@ def load_reference_catalog(references_csv: Path) -> pd.DataFrame:
 
 def canonicalize_tool_references(
     tool_df: pd.DataFrame,
-    report: Optional[StandardizationReport] = None
+    reference_catalog: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Ensure all replicates have the same positions (union).
-    Missing positions filled with NaN score.
+    Canonicalize references to FASTA header IDs.
 
-    Args:
-        tool_df: DataFrame with tool outputs (must have replicate column)
-        report: Optional report to record imputation details
-
-    Returns:
-        Standardized DataFrame with all positions across all replicates
+    Maps common aliases (e.g. 16s -> 16s_88_rrsE) while preserving already
+    canonical IDs.
     """
-    if tool_df.empty or 'replicate' not in tool_df.columns:
+    if tool_df.empty:
         return tool_df
 
-    replicates = tool_df['replicate'].unique()
-    if len(replicates) <= 1:
-        # Only one replicate, nothing to standardize
-        return tool_df
+    ref_df = reference_catalog.copy()
+    alias_map = {}
+    for _, row in ref_df.iterrows():
+        target = str(row["target"]).lower()
+        ref_id = str(row["reference_id"])
+        alias_map[target] = ref_id
+        alias_map[ref_id.lower()] = ref_id
 
-    # Add _imputed column if not present
-    if '_imputed' not in tool_df.columns:
-        tool_df = tool_df.copy()
-        tool_df['_imputed'] = False
+    out = tool_df.copy()
 
-    tool_name = tool_df['tool'].iloc[0] if 'tool' in tool_df.columns else 'unknown'
-    logger.info(f"Standardizing positions across {len(replicates)} replicates for {tool_name}")
+    def _canon(ref: str) -> str:
+        r = str(ref).strip()
+        rl = r.lower()
+        if rl in alias_map:
+            return alias_map[rl]
 
         # loose match for prefixes (e.g., 16s_...)
         for target, ref_id in alias_map.items():
@@ -568,6 +566,22 @@ def count_within_file_nan(tool_df: pd.DataFrame) -> int:
     if tool_df.empty:
         return 0
 
+    score_col = "score_raw" if "score_raw" in tool_df.columns else "score"
+    if score_col not in tool_df.columns:
+        return 0
+
+    native_rows = (
+        tool_df[~tool_df["_imputed"].astype(bool)].copy()
+        if "_imputed" in tool_df.columns
+        else tool_df.copy()
+    )
+    return int(pd.to_numeric(native_rows[score_col], errors="coerce").isna().sum())
+
+
+def _score_metric_from_raw(score_type: str, score_raw: float) -> float:
+    if pd.isna(score_raw):
+        return 0.0
+
     st = str(score_type).lower()
     value = float(score_raw)
 
@@ -628,9 +642,68 @@ def build_metric_ready_table(
     if ground_truth_positions is None:
         out["label"] = 0
     else:
-        native_rows = tool_df
+        gt = {int(p) for p in ground_truth_positions}
+        out["label"] = out["position"].astype(int).isin(gt).astype(int)
 
-    return native_rows['score'].isna().sum()
+    return out
+
+
+def compute_no_call_diagnostics(
+    metric_ready_df: pd.DataFrame,
+    ground_truth_positions: Optional[Set[int]] = None,
+) -> pd.DataFrame:
+    """Compute no-call diagnostics per tool/replicate/reference."""
+    if metric_ready_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "reference",
+                "tool",
+                "replicate",
+                "n_universe",
+                "n_reported",
+                "n_no_call",
+                "no_call_rate",
+                "n_gt_total",
+                "n_gt_reported",
+                "gt_recall_raw",
+            ]
+        )
+
+    gt = {int(p) for p in (ground_truth_positions or set())}
+
+    rows = []
+    grp_cols = ["reference", "tool", "replicate"]
+    for (ref, tool, rep), sub in metric_ready_df.groupby(grp_cols, dropna=False):
+        n_universe = len(sub)
+        n_reported = int(sub["is_reported"].sum())
+        n_no_call = int(n_universe - n_reported)
+        no_call_rate = float(n_no_call / n_universe) if n_universe else np.nan
+
+        n_gt_total = len(gt)
+        if n_gt_total > 0:
+            gt_rows = sub[sub["position"].astype(int).isin(gt)]
+            n_gt_reported = int(gt_rows["is_reported"].sum())
+            gt_recall_raw = float(n_gt_reported / n_gt_total)
+        else:
+            n_gt_reported = 0
+            gt_recall_raw = np.nan
+
+        rows.append(
+            {
+                "reference": ref,
+                "tool": tool,
+                "replicate": rep,
+                "n_universe": n_universe,
+                "n_reported": n_reported,
+                "n_no_call": n_no_call,
+                "no_call_rate": no_call_rate,
+                "n_gt_total": n_gt_total,
+                "n_gt_reported": n_gt_reported,
+                "gt_recall_raw": gt_recall_raw,
+            }
+        )
+
+    return pd.DataFrame(rows)
 
 
 def standardize_all_tool_outputs(

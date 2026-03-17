@@ -23,19 +23,24 @@ Usage:
         --output-dir /path/to/downstream_analysis
 """
 
+from __future__ import annotations
+
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Set, Tuple
 
+import numpy as np
 import pandas as pd
+from sklearn.metrics import precision_recall_curve, roc_curve
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 from parse_outputs import load_all_tool_outputs, parse_tool_output
-from benchmark_metrics import _metrics_from_arrays, calculate_metrics, load_ground_truth
+from benchmark_metrics import _metrics_from_arrays, calculate_metrics, calculate_metrics_all_tools, load_ground_truth
 from data_quality import generate_quality_summary, validate_all_outputs
 from position_standardization import (
     build_metric_ready_table,
@@ -53,6 +58,7 @@ from tool_comparison import (
     rank_tools,
     get_consensus_positions,
 )
+from replicate_analysis import calculate_concordance, consensus_calling
 from visualization import (
     plot_pr_curves,
     plot_roc_curves,
@@ -124,8 +130,10 @@ def load_tool_outputs_from_args(
     for tool in SUPPORTED_TOOLS:
         arg_name = tool.replace('-', '_')
         filepath = getattr(args, arg_name, None)
+        if not filepath:
+            continue
 
-        path = Path(p)
+        path = Path(filepath)
         if not path.exists():
             logger.warning("Tool path not found: %s", path)
             continue
@@ -546,7 +554,13 @@ def run_analysis(
     references: list = None,
     min_replicates: int = 2,
     score_threshold: float = None,
-    expected_replicates: int = 3
+    expected_replicates: int = 3,
+    references_csv: Optional[Path] = None,
+    references_filter: Optional[List[str]] = None,
+    run_id: Optional[str] = None,
+    coverage_label: Optional[str] = None,
+    quality_label: Optional[str] = None,
+    differr_score_field: str = DIFFERR_PRIMARY_SCORE_FIELD,
 ) -> None:
     """
     Run complete downstream analysis.
@@ -564,12 +578,15 @@ def run_analysis(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Create subdirectories
+    metadata_dir = output_dir / "metadata"
+    by_ref_dir = output_dir / "by_reference"
+    collation_dir = output_dir / "collation"
     metrics_dir = output_dir / 'metrics'
     comparison_dir = output_dir / 'tool_comparison'
     replicate_dir = output_dir / 'replicate_analysis'
     viz_dir = output_dir / 'visualizations'
 
-    for d in [metrics_dir, comparison_dir, replicate_dir, viz_dir]:
+    for d in [metadata_dir, by_ref_dir, collation_dir, metrics_dir, comparison_dir, replicate_dir, viz_dir]:
         d.mkdir(exist_ok=True)
 
     logger.info(f"Running analysis with {len(tool_outputs)} tools")
@@ -588,8 +605,12 @@ def run_analysis(
 
     # Generate and save quality summary
     quality_summary = generate_quality_summary(quality_report)
+    if isinstance(quality_summary, pd.DataFrame):
+        quality_summary_text = quality_summary.to_string(index=False)
+    else:
+        quality_summary_text = str(quality_summary)
     with open(output_dir / 'quality_summary.txt', 'w') as f:
-        f.write(quality_summary)
+        f.write(quality_summary_text)
 
     # Log quality summary
     logger.info(f"Data Quality Summary:\n{quality_report.summary()}")
@@ -607,9 +628,9 @@ def run_analysis(
         if status_rows and all(s.status.value == "FAILED" for s in status_rows):
             logger.warning("Excluding %s due to FAILED status", tool_name)
             continue
-        valid_tools[tool_name] = tool_df
+        valid_tool_outputs[tool_name] = tool_df
 
-    tool_outputs = valid_tools
+    tool_outputs = valid_tool_outputs
     if not tool_outputs:
         logger.error("No valid tool outputs after quality filtering")
         return
@@ -772,8 +793,24 @@ def run_analysis(
                     "invalid_score_total": int(invalid_total),
                 }
 
-                m = calculate_metrics(rep_df, ground_truth=None, reference=ref)
-                metric_row = m.to_dict()
+                scope_metrics = _compute_labeled_scope_metrics(rep_df, gt_positions)
+                metric_row = {
+                    "tool": tool,
+                    "reference": ref,
+                    "replicate": str(rep),
+                    "auprc": scope_metrics.get("auprc", np.nan),
+                    "auroc": scope_metrics.get("auroc", np.nan),
+                    "f1_optimal": scope_metrics.get("f1_optimal", np.nan),
+                    "precision_optimal": scope_metrics.get("precision_optimal", np.nan),
+                    "recall_optimal": scope_metrics.get("recall_optimal", np.nan),
+                    "optimal_threshold": scope_metrics.get("optimal_threshold", np.nan),
+                    "n_true_positives": scope_metrics.get("n_true_positives", np.nan),
+                    "n_false_positives": scope_metrics.get("n_false_positives", np.nan),
+                    "n_false_negatives": scope_metrics.get("n_false_negatives", np.nan),
+                    "n_true_negatives": scope_metrics.get("n_true_negatives", np.nan),
+                    "n_ground_truth": int(len(gt_positions)),
+                    "n_predictions": int(len(rep_df)),
+                }
 
                 # reported-only metrics complement full-universe metrics
                 reported_metrics = _compute_subset_metrics(rep_df_reported)
@@ -788,22 +825,6 @@ def run_analysis(
 
                 if not metrics_valid:
                     metric_scope_note = "invalid_scores"
-                    for col in [
-                        "auprc",
-                        "auroc",
-                        "f1_optimal",
-                        "precision_optimal",
-                        "recall_optimal",
-                        "optimal_threshold",
-                        "n_true_positives",
-                        "n_false_positives",
-                        "n_false_negatives",
-                        "n_true_negatives",
-                        "auprc_reported",
-                        "auroc_reported",
-                        "f1_reported",
-                    ]:
-                        metric_row[col] = np.nan
 
                 metric_row["metrics_valid"] = bool(metrics_valid)
                 metric_row["invalid_score_fraction"] = invalid_fraction
@@ -812,22 +833,11 @@ def run_analysis(
                 metric_row["metric_scope_note"] = metric_scope_note
                 metric_rows.append(pd.DataFrame([metric_row]))
 
-                if metrics_valid:
-                    curves = _extract_curve_points(metric_ready, tool=tool, reference=ref, replicate=rep)
-                    if not curves["pr"].empty:
-                        pr_rows.append(curves["pr"])
-                    if not curves["roc"].empty:
-                        roc_rows.append(curves["roc"])
-                else:
-                    logger.warning(
-                        "Skipping curve generation for %s/%s/%s due to invalid score fraction %.3f (%d/%d)",
-                        tool,
-                        ref,
-                        rep,
-                        invalid_fraction,
-                        invalid_n,
-                        invalid_total,
-                    )
+                curves = _extract_curve_points(metric_ready, tool=tool, reference=ref, replicate=rep)
+                if not curves["pr"].empty:
+                    pr_rows.append(curves["pr"])
+                if not curves["roc"].empty:
+                    roc_rows.append(curves["roc"])
 
         # Save standardization reports
         std_report.save(ref_root)
@@ -888,32 +898,123 @@ def run_analysis(
             all_metrics_rows.append(metrics_per_rep)
             all_summary_rows.append(summary)
         else:
-            valid_tool_outputs[tool_name] = tool_df
+            summary = pd.DataFrame()
 
-    if not valid_tool_outputs:
-        logger.error("No valid tool outputs to analyze after quality filtering")
-        return
+        metrics_per_rep.to_csv(dirs["metrics"] / "metrics_per_replicate.csv", index=False)
+        summary.to_csv(dirs["metrics"] / "metrics_summary.csv", index=False)
+        no_call_df.to_csv(dirs["metrics"] / "no_call_diagnostics.csv", index=False)
 
-    tool_outputs = valid_tool_outputs
-    logger.info(f"Proceeding with {len(tool_outputs)} valid tools")
+        # Curve point exports
+        pr_df = pd.concat(pr_rows, ignore_index=True) if pr_rows else pd.DataFrame()
+        roc_df = pd.concat(roc_rows, ignore_index=True) if roc_rows else pd.DataFrame()
+        pr_df.to_csv(dirs["curves"] / "pr_curve_points.csv", index=False)
+        roc_df.to_csv(dirs["curves"] / "roc_curve_points.csv", index=False)
 
-    # =========================================================================
-    # 0.5. Position Standardization
-    # =========================================================================
-    logger.info("Standardizing positions across replicates and tools...")
+        # Always-on tolerance and lag analyses.
+        # Keep invalid-score QC flags, but do not null computable metrics.
+        window_rows_ref: List[pd.DataFrame] = []
+        lag_rows_ref: List[pd.DataFrame] = []
 
-    standardized_outputs, std_report = standardize_all_tool_outputs(
-        tool_outputs, ground_truth
-    )
+        for tool, metric_ready in metric_ready_by_tool.items():
+            reps = sorted(metric_ready["replicate"].astype(str).unique().tolist())
+            for rep in reps:
+                rep_df = metric_ready[metric_ready["replicate"].astype(str) == str(rep)].copy()
+                rep_reported = (
+                    rep_df[rep_df["is_reported"] == True].copy()
+                    if "is_reported" in rep_df.columns
+                    else rep_df.copy()
+                )
+                gate = replicate_gate.get(
+                    (tool, str(rep)),
+                    {
+                        "metrics_valid": True,
+                        "invalid_score_fraction": 0.0,
+                        "invalid_score_n": 0,
+                        "invalid_score_total": 0,
+                    },
+                )
+                for scope_name, scope_df in [("universe", rep_df), ("reported", rep_reported)]:
+                    for window_size in WINDOW_GRID:
+                        positives = _expand_positions_by_window(
+                            gt_positions, window_size, eval_start, eval_end
+                        )
+                        row = _compute_labeled_scope_metrics(scope_df, positives)
+                        row.update(
+                            {
+                                "reference": ref,
+                                "tool": tool,
+                                "replicate": str(rep),
+                                "scope": scope_name,
+                                "window_size": int(window_size),
+                                "metrics_valid": bool(gate["metrics_valid"]),
+                                "invalid_score_fraction": float(gate["invalid_score_fraction"]),
+                                "invalid_score_n": int(gate["invalid_score_n"]),
+                                "invalid_score_total": int(gate["invalid_score_total"]),
+                            }
+                        )
+                        if not bool(gate["metrics_valid"]):
+                            row["metric_scope_note"] = "invalid_scores"
+                        window_rows_ref.append(pd.DataFrame([row]))
 
-    # Save standardization reports
-    std_report.save(output_dir)
+                    for delta in LAG_GRID:
+                        positives = _shift_positions(gt_positions, delta, eval_start, eval_end)
+                        row = _compute_labeled_scope_metrics(scope_df, positives)
+                        row.update(
+                            {
+                                "reference": ref,
+                                "tool": tool,
+                                "replicate": str(rep),
+                                "scope": scope_name,
+                                "delta": int(delta),
+                                "metrics_valid": bool(gate["metrics_valid"]),
+                                "invalid_score_fraction": float(gate["invalid_score_fraction"]),
+                                "invalid_score_n": int(gate["invalid_score_n"]),
+                                "invalid_score_total": int(gate["invalid_score_total"]),
+                            }
+                        )
+                        if not bool(gate["metrics_valid"]):
+                            row["metric_scope_note"] = "invalid_scores"
+                        lag_rows_ref.append(pd.DataFrame([row]))
 
-    # Log summary
-    logger.info(f"Position Standardization Summary:\n{std_report.summary()}")
+        window_metrics = pd.concat(window_rows_ref, ignore_index=True) if window_rows_ref else pd.DataFrame()
+        lag_metrics = pd.concat(lag_rows_ref, ignore_index=True) if lag_rows_ref else pd.DataFrame()
 
-    # Use standardized outputs for all downstream analysis
-    tool_outputs = standardized_outputs
+        window_summary = _summarize_sweep_metrics(window_metrics, "window_size")
+        lag_summary = _summarize_sweep_metrics(lag_metrics, "delta")
+
+        best_offset = pd.DataFrame()
+        if not lag_summary.empty:
+            tmp = lag_summary.copy()
+            auroc_best = (
+                tmp.sort_values("auroc_mean", ascending=False)
+                .groupby(["reference", "tool", "scope"], as_index=False)
+                .first()[["reference", "tool", "scope", "delta", "auroc_mean"]]
+                .rename(columns={"delta": "best_delta_auroc", "auroc_mean": "best_auroc_mean"})
+            )
+            auprc_best = (
+                tmp.sort_values("auprc_mean", ascending=False)
+                .groupby(["reference", "tool", "scope"], as_index=False)
+                .first()[["reference", "tool", "scope", "delta", "auprc_mean"]]
+                .rename(columns={"delta": "best_delta_auprc", "auprc_mean": "best_auprc_mean"})
+            )
+            best_offset = auroc_best.merge(
+                auprc_best, on=["reference", "tool", "scope"], how="outer"
+            )
+
+        window_metrics.to_csv(dirs["tolerance"] / "window_metrics_per_replicate.csv", index=False)
+        window_summary.to_csv(dirs["tolerance"] / "window_metrics_summary.csv", index=False)
+        lag_metrics.to_csv(dirs["lag"] / "lag_metrics_per_replicate.csv", index=False)
+        lag_summary.to_csv(dirs["lag"] / "lag_metrics_summary.csv", index=False)
+        best_offset.to_csv(dirs["lag"] / "lag_best_offset_by_tool.csv", index=False)
+
+        if not window_metrics.empty:
+            all_window_rows.append(window_metrics)
+        if not window_summary.empty:
+            all_window_summary_rows.append(window_summary)
+        if not lag_metrics.empty:
+            all_lag_rows.append(lag_metrics)
+        if not lag_summary.empty:
+            all_lag_summary_rows.append(lag_summary)
 
     # =========================================================================
     # 1. Benchmark Metrics (if ground truth provided)
@@ -967,52 +1068,6 @@ def run_analysis(
                     replicate_dir / f'{tool_name}_consensus.csv',
                     index=False
                 )
-                for scope_name, scope_df in [("universe", rep_df), ("reported", rep_reported)]:
-                    for window_size in WINDOW_GRID:
-                        positives = _expand_positions_by_window(
-                            gt_positions, window_size, eval_start, eval_end
-                        )
-                        row = _compute_labeled_scope_metrics(scope_df, positives)
-                        row.update(
-                            {
-                                "reference": ref,
-                                "tool": tool,
-                                "replicate": str(rep),
-                                "scope": scope_name,
-                                "window_size": int(window_size),
-                                "metrics_valid": bool(gate["metrics_valid"]),
-                                "invalid_score_fraction": float(gate["invalid_score_fraction"]),
-                                "invalid_score_n": int(gate["invalid_score_n"]),
-                                "invalid_score_total": int(gate["invalid_score_total"]),
-                            }
-                        )
-                        if not bool(gate["metrics_valid"]):
-                            for c in metric_cols:
-                                row[c] = np.nan
-                            row["metric_scope_note"] = "invalid_scores"
-                        window_rows_ref.append(pd.DataFrame([row]))
-
-                    for delta in LAG_GRID:
-                        positives = _shift_positions(gt_positions, delta, eval_start, eval_end)
-                        row = _compute_labeled_scope_metrics(scope_df, positives)
-                        row.update(
-                            {
-                                "reference": ref,
-                                "tool": tool,
-                                "replicate": str(rep),
-                                "scope": scope_name,
-                                "delta": int(delta),
-                                "metrics_valid": bool(gate["metrics_valid"]),
-                                "invalid_score_fraction": float(gate["invalid_score_fraction"]),
-                                "invalid_score_n": int(gate["invalid_score_n"]),
-                                "invalid_score_total": int(gate["invalid_score_total"]),
-                            }
-                        )
-                        if not bool(gate["metrics_valid"]):
-                            for c in metric_cols:
-                                row[c] = np.nan
-                            row["metric_scope_note"] = "invalid_scores"
-                        lag_rows_ref.append(pd.DataFrame([row]))
 
     # =========================================================================
     # 3. Tool Comparison
@@ -1101,39 +1156,6 @@ def run_analysis(
             # Analyze coverage
             coverage_result = analyze_coverage(tool_outputs, ground_truth, references)
 
-    evaluation_intervals_df = pd.DataFrame(
-        [
-            {
-                "reference": ref,
-                "full_reference_length": int(reference_lengths[ref]),
-                "eval_start": int(start),
-                "eval_end": int(end),
-                "eval_length": int(end - start + 1),
-            }
-            for ref, (start, end) in sorted(evaluation_regions.items())
-            if ref in reference_lengths
-        ]
-    )
-    evaluation_intervals_df.to_csv(metadata_dir / "evaluation_intervals.csv", index=False)
-
-    run_meta = {
-        "run_id": run_id or output_dir.name,
-        "coverage_label": coverage_label,
-        "quality_label": quality_label,
-        "references_processed": refs,
-        "reference_lengths": reference_lengths,
-        "evaluation_intervals": {
-            ref: {"eval_start": int(a), "eval_end": int(b)}
-            for ref, (a, b) in evaluation_regions.items()
-        },
-        "evaluation_lengths": {
-            ref: int(b - a + 1) for ref, (a, b) in evaluation_regions.items()
-        },
-        "tools_loaded": sorted([t for t, df in tool_outputs.items() if not df.empty]),
-    }
-    with open(metadata_dir / "run_metadata.json", "w", encoding="utf-8") as handle:
-        json.dump(run_meta, handle, indent=2)
-
             # Save comparison table
             comparison_table = compare_tools_by_coverage(coverage_result)
             if not comparison_table.empty:
@@ -1185,6 +1207,46 @@ def run_analysis(
             logger.warning(f"Coverage analysis failed: {e}")
     elif has_coverage_data:
         logger.info("Coverage data found but no ground truth - skipping coverage analysis")
+
+    evaluation_intervals_df = pd.DataFrame(
+        [
+            {
+                "reference": ref,
+                "full_reference_length": int(reference_lengths[ref]),
+                "eval_start": int(start),
+                "eval_end": int(end),
+                "eval_length": int(end - start + 1),
+            }
+            for ref, (start, end) in sorted(evaluation_regions.items())
+            if ref in reference_lengths
+        ]
+    )
+    evaluation_intervals_df.to_csv(metadata_dir / "evaluation_intervals.csv", index=False)
+
+    run_meta = {
+        "run_id": run_id or output_dir.name,
+        "coverage_label": coverage_label,
+        "quality_label": quality_label,
+        "references_processed": refs,
+        "reference_lengths": reference_lengths,
+        "evaluation_intervals": {
+            ref: {"eval_start": int(a), "eval_end": int(b)}
+            for ref, (a, b) in evaluation_regions.items()
+        },
+        "evaluation_lengths": {
+            ref: int(b - a + 1) for ref, (a, b) in evaluation_regions.items()
+        },
+        "tools_loaded": sorted([t for t, df in tool_outputs.items() if not df.empty]),
+        "tool_score_overrides": {
+            "differr": {
+                "score_field": str(differr_score_field),
+                "score_type": "g_stat" if str(differr_score_field) == "g_stat" else "neglog10_fdr",
+                "higher_is_better": True,
+            }
+        },
+    }
+    with open(metadata_dir / "run_metadata.json", "w", encoding="utf-8") as handle:
+        json.dump(run_meta, handle, indent=2)
 
     # =========================================================================
     # 7. HTML Report
@@ -1274,6 +1336,10 @@ def main() -> None:
     parser.add_argument("--expected-replicates", type=int, default=3)
     parser.add_argument("--threshold", type=float, help="score threshold for significance")
     parser.add_argument("--coverage-dirs", action="store_true")
+    parser.add_argument("--verbose", "-v", action="store_true", help="enable verbose logging")
+    parser.add_argument("--run-id", help="run id for collation rows")
+    parser.add_argument("--coverage-label", help="coverage label for collation rows")
+    parser.add_argument("--quality-label", help="quality label for collation rows")
     parser.add_argument(
         "--differr-score-field",
         choices=[DIFFERR_PRIMARY_SCORE_FIELD, DIFFERR_SECONDARY_SCORE_FIELD, DIFFERR_BOTH_SCORE_FIELD],
@@ -1284,67 +1350,6 @@ def main() -> None:
             "'g_stat' (single run), or "
             "'both' (write canonical g_fdr_neglog10 and differr_gstat sub-run)"
         ),
-    )
-
-    # Input options
-    input_group = parser.add_argument_group('Input Options')
-    input_group.add_argument(
-        '--input-dir', '-i',
-        help='Directory containing all tool outputs (standard pipeline output structure)'
-    )
-
-    # Individual tool inputs
-    for tool in SUPPORTED_TOOLS:
-        input_group.add_argument(
-            f'--{tool}',
-            help=f'Path to {tool} output file or directory'
-        )
-
-    # Ground truth
-    parser.add_argument(
-        '--ground-truth', '-g',
-        help='Path to ground truth CSV/TSV file with known modification sites'
-    )
-
-    # Output options
-    parser.add_argument(
-        '--output-dir', '-o',
-        required=True,
-        help='Output directory for analysis results'
-    )
-
-    # Analysis options
-    parser.add_argument(
-        '--references', '-r',
-        nargs='+',
-        help='Filter to specific references (e.g., 16s 23s)'
-    )
-    parser.add_argument(
-        '--min-replicates',
-        type=int,
-        default=2,
-        help='Minimum replicates for consensus calling (default: 2)'
-    )
-    parser.add_argument(
-        '--expected-replicates',
-        type=int,
-        default=3,
-        help='Expected number of replicates per tool for quality checks (default: 3)'
-    )
-    parser.add_argument(
-        '--threshold',
-        type=float,
-        help='Score threshold for significance (p-value or FDR cutoff)'
-    )
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose logging'
-    )
-    parser.add_argument(
-        '--coverage-dirs',
-        action='store_true',
-        help='Expect {coverage}/tool/ directory structure for coverage analysis'
     )
 
     args = parser.parse_args()
@@ -1387,7 +1392,8 @@ def main() -> None:
             tool_outputs=tool_outputs,
             ground_truth=ground_truth,
             output_dir=mode_output_dir,
-            references_csv=references_csv,
+            references=args.references,
+            references_csv=args.references_csv,
             references_filter=args.references,
             min_replicates=args.min_replicates,
             score_threshold=args.threshold,

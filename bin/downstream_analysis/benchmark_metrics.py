@@ -28,7 +28,11 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from sklearn.exceptions import UndefinedMetricWarning
+try:
+    from sklearn.exceptions import UndefinedMetricWarning
+except Exception:
+    class UndefinedMetricWarning(UserWarning):
+        pass
 from sklearn.metrics import (
     precision_recall_curve,
     average_precision_score,

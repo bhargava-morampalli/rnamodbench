@@ -31,8 +31,9 @@ Output format (standardized DataFrame):
 import os
 import json
 import logging
+import re
 from pathlib import Path
-from typing import Optional, Dict, List, Union
+from typing import Optional, Dict, List, Tuple, Union
 
 import pandas as pd
 import numpy as np
@@ -325,8 +326,8 @@ def parse_tombo(
             'reference': ref_name,
             'position': df[pos_col].astype(int),
             'score': df[stat_col].astype(float) if stat_col else np.nan,
-            'score_type': 'statistic',
-            'pvalue': df[stat_col].astype(float) if stat_col and 'p' in stat_col.lower() else np.nan,
+            'score_type': 'pvalue',
+            'pvalue': df[stat_col].astype(float) if stat_col else np.nan,
             'replicate': replicate or _extract_replicate_from_filename(filepath),
             'sample_id': sample_id or filepath.stem
         })
@@ -407,27 +408,7 @@ def parse_yanocomp(
             'replicate': replicate or _extract_replicate_from_filename(bed_filepath),
             'sample_id': sample_id or bed_filepath.stem
         })
-
-            out = pd.DataFrame(
-                {
-                    "reference": ref_series,
-                    "position": _safe_numeric(raw.iloc[:, 1]) + 2,  # center of 5-mer
-                    "score": _safe_numeric(raw.iloc[:, 8]),  # FDR
-                    "score_type": "fdr",
-                    "pvalue": _safe_numeric(raw.iloc[:, 7]),  # p-value column
-                }
-            )
-        else:
-            # Legacy 6-col BED fallback
-            out = pd.DataFrame(
-                {
-                    "reference": raw.iloc[:, 0].astype(str),
-                    "position": _safe_numeric(raw.iloc[:, 1]) + 1,
-                    "score": _safe_numeric(raw.iloc[:, 4]),
-                    "score_type": "fdr",
-                    "pvalue": np.nan,
-                }
-            )
+        return result
 
     except Exception as e:
         logger.error(f"Error parsing Yanocomp file {bed_filepath}: {e}")
@@ -440,48 +421,24 @@ def parse_nanocompore(
     replicate: str = None,
     pvalue_col: str = 'GMM_logit_pvalue'
 ) -> pd.DataFrame:
-    """
-    Parse Nanocompore sampcomp results TSV.
-
-    Nanocompore outputs outSampComp_results.tsv with columns:
-    - ref_id, ref_pos (or pos), ref_kmer
-    - Various p-value columns: GMM_logit_pvalue, KS_pvalue, MW_pvalue, etc.
-    - Shift statistics
-
-    Args:
-        filepath: Path to Nanocompore results TSV
-        sample_id: Sample identifier
-        replicate: Replicate identifier
-        pvalue_col: Which p-value column to use as primary score
-
-    Returns:
-        Standardized DataFrame
-    """
     filepath = Path(filepath)
 
-    # Handle directory input (find results file)
     if filepath.is_dir():
-        results_file = filepath / 'outSampComp_results.tsv'
-        if not results_file.exists():
-            # Try alternative names
-            for name in ['outSampComp_results.tsv', 'sampcomp_results.tsv', 'results.tsv']:
-                candidate = filepath / name
-                if candidate.exists():
-                    results_file = candidate
-                    break
-        filepath = results_file
+        candidates = [
+            filepath / "outnanocompore_results.tsv",
+            filepath / "outSampComp_results.tsv",
+            filepath / "sampcomp_results.tsv",
+            filepath / "results.tsv",
+        ]
+        filepath = next((p for p in candidates if p.exists()), filepath / "outnanocompore_results.tsv")
 
-    logger.info(f"Parsing Nanocompore output: {filepath}")
-
+    logger.info("Parsing Nanocompore output: %s", filepath)
     if not filepath.exists():
-        logger.warning(f"File not found: {filepath}")
         return _empty_dataframe()
 
     try:
-        df = pd.read_csv(filepath, sep='\t')
-
+        df = pd.read_csv(filepath, sep="\t")
         if df.empty:
-            logger.warning(f"Empty Nanocompore file: {filepath}")
             return _empty_dataframe()
 
         pos_col = _find_column(df, ["genomicPos", "pos", "ref_pos", "position"])
@@ -490,7 +447,6 @@ def parse_nanocompore(
         pval_col = _find_column(df, [pvalue_col, "GMM_logit_pvalue", "KS_dwell_pvalue", "pvalue"])
 
         if pos_col is None:
-            logger.error(f"Could not find position column in Nanocompore: {df.columns.tolist()}")
             return _empty_dataframe()
 
         pos_vals = _safe_numeric(df[pos_col])
@@ -512,23 +468,9 @@ def parse_nanocompore(
                 "pvalue": _safe_numeric(df[pval_col]) if pval_col else np.nan,
             }
         )
-
-        result = pd.DataFrame({
-            'tool': 'nanocompore',
-            'reference': df[ref_col] if ref_col else _extract_reference_from_filename(filepath),
-            'position': df[pos_col].astype(int),
-            'score': df[pval_col].astype(float) if pval_col else np.nan,
-            'score_type': 'pvalue',
-            'pvalue': df[pval_col].astype(float) if pval_col else np.nan,
-            'replicate': replicate or _extract_replicate_from_filename(filepath),
-            'sample_id': sample_id or filepath.stem
-        })
-
-        logger.info(f"Parsed {len(result)} positions from Nanocompore")
-        return result
-
-    except Exception as e:
-        logger.error(f"Error parsing Nanocompore file {filepath}: {e}")
+        return _finalize_result(out, "nanocompore", filepath, sample_id, replicate, None)
+    except Exception as exc:
+        logger.error("Error parsing Nanocompore file %s: %s", filepath, exc)
         return _empty_dataframe()
 
 
@@ -537,59 +479,32 @@ def parse_xpore(
     sample_id: str = None,
     replicate: str = None
 ) -> pd.DataFrame:
-    """
-    Parse xPore diffmod.table output.
-
-    xPore outputs diffmod.table with columns:
-    - id, position, kmer
-    - diff_mod_rate_*: differential modification rate
-    - pval_*: p-values
-    - z_score_*: z-scores
-
-    Args:
-        filepath: Path to xPore diffmod.table or directory
-        sample_id: Sample identifier
-        replicate: Replicate identifier
-
-    Returns:
-        Standardized DataFrame
-    """
     filepath = Path(filepath)
 
-    # Handle directory input
     if filepath.is_dir():
-        diffmod_file = filepath / 'diffmod.table'
+        diffmod_file = filepath / "diffmod.table"
         if not diffmod_file.exists():
-            # Try to find any .table file
-            table_files = list(filepath.glob('*.table'))
-            if table_files:
-                diffmod_file = table_files[0]
+            tables = sorted(filepath.glob("*.table"))
+            if tables:
+                diffmod_file = tables[0]
         filepath = diffmod_file
 
-    logger.info(f"Parsing xPore output: {filepath}")
-
+    logger.info("Parsing xPore output: %s", filepath)
     if not filepath.exists():
-        logger.warning(f"File not found: {filepath}")
         return _empty_dataframe()
 
     try:
-        df = pd.read_csv(filepath, sep='\t')
-
+        df = _read_auto_delim(filepath)
         if df.empty:
-            logger.warning(f"Empty xPore file: {filepath}")
             return _empty_dataframe()
 
-        # Find relevant columns
-        pos_col = _find_column(df, ['position', 'pos'])
-        ref_col = _find_column(df, ['id', 'ref_id', 'reference'])
+        pos_col = _find_column(df, ["position", "pos"])
+        ref_col = _find_column(df, ["id", "ref_id", "reference", "chr"])
+        pval_cols = [c for c in df.columns if c.startswith("pval_")]
+        pval_col = pval_cols[0] if pval_cols else _find_column(df, ["pvalue", "p_value"])
 
-        # Find p-value column (xPore uses pval_* naming)
-        pval_cols = [c for c in df.columns if c.startswith('pval_')]
-        pval_col = pval_cols[0] if pval_cols else _find_column(df, ['pvalue', 'p_value'])
-
-        # Find diff_mod_rate column
-        rate_cols = [c for c in df.columns if 'diff_mod_rate' in c]
-        rate_col = rate_cols[0] if rate_cols else None
+        if pos_col is None:
+            return _empty_dataframe()
 
         raw_pvalue = _safe_numeric(df[pval_col]) if pval_col else pd.Series(np.nan, index=df.index)
         bh_fdr = _benjamini_hochberg(raw_pvalue)
@@ -606,15 +521,13 @@ def parse_xpore(
             }
         )
 
-        # Add diff_mod_rate as additional column if available
-        if rate_col:
-            result['diff_mod_rate'] = df[rate_col].astype(float)
+        rate_cols = [c for c in df.columns if "diff_mod_rate" in c]
+        if rate_cols:
+            out["diff_mod_rate"] = _safe_numeric(df[rate_cols[0]])
 
-        logger.info(f"Parsed {len(result)} positions from xPore")
-        return result
-
-    except Exception as e:
-        logger.error(f"Error parsing xPore file {filepath}: {e}")
+        return _finalize_result(out, "xpore", filepath, sample_id, replicate, None)
+    except Exception as exc:
+        logger.error("Error parsing xPore file %s: %s", filepath, exc)
         return _empty_dataframe()
 
 
@@ -623,72 +536,47 @@ def parse_eligos(
     sample_id: str = None,
     replicate: str = None
 ) -> pd.DataFrame:
-    """
-    Parse ELIGOS pair_diff_mod output.
-
-    ELIGOS outputs test_paired_diff_mod_result.txt with columns:
-    - chrom, start_loc, end_loc, strand
-    - pval, adj_pval, oddR (odds ratio)
-    - ESB (error-specific bias)
-
-    Args:
-        filepath: Path to ELIGOS result file or directory
-        sample_id: Sample identifier
-        replicate: Replicate identifier
-
-    Returns:
-        Standardized DataFrame
-    """
     filepath = Path(filepath)
 
-    # Handle directory input
     if filepath.is_dir():
-        result_file = filepath / 'test_paired_diff_mod_result.txt'
-        if not result_file.exists():
-            txt_files = list(filepath.glob('*result*.txt'))
-            if txt_files:
-                result_file = txt_files[0]
-        filepath = result_file
+        candidates = sorted(filepath.glob("*_combine.txt"))
+        if not candidates:
+            candidates = sorted(filepath.glob("*result*.txt"))
+        filepath = candidates[0] if candidates else filepath / "test_paired_diff_mod_result.txt"
 
-    logger.info(f"Parsing ELIGOS output: {filepath}")
-
+    logger.info("Parsing ELIGOS output: %s", filepath)
     if not filepath.exists():
-        logger.warning(f"File not found: {filepath}")
         return _empty_dataframe()
 
     try:
-        df = pd.read_csv(filepath, sep='\t')
-
+        df = pd.read_csv(filepath, sep="\t")
         if df.empty:
-            logger.warning(f"Empty ELIGOS file: {filepath}")
             return _empty_dataframe()
 
-        # Find relevant columns
-        pos_col = _find_column(df, ['start_loc', 'start', 'pos', 'position'])
-        ref_col = _find_column(df, ['chrom', 'chr', 'reference'])
-        pval_col = _find_column(df, ['pval', 'pvalue', 'p_value', 'adj_pval'])
-        odds_col = _find_column(df, ['oddR', 'odds_ratio', 'oddsratio'])
+        pos_col = _find_column(df, ["start_loc", "start", "pos", "position"])
+        ref_col = _find_column(df, ["chrom", "chr", "reference", "contig"])
+        score_col = _find_column(df, ["adjPval", "adj_pval", "pval", "pvalue", "p_value"])
 
-        result = pd.DataFrame({
-            'tool': 'eligos',
-            'reference': df[ref_col] if ref_col else _extract_reference_from_filename(filepath),
-            'position': (df[pos_col] + 1).astype(int) if pos_col else np.nan,  # Convert to 1-based
-            'score': df[pval_col].astype(float) if pval_col else np.nan,
-            'score_type': 'pvalue',
-            'pvalue': df[pval_col].astype(float) if pval_col else np.nan,
-            'replicate': replicate or _extract_replicate_from_filename(filepath),
-            'sample_id': sample_id or filepath.stem
-        })
+        if pos_col is None:
+            return _empty_dataframe()
 
-        # Add odds ratio if available
+        out = pd.DataFrame(
+            {
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "position": _safe_numeric(df[pos_col]) + 1,
+                "score": _safe_numeric(df[score_col]) if score_col else np.nan,
+                "score_type": "pvalue",
+                "pvalue": _safe_numeric(df[score_col]) if score_col else np.nan,
+            }
+        )
+
+        odds_col = _find_column(df, ["oddR", "odds_ratio", "oddsratio"])
         if odds_col:
-            result['odds_ratio'] = df[odds_col].astype(float)
+            out["odds_ratio"] = _safe_numeric(df[odds_col])
 
-        logger.info(f"Parsed {len(result)} positions from ELIGOS")
-        return result
-
-    except Exception as e:
-        logger.error(f"Error parsing ELIGOS file {filepath}: {e}")
+        return _finalize_result(out, "eligos", filepath, sample_id, replicate, None)
+    except Exception as exc:
+        logger.error("Error parsing ELIGOS file %s: %s", filepath, exc)
         return _empty_dataframe()
 
 
@@ -697,26 +585,9 @@ def parse_epinano(
     sample_id: str = None,
     replicate: str = None
 ) -> pd.DataFrame:
-    """
-    Parse EpiNano error output.
-
-    EpiNano outputs include:
-    - native_per_site.csv / ivt_per_site.csv: raw per-site error data
-    - *_diff_err.csv: differential error analysis with z-scores
-
-    Args:
-        filepath: Path to EpiNano output file or directory
-        sample_id: Sample identifier
-        replicate: Replicate identifier
-
-    Returns:
-        Standardized DataFrame
-    """
     filepath = Path(filepath)
 
-    # Handle directory input - look for diff_err file first
     if filepath.is_dir():
-        # Prefer the direct sum-error prediction output used for ranking.
         preferred = sorted(filepath.glob("*delta-sum_err*.prediction.csv"))
         if not preferred:
             preferred = sorted(filepath.glob("*sumerr*.prediction.csv"))
@@ -725,32 +596,32 @@ def parse_epinano(
         if preferred:
             filepath = preferred[0]
         else:
-            # Fall back to native per_site file
-            per_site_files = list(filepath.glob('native_per_site.csv'))
-            if per_site_files:
-                filepath = per_site_files[0]
+            diff_err_files = sorted(filepath.glob("*diff_err*.csv"))
+            if diff_err_files:
+                filepath = diff_err_files[0]
+            else:
+                per_site = [filepath / "native_per_site.csv", filepath / "ivt_per_site.csv"]
+                existing_per_site = next((p for p in per_site if p.exists()), None)
+                if existing_per_site:
+                    filepath = existing_per_site
+                else:
+                    any_csv = sorted(filepath.glob("*.csv"))
+                    filepath = any_csv[0] if any_csv else filepath / "native_per_site.csv"
 
-    logger.info(f"Parsing EpiNano output: {filepath}")
-
+    logger.info("Parsing EpiNano output: %s", filepath)
     if not filepath.exists():
-        logger.warning(f"File not found: {filepath}")
         return _empty_dataframe()
 
     try:
-        # Read file, handling comment lines
-        df = pd.read_csv(filepath, comment='#')
-
+        df = pd.read_csv(filepath)
         if df.empty:
-            logger.warning(f"Empty EpiNano file: {filepath}")
             return _empty_dataframe()
 
-        # Find relevant columns
-        pos_col = _find_column(df, ['pos', 'position', 'start'])
-        ref_col = _find_column(df, ['X.Ref', '#Ref', 'Ref', 'chr', 'chrom', 'reference'])
-
-        # Look for z-score or error columns
-        zscore_col = _find_column(df, ['z_score', 'zscore', 'z-score', 'SumErr_z'])
-        error_col = _find_column(df, ['sum_err', 'sumerr', 'diff_err', 'mis', 'error'])
+        filename_l = filepath.name.lower()
+        if "prediction" in filename_l and "chr_pos" in df.columns:
+            parsed = df["chr_pos"].apply(_parse_epinano_chr_pos)
+            ref_series = parsed.apply(lambda x: x[0])
+            pos_series = parsed.apply(lambda x: x[1])
 
             score_col = _find_column(
                 df,
@@ -774,32 +645,38 @@ def parse_epinano(
                 }
             )
         else:
-            score_values = np.nan
-            score_type = 'unknown'
+            ref_col = _find_column(df, ["#Ref", "Ref", "X.Ref", "reference", "chr"])
+            pos_col = _find_column(df, ["pos", "position", "start"])
+            score_col = _find_column(df, ["sum_err", "mis", "error", "z_scores"])
 
-        result = pd.DataFrame({
-            'tool': 'epinano',
-            'reference': df[ref_col] if ref_col else _extract_reference_from_filename(filepath),
-            'position': df[pos_col].astype(int) if pos_col else np.nan,
-            'score': score_values,
-            'score_type': score_type,
-            'pvalue': np.nan,  # EpiNano uses z-scores, not p-values
-            'replicate': replicate or _extract_replicate_from_filename(filepath),
-            'sample_id': sample_id or filepath.stem
-        })
+            if ref_col is None or pos_col is None:
+                return _empty_dataframe()
 
-        logger.info(f"Parsed {len(result)} positions from EpiNano")
-        return result
+            score_type = "error"
+            if score_col and "z" in score_col.lower():
+                score_type = "zscore"
 
-    except Exception as e:
-        logger.error(f"Error parsing EpiNano file {filepath}: {e}")
+            out = pd.DataFrame(
+                {
+                    "reference": df[ref_col].astype(str),
+                    "position": _safe_numeric(df[pos_col]) + 1,
+                    "score": _safe_numeric(df[score_col]) if score_col else np.nan,
+                    "score_type": score_type,
+                    "pvalue": np.nan,
+                }
+            )
+
+        return _finalize_result(out, "epinano", filepath, sample_id, replicate, None)
+    except Exception as exc:
+        logger.error("Error parsing EpiNano file %s: %s", filepath, exc)
         return _empty_dataframe()
 
 
 def parse_differr(
     filepath: Union[str, Path],
     sample_id: str = None,
-    replicate: str = None
+    replicate: str = None,
+    score_field: str = "g_fdr_neglog10",
 ) -> pd.DataFrame:
     """
     Parse DiffErr BED output.
@@ -823,28 +700,32 @@ def parse_differr(
         return _empty_dataframe()
 
     try:
-        # Read BED file with expected columns
-        df = pd.read_csv(
-            filepath,
-            sep='\t',
-            comment='#',
-            names=['chr', 'start', 'end', 'odds_ratio', 'g_stat', 'pval', 'fdr'],
-            header=None
-        )
+        if score_field not in {"g_fdr_neglog10", "g_stat"}:
+            raise ValueError(
+                f"Unsupported DiffErr score field: {score_field}. "
+                f"Expected one of ['g_fdr_neglog10', 'g_stat']"
+            )
 
-        # Check if first row is header and skip if needed
-        if df.iloc[0]['chr'] == 'chr':
+        df = pd.read_csv(filepath, sep="\t", comment="#", header=None)
+        if df.empty:
+            return _empty_dataframe()
+
+        if str(df.iloc[0, 0]).lower() in {"chr", "chrom", "reference"}:
             df = df.iloc[1:].reset_index(drop=True)
+            if df.empty:
+                return _empty_dataframe()
 
         n_cols = df.shape[1]
 
         if n_cols >= 14:
+            score_col = 7 if score_field == "g_stat" else 9
+            score_type = "g_stat" if score_field == "g_stat" else "neglog10_fdr"
             out = pd.DataFrame(
                 {
                     "reference": df.iloc[:, 0].astype(str),
                     "position": _safe_numeric(df.iloc[:, 1]) + 1,
-                    "score": _safe_numeric(df.iloc[:, 9]),  # explicit -log10(FDR)
-                    "score_type": "neglog10_fdr",
+                    "score": _safe_numeric(df.iloc[:, score_col]),
+                    "score_type": score_type,
                     "pvalue": np.nan,
                     "bed_score_rounded": _safe_numeric(df.iloc[:, 4]),
                     "strand": df.iloc[:, 5].astype(str),
@@ -855,12 +736,14 @@ def parse_differr(
                 }
             )
         elif n_cols >= 7:
+            score_col = 4 if score_field == "g_stat" else 6
+            score_type = "g_stat" if score_field == "g_stat" else "neglog10_fdr"
             out = pd.DataFrame(
                 {
                     "reference": df.iloc[:, 0].astype(str),
                     "position": _safe_numeric(df.iloc[:, 1]) + 1,
-                    "score": _safe_numeric(df.iloc[:, 6]),
-                    "score_type": "neglog10_fdr",
+                    "score": _safe_numeric(df.iloc[:, score_col]),
+                    "score_type": score_type,
                     "pvalue": np.nan,
                     "odds_ratio": _safe_numeric(df.iloc[:, 3]),
                     "g_stat": _safe_numeric(df.iloc[:, 4]),
@@ -871,23 +754,7 @@ def parse_differr(
         else:
             return _empty_dataframe()
 
-        result = pd.DataFrame({
-            'tool': 'differr',
-            'reference': df['chr'],
-            'position': (df['start'].astype(float) + 1).astype(int),  # Convert to 1-based
-            'score': pd.to_numeric(df['fdr'], errors='coerce'),
-            'score_type': 'fdr',
-            'pvalue': pd.to_numeric(df['pval'], errors='coerce'),
-            'replicate': replicate or _extract_replicate_from_filename(filepath),
-            'sample_id': sample_id or filepath.stem
-        })
-
-        # Add odds ratio
-        result['odds_ratio'] = pd.to_numeric(df['odds_ratio'], errors='coerce')
-
-        logger.info(f"Parsed {len(result)} positions from DiffErr")
-        return result
-
+        return _finalize_result(out, "differr", filepath, sample_id, replicate, None)
     except Exception as e:
         logger.error(f"Error parsing DiffErr file {filepath}: {e}")
         return _empty_dataframe()
@@ -941,26 +808,25 @@ def parse_drummer(
         ref_col = _find_column(df, ["transcript_id", "chrom", "chr", "reference"])
         score_col = _find_column(df, ["max.G_padj", "G_padj", "OR_padj", "pval", "pvalue", "p_value"])
 
-        result = pd.DataFrame({
-            'tool': 'drummer',
-            'reference': df[ref_col] if ref_col else _extract_reference_from_filename(filepath),
-            'position': df[pos_col].astype(int) if pos_col else np.nan,
-            'score': df[pval_col].astype(float) if pval_col else np.nan,
-            'score_type': 'pvalue',
-            'pvalue': df[pval_col].astype(float) if pval_col else np.nan,
-            'replicate': replicate or _extract_replicate_from_filename(filepath),
-            'sample_id': sample_id or filepath.stem
-        })
+        if pos_col is None:
+            return _empty_dataframe()
 
-        # Add odds ratio if available
-        if odds_col:
-            result['odds_ratio'] = df[odds_col].astype(float)
+        out = pd.DataFrame(
+            {
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "position": _safe_numeric(df[pos_col]),
+                "score": _safe_numeric(df[score_col]) if score_col else np.nan,
+                "score_type": "pvalue",
+                "pvalue": _safe_numeric(df[score_col]) if score_col else np.nan,
+            }
+        )
 
         for extra in ["max.G_padj", "OR_padj", "G_padj", "odds_ratio"]:
             col = _find_column(df, [extra])
             if col:
                 out[extra] = _safe_numeric(df[col])
 
+        return _finalize_result(out, "drummer", filepath, sample_id, replicate, None)
     except Exception as e:
         logger.error(f"Error parsing DRUMMER file {filepath}: {e}")
         return _empty_dataframe()
@@ -971,76 +837,71 @@ def parse_jacusa2(
     sample_id: str = None,
     replicate: str = None
 ) -> pd.DataFrame:
-    """
-    Parse JACUSA2 BED output.
-
-    JACUSA2 outputs BED format with columns:
-    #contig, start, end, name, score, strand, info, filter, ref
-
-    Args:
-        filepath: Path to JACUSA2 BED file
-        sample_id: Sample identifier
-        replicate: Replicate identifier
-
-    Returns:
-        Standardized DataFrame
-    """
     filepath = Path(filepath)
-    logger.info(f"Parsing JACUSA2 output: {filepath}")
+    logger.info("Parsing JACUSA2 output: %s", filepath)
 
     if not filepath.exists():
-        logger.warning(f"File not found: {filepath}")
         return _empty_dataframe()
 
     try:
-        # Read file, skipping JACUSA2 header lines
-        with open(filepath, 'r') as f:
-            lines = f.readlines()
-
-        # Find data lines (skip ## comments and header)
-        data_lines = []
-        header_idx = None
-        for i, line in enumerate(lines):
-            if line.startswith('##'):
-                continue
-            if line.startswith('#contig') or line.startswith('#'):
-                header_idx = i
-                continue
-            data_lines.append(line.strip())
+        data_lines: List[str] = []
+        with open(filepath, "r", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("##"):
+                    continue
+                if line.startswith("#"):
+                    continue
+                if line.strip():
+                    data_lines.append(line.rstrip("\n"))
 
         if not data_lines:
-            logger.warning(f"No data in JACUSA2 file: {filepath}")
             return _empty_dataframe()
 
-        # Parse as TSV
-        from io import StringIO
-        df = pd.read_csv(
-            StringIO('\n'.join(data_lines)),
-            sep='\t',
-            names=['contig', 'start', 'end', 'name', 'score', 'strand', 'info', 'filter', 'ref'],
-            header=None
+        records = [ln.split("\t") for ln in data_lines]
+        n_cols = len(records[0])
+
+        if n_cols >= 11:
+            cols = [
+                "contig",
+                "start",
+                "end",
+                "name",
+                "score",
+                "strand",
+                "bases11",
+                "bases21",
+                "info",
+                "filter",
+                "ref",
+            ]
+        else:
+            cols = [
+                "contig",
+                "start",
+                "end",
+                "name",
+                "score",
+                "strand",
+                "info",
+                "filter",
+                "ref",
+            ]
+
+        df = pd.DataFrame(records, columns=cols[:n_cols])
+
+        out = pd.DataFrame(
+            {
+                "reference": df["contig"].astype(str),
+                "position": _safe_numeric(df["start"]) + 1,
+                "score": _safe_numeric(df["score"]),
+                "score_type": "score",
+                "pvalue": np.nan,
+            }
         )
 
-        if df.empty:
-            logger.warning(f"Empty JACUSA2 file: {filepath}")
-            return _empty_dataframe()
-
-        result = pd.DataFrame({
-            'tool': 'jacusa2',
-            'reference': df['contig'],
-            'position': (df['start'].astype(int) + 1),  # Convert to 1-based
-            'score': pd.to_numeric(df['score'], errors='coerce'),
-            'score_type': 'score',
-            'pvalue': np.nan,  # JACUSA2 uses score, not p-value
-            'replicate': replicate or _extract_replicate_from_filename(filepath),
-            'sample_id': sample_id or filepath.stem
-        })
-
-        logger.info(f"Parsed {len(result)} positions from JACUSA2")
-        return result
-
-    except Exception as e:
-        logger.error(f"Error parsing JACUSA2 file {filepath}: {e}")
+        return _finalize_result(out, "jacusa2", filepath, sample_id, replicate, None)
+    except Exception as exc:
+        logger.error("Error parsing JACUSA2 file %s: %s", filepath, exc)
         return _empty_dataframe()
 
 
@@ -1091,6 +952,7 @@ def parse_tool_output(
     sample_id: str = None,
     replicate: str = None,
     coverage: str = None,
+    differr_score_field: str = "g_fdr_neglog10",
     **kwargs
 ) -> pd.DataFrame:
     """
@@ -1125,7 +987,11 @@ def parse_tool_output(
     if tool_lower not in parsers:
         raise ValueError(f"Unknown tool: {tool}. Supported tools: {list(parsers.keys())}")
 
-    df = parsers[tool_lower](filepath, sample_id=sample_id, replicate=replicate, **kwargs)
+    parser_kwargs = dict(kwargs)
+    if tool_lower == "differr":
+        parser_kwargs["score_field"] = differr_score_field
+
+    df = parsers[tool_lower](filepath, sample_id=sample_id, replicate=replicate, **parser_kwargs)
 
     # Add coverage column
     if not df.empty:
@@ -1197,7 +1063,8 @@ def _discover_tool_inputs(tool: str, tool_dir: Path) -> List[Path]:
 def load_all_tool_outputs(
     output_dir: Union[str, Path],
     tools: Optional[List[str]] = None,
-    coverage_dirs: bool = False
+    coverage_dirs: bool = False,
+    differr_score_field: str = "g_fdr_neglog10",
 ) -> Dict[str, pd.DataFrame]:
     """
     Load outputs from all tools in a standard output directory structure.
@@ -1240,77 +1107,53 @@ def load_all_tool_outputs(
         tools = ['tombo', 'yanocomp', 'nanocompore', 'xpore', 'eligos',
                  'epinano', 'differr', 'drummer', 'jacusa2']
 
-    results = {}
-
     if coverage_dirs:
-        # Handle {coverage}/tool/output.csv structure
-        results = _load_with_coverage_dirs(output_dir, tools)
-    else:
-        # Standard structure: tool/{reference}/output.csv
-        results = _load_standard_structure(output_dir, tools)
-
-    return results
+        return _load_with_coverage_dirs(output_dir, tools, differr_score_field=differr_score_field)
+    return _load_standard_structure(output_dir, tools, differr_score_field=differr_score_field)
 
 
 def _load_standard_structure(
     output_dir: Path,
-    tools: List[str]
+    tools: List[str],
+    differr_score_field: str = "g_fdr_neglog10",
 ) -> Dict[str, pd.DataFrame]:
-    """Load tool outputs from standard directory structure."""
-    results = {}
+    results: Dict[str, pd.DataFrame] = {}
 
     for tool in tools:
         tool_dir = output_dir / tool
         if not tool_dir.exists():
-            logger.warning(f"Tool directory not found: {tool_dir}")
+            logger.warning("Tool directory not found: %s", tool_dir)
+            results[tool] = _empty_dataframe()
             continue
 
-        # Collect all output files for this tool
-        tool_dfs = []
+        inputs = _discover_tool_inputs(tool, tool_dir)
+        dfs: List[pd.DataFrame] = []
 
-        # Handle nested directory structure (tool/{reference}/)
-        for subdir in tool_dir.iterdir():
-            if subdir.is_dir():
-                # Look for output files in subdirectory
-                for filepath in subdir.glob('*'):
-                    if filepath.is_file() and filepath.suffix in ['.csv', '.tsv', '.txt', '.bed']:
-                        try:
-                            df = parse_tool_output(tool, filepath)
-                            if not df.empty:
-                                tool_dfs.append(df)
-                        except Exception as e:
-                            logger.warning(f"Failed to parse {filepath}: {e}")
-            elif subdir.is_file() and subdir.suffix in ['.csv', '.tsv', '.txt', '.bed']:
-                # Direct file in tool directory
-                try:
-                    df = parse_tool_output(tool, subdir)
-                    if not df.empty:
-                        tool_dfs.append(df)
-                except Exception as e:
-                    logger.warning(f"Failed to parse {subdir}: {e}")
+        for inp in inputs:
+            try:
+                df = parse_tool_output(tool, inp, differr_score_field=differr_score_field)
+                if not df.empty:
+                    dfs.append(df)
+            except Exception as exc:
+                logger.warning("Failed to parse %s for %s: %s", inp, tool, exc)
 
-        if tool_dfs:
-            results[tool] = pd.concat(tool_dfs, ignore_index=True)
-            logger.info(f"Loaded {len(results[tool])} total positions for {tool}")
-        else:
-            results[tool] = _empty_dataframe()
-            logger.warning(f"No data loaded for {tool}")
+        results[tool] = pd.concat(dfs, ignore_index=True) if dfs else _empty_dataframe()
+        logger.info("Loaded %d rows for %s", len(results[tool]), tool)
 
     return results
 
 
 def _load_with_coverage_dirs(
     output_dir: Path,
-    tools: List[str]
+    tools: List[str],
+    differr_score_field: str = "g_fdr_neglog10",
 ) -> Dict[str, pd.DataFrame]:
     """
     Load tool outputs from coverage-structured directories.
 
     Expected structure: output_dir/{coverage}/tool/output.csv
     """
-    import re
-
-    results = {tool: [] for tool in tools}
+    results: Dict[str, List[pd.DataFrame]] = {tool: [] for tool in tools}
 
     # Find coverage directories (match patterns like 100x, 500, coverage_100x)
     coverage_pattern = re.compile(r'^(?:coverage[_-]?)?(\d+)[xX]?$')
@@ -1325,43 +1168,32 @@ def _load_with_coverage_dirs(
             continue
 
         coverage = f"{match.group(1)}x"
-        logger.info(f"Processing coverage level: {coverage}")
 
         for tool in tools:
             tool_dir = coverage_dir / tool
             if not tool_dir.exists():
                 continue
 
-            # Load files from tool directory
-            for item in tool_dir.iterdir():
-                if item.is_dir():
-                    # Nested structure (e.g., tool/{reference}/)
-                    for filepath in item.glob('*'):
-                        if filepath.is_file() and filepath.suffix in ['.csv', '.tsv', '.txt', '.bed']:
-                            try:
-                                df = parse_tool_output(tool, filepath, coverage=coverage)
-                                if not df.empty:
-                                    results[tool].append(df)
-                            except Exception as e:
-                                logger.warning(f"Failed to parse {filepath}: {e}")
-                elif item.is_file() and item.suffix in ['.csv', '.tsv', '.txt', '.bed']:
-                    try:
-                        df = parse_tool_output(tool, item, coverage=coverage)
-                        if not df.empty:
-                            results[tool].append(df)
-                    except Exception as e:
-                        logger.warning(f"Failed to parse {item}: {e}")
+            for inp in _discover_tool_inputs(tool, tool_dir):
+                try:
+                    df = parse_tool_output(
+                        tool,
+                        inp,
+                        coverage=coverage,
+                        differr_score_field=differr_score_field,
+                    )
+                    if not df.empty:
+                        results[tool].append(df)
+                except Exception as exc:
+                    logger.warning("Failed to parse %s (%s): %s", inp, coverage, exc)
 
     # Concatenate all dataframes for each tool
-    final_results = {}
+    final_results: Dict[str, pd.DataFrame] = {}
     for tool in tools:
-        if results[tool]:
-            final_results[tool] = pd.concat(results[tool], ignore_index=True)
-            n_coverages = final_results[tool]['coverage'].nunique()
-            logger.info(f"Loaded {len(final_results[tool])} positions for {tool} across {n_coverages} coverage levels")
-        else:
-            final_results[tool] = _empty_dataframe()
-            logger.warning(f"No data loaded for {tool}")
+        final_results[tool] = (
+            pd.concat(results[tool], ignore_index=True) if results[tool] else _empty_dataframe()
+        )
+        logger.info("Loaded %d rows for %s across coverage dirs", len(final_results[tool]), tool)
 
     return final_results
 

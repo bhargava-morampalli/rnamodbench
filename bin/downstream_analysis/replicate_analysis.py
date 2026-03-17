@@ -192,27 +192,26 @@ def consensus_calling(
     for pos in all_positions:
         reps_with_pos = [rep for rep, positions in replicate_positions.items() if pos in positions]
         n_reps = len(reps_with_pos)
+        if n_reps < min_replicates:
+            continue
 
-        rows.append(
-            {
-                "reference": ref,
-                "position": int(pos),
-                "n_replicates": len(hit_reps),
-                "mean_score": float(np.nanmean(scores)) if scores.notna().any() else np.nan,
-                "replicates": ",".join(hit_reps),
-            }
+        hit_mask = (
+            (pd.to_numeric(df["position"], errors="coerce") == int(pos))
+            & (df["replicate"].astype(str).isin(reps_with_pos))
         )
+        scores = pd.to_numeric(df.loc[hit_mask, "score"], errors="coerce")
+        mean_score = float(np.nanmean(scores)) if not scores.empty else np.nan
 
-            # Get reference for this position
-            ref = df[df['position'] == pos]['reference'].iloc[0]
+        ref_values = df.loc[pd.to_numeric(df["position"], errors="coerce") == int(pos), "reference"]
+        ref = str(ref_values.iloc[0]) if not ref_values.empty else "unknown"
 
-            consensus_data.append({
-                'position': pos,
-                'reference': ref,
-                'n_replicates': n_reps,
-                'mean_score': mean_score,
-                'replicates': ','.join(sorted(reps_with_pos))
-            })
+        consensus_data.append({
+            'position': int(pos),
+            'reference': ref,
+            'n_replicates': n_reps,
+            'mean_score': mean_score,
+            'replicates': ','.join(sorted(reps_with_pos))
+        })
 
     consensus_df = pd.DataFrame(consensus_data)
 
