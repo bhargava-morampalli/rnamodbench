@@ -731,22 +731,6 @@ def run_analysis(
 
                 if not metrics_valid:
                     metric_scope_note = "invalid_scores"
-                    for col in [
-                        "auprc",
-                        "auroc",
-                        "f1_optimal",
-                        "precision_optimal",
-                        "recall_optimal",
-                        "optimal_threshold",
-                        "n_true_positives",
-                        "n_false_positives",
-                        "n_false_negatives",
-                        "n_true_negatives",
-                        "auprc_reported",
-                        "auroc_reported",
-                        "f1_reported",
-                    ]:
-                        metric_row[col] = np.nan
 
                 metric_row["metrics_valid"] = bool(metrics_valid)
                 metric_row["invalid_score_fraction"] = invalid_fraction
@@ -755,22 +739,11 @@ def run_analysis(
                 metric_row["metric_scope_note"] = metric_scope_note
                 metric_rows.append(pd.DataFrame([metric_row]))
 
-                if metrics_valid:
-                    curves = _extract_curve_points(metric_ready, tool=tool, reference=ref, replicate=rep)
-                    if not curves["pr"].empty:
-                        pr_rows.append(curves["pr"])
-                    if not curves["roc"].empty:
-                        roc_rows.append(curves["roc"])
-                else:
-                    logger.warning(
-                        "Skipping curve generation for %s/%s/%s due to invalid score fraction %.3f (%d/%d)",
-                        tool,
-                        ref,
-                        rep,
-                        invalid_fraction,
-                        invalid_n,
-                        invalid_total,
-                    )
+                curves = _extract_curve_points(metric_ready, tool=tool, reference=ref, replicate=rep)
+                if not curves["pr"].empty:
+                    pr_rows.append(curves["pr"])
+                if not curves["roc"].empty:
+                    roc_rows.append(curves["roc"])
 
         # Save standardization reports
         std_report.save(ref_root)
@@ -841,19 +814,6 @@ def run_analysis(
         # Always-on tolerance and lag analyses (additive; exact outputs unchanged)
         window_rows_ref: List[pd.DataFrame] = []
         lag_rows_ref: List[pd.DataFrame] = []
-        metric_cols = [
-            "auprc",
-            "auroc",
-            "f1_optimal",
-            "precision_optimal",
-            "recall_optimal",
-            "n_true_positives",
-            "n_false_positives",
-            "n_false_negatives",
-            "n_true_negatives",
-            "optimal_threshold",
-        ]
-
         for tool, metric_ready in metric_ready_by_tool.items():
             reps = sorted(metric_ready["replicate"].astype(str).unique().tolist())
             for rep in reps:
@@ -888,8 +848,6 @@ def run_analysis(
                             }
                         )
                         if not bool(gate["metrics_valid"]):
-                            for c in metric_cols:
-                                row[c] = np.nan
                             row["metric_scope_note"] = "invalid_scores"
                         window_rows_ref.append(pd.DataFrame([row]))
 
@@ -910,8 +868,6 @@ def run_analysis(
                             }
                         )
                         if not bool(gate["metrics_valid"]):
-                            for c in metric_cols:
-                                row[c] = np.nan
                             row["metric_scope_note"] = "invalid_scores"
                         lag_rows_ref.append(pd.DataFrame([row]))
 
