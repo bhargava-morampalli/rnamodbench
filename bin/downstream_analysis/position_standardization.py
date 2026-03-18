@@ -1,43 +1,43 @@
 #!/usr/bin/env python3
 """
-Position Standardization Module for RNA Modification Detection Pipeline
+Position standardization utilities.
 
 Implements reference-universe standardization per tool/replicate while keeping
 raw parsed outputs intact. The evaluation universe can be the full reference or
 an explicitly defined sub-interval within padded coordinates.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Set
 from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ImputationRecord:
-    """Record of a single imputed position."""
     tool: str
     replicate: str
     reference: str
     position: int
-    source: str  # 'within_file', 'other_rep', 'ground_truth'
+    source: str
 
 
 @dataclass
 class PositionAvailability:
-    """Summary of position availability for a tool/replicate."""
     tool: str
     replicate: str
+    reference: str
     native_positions: int
     added_from_universe: int
     full_reference_length: int
@@ -61,12 +61,10 @@ class PositionAvailability:
 
 @dataclass
 class StandardizationReport:
-    """Complete standardization report."""
     availability: List[PositionAvailability] = field(default_factory=list)
     imputation_records: List[ImputationRecord] = field(default_factory=list)
 
     def to_availability_dataframe(self) -> pd.DataFrame:
-        """Convert availability summaries to DataFrame."""
         if not self.availability:
             return pd.DataFrame(
                 columns=[
@@ -84,80 +82,44 @@ class StandardizationReport:
         return pd.DataFrame([a.to_dict() for a in self.availability])
 
     def to_imputation_dataframe(self) -> pd.DataFrame:
-        """Convert imputation records to DataFrame."""
         if not self.imputation_records:
-            return pd.DataFrame(columns=[
-                'tool', 'replicate', 'reference', 'position', 'source'
-            ])
-        return pd.DataFrame([
-            {
-                'tool': r.tool,
-                'replicate': r.replicate,
-                'reference': r.reference,
-                'position': r.position,
-                'source': r.source,
-            }
-            for r in self.imputation_records
-        ])
+            return pd.DataFrame(columns=["tool", "replicate", "reference", "position", "source"])
+        return pd.DataFrame(
+            [
+                {
+                    "tool": rec.tool,
+                    "replicate": rec.replicate,
+                    "reference": rec.reference,
+                    "position": rec.position,
+                    "source": rec.source,
+                }
+                for rec in self.imputation_records
+            ]
+        )
 
     def save(self, output_dir: Path) -> None:
-        """Save reports to output directory."""
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Save availability summary
         self.to_availability_dataframe().to_csv(
-            output_dir / 'position_availability_report.csv', index=False
+            output_dir / "position_availability_report.csv", index=False
         )
-
-        # Save detailed imputation records
         self.to_imputation_dataframe().to_csv(
-            output_dir / 'imputed_positions_detail.csv', index=False
+            output_dir / "imputed_positions_detail.csv", index=False
         )
-
-        logger.info(f"Saved position standardization reports to {output_dir}")
 
     def summary(self) -> str:
-        """Generate text summary."""
-        lines = [
-            "=" * 60,
-            "POSITION STANDARDIZATION SUMMARY",
-            "=" * 60,
-            "",
-        ]
-
         if not self.availability:
-            lines.append("No standardization performed.")
-            return '\n'.join(lines)
-
-        # Total statistics
-        total_native = sum(a.native_positions for a in self.availability)
-        total_within_nan = sum(a.within_file_nan for a in self.availability)
-        total_from_reps = sum(a.added_from_reps for a in self.availability)
-        total_from_gt = sum(a.added_from_gt for a in self.availability)
-
-        lines.extend([
-            f"Total native positions: {total_native}",
-            f"Within-file NaN values: {total_within_nan}",
-            f"Positions added from other replicates: {total_from_reps}",
-            f"Positions added from ground truth: {total_from_gt}",
-            "",
-            "Per-tool breakdown:",
-            "-" * 40,
-        ])
-
-        # Group by tool
-        tools = sorted(set(a.tool for a in self.availability))
-        for tool in tools:
-            tool_avail = [a for a in self.availability if a.tool == tool]
-            native = sum(a.native_positions for a in tool_avail)
-            from_reps = sum(a.added_from_reps for a in tool_avail)
-            from_gt = sum(a.added_from_gt for a in tool_avail)
-            lines.append(f"  {tool}: {native} native, +{from_reps} from reps, +{from_gt} from GT")
-
-        lines.append("")
-        lines.append("=" * 60)
-        return '\n'.join(lines)
+            return "No standardization records"
+        df = self.to_availability_dataframe()
+        total_native = int(df["native_positions"].sum())
+        total_added = int(df["added_from_universe"].sum())
+        total_rows = int(df["total_positions"].sum())
+        return (
+            "POSITION STANDARDIZATION SUMMARY\n"
+            f"native_positions={total_native}\n"
+            f"added_from_universe={total_added}\n"
+            f"total_positions={total_rows}"
+        )
 
 
 @dataclass
@@ -268,34 +230,32 @@ def load_reference_catalog(references_csv: Path) -> pd.DataFrame:
 
 def canonicalize_tool_references(
     tool_df: pd.DataFrame,
-    report: Optional[StandardizationReport] = None
+    reference_catalog: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Ensure all replicates have the same positions (union).
-    Missing positions filled with NaN score.
+    Canonicalize references to FASTA header IDs.
 
-    Args:
-        tool_df: DataFrame with tool outputs (must have replicate column)
-        report: Optional report to record imputation details
-
-    Returns:
-        Standardized DataFrame with all positions across all replicates
+    Maps common aliases (e.g. 16s -> 16s_88_rrsE) while preserving already
+    canonical IDs.
     """
-    if tool_df.empty or 'replicate' not in tool_df.columns:
+    if tool_df.empty:
         return tool_df
 
-    replicates = tool_df['replicate'].unique()
-    if len(replicates) <= 1:
-        # Only one replicate, nothing to standardize
-        return tool_df
+    ref_df = reference_catalog.copy()
+    alias_map = {}
+    for _, row in ref_df.iterrows():
+        target = str(row["target"]).lower()
+        ref_id = str(row["reference_id"])
+        alias_map[target] = ref_id
+        alias_map[ref_id.lower()] = ref_id
 
-    # Add _imputed column if not present
-    if '_imputed' not in tool_df.columns:
-        tool_df = tool_df.copy()
-        tool_df['_imputed'] = False
+    out = tool_df.copy()
 
-    tool_name = tool_df['tool'].iloc[0] if 'tool' in tool_df.columns else 'unknown'
-    logger.info(f"Standardizing positions across {len(replicates)} replicates for {tool_name}")
+    def _canon(ref: str) -> str:
+        r = str(ref).strip()
+        rl = r.lower()
+        if rl in alias_map:
+            return alias_map[rl]
 
         # loose match for prefixes (e.g., 16s_...)
         for target, ref_id in alias_map.items():
@@ -381,22 +341,20 @@ def standardize_to_reference_universe(
 
     all_rows: List[dict] = []
 
-    # Get positions per replicate
-    rep_positions = {}
     for rep in replicates:
-        rep_df = tool_df[tool_df['replicate'] == rep]
-        rep_positions[rep] = set(rep_df['position'].unique())
+        rep_df = df_ref[df_ref["replicate"].astype(str) == str(rep)].copy() if not df_ref.empty else pd.DataFrame()
 
-    # Calculate union of all positions
-    all_positions = set.union(*rep_positions.values())
-    logger.info(f"Union of positions: {len(all_positions)}")
+        # One row per position for reported calls (first row kept on duplicates)
+        reported_by_pos = {}
+        if not rep_df.empty:
+            rep_df = rep_df.sort_values("position")
+            for _, row in rep_df.iterrows():
+                pos = int(row["position"])
+                if pos not in reported_by_pos:
+                    reported_by_pos[pos] = row
 
-    # Standardize each replicate
-    standardized_dfs = []
-    for rep in replicates:
-        rep_df = tool_df[tool_df['replicate'] == rep].copy()
-        current_positions = rep_positions[rep]
-        missing_positions = all_positions - current_positions
+        native_positions = len(reported_by_pos)
+        added_from_universe = 0
 
         for pos in universe:
             if pos in reported_by_pos:
@@ -436,117 +394,20 @@ def standardize_to_reference_universe(
                     }
                 )
 
-            # Create rows for missing positions
-            missing_rows = []
-            for pos in missing_positions:
-                ref = position_ref_map.get(pos, 'unknown')
-                missing_rows.append({
-                    'tool': tool_name,
-                    'reference': ref,
-                    'position': pos,
-                    'score': np.nan,
-                    'score_type': rep_df['score_type'].iloc[0] if not rep_df.empty else 'unknown',
-                    'pvalue': np.nan,
-                    'replicate': rep,
-                    'sample_id': rep_df['sample_id'].iloc[0] if not rep_df.empty else '',
-                    'coverage': rep_df['coverage'].iloc[0] if 'coverage' in rep_df.columns and not rep_df.empty else None,
-                    '_imputed': True,
-                    '_imputation_source': 'other_rep',
-                })
-
-                # Record imputation
                 if report is not None:
-                    report.imputation_records.append(ImputationRecord(
-                        tool=tool_name,
-                        replicate=rep,
-                        reference=ref,
-                        position=pos,
-                        source='other_rep',
-                    ))
+                    report.imputation_records.append(
+                        ImputationRecord(
+                            tool=tool_name,
+                            replicate=str(rep),
+                            reference=reference_id,
+                            position=pos,
+                            source="reference_universe",
+                        )
+                    )
 
-            missing_df = pd.DataFrame(missing_rows)
-            rep_df = pd.concat([rep_df, missing_df], ignore_index=True)
-
-        standardized_dfs.append(rep_df)
-
-    return pd.concat(standardized_dfs, ignore_index=True)
-
-
-def fill_ground_truth_positions(
-    tool_df: pd.DataFrame,
-    ground_truth: pd.DataFrame,
-    report: Optional[StandardizationReport] = None
-) -> pd.DataFrame:
-    """
-    Add ground truth positions that tool didn't report (with NaN score).
-
-    This is CRITICAL for accurate metrics because:
-    - If tool reports position 500 with high score → can be True Positive
-    - If tool reports position 500 with low score → can be True Negative
-    - If tool DOESN'T report position 500 → we don't know!
-
-    By filling with NaN, we mark these as "not reported" and downstream
-    analysis can handle them appropriately (exclude from curve calculation).
-
-    Args:
-        tool_df: DataFrame with tool outputs
-        ground_truth: Ground truth DataFrame with reference and position columns
-        report: Optional report to record imputation details
-
-    Returns:
-        DataFrame with ground truth positions added (NaN score where missing)
-    """
-    if tool_df.empty or ground_truth.empty:
-        return tool_df
-
-    # Add _imputed column if not present
-    if '_imputed' not in tool_df.columns:
-        tool_df = tool_df.copy()
-        tool_df['_imputed'] = False
-
-    tool_name = tool_df['tool'].iloc[0] if 'tool' in tool_df.columns else 'unknown'
-
-    # Get ground truth positions
-    gt_positions = set(zip(ground_truth['reference'], ground_truth['position']))
-
-    # Get tool positions
-    tool_positions = set(zip(tool_df['reference'], tool_df['position']))
-
-    # Find missing ground truth positions
-    missing_gt_positions = gt_positions - tool_positions
-
-    if not missing_gt_positions:
-        logger.info(f"{tool_name}: All ground truth positions present")
-        return tool_df
-
-    logger.info(f"{tool_name}: Adding {len(missing_gt_positions)} ground truth positions")
-
-    # Get replicates
-    replicates = tool_df['replicate'].unique() if 'replicate' in tool_df.columns else ['rep1']
-
-    # Create rows for missing positions (for each replicate)
-    missing_rows = []
-    for ref, pos in missing_gt_positions:
-        for rep in replicates:
-            rep_df = tool_df[tool_df['replicate'] == rep]
-
-            missing_rows.append({
-                'tool': tool_name,
-                'reference': ref,
-                'position': pos,
-                'score': np.nan,
-                'score_type': rep_df['score_type'].iloc[0] if not rep_df.empty else 'unknown',
-                'pvalue': np.nan,
-                'replicate': rep,
-                'sample_id': rep_df['sample_id'].iloc[0] if not rep_df.empty else '',
-                'coverage': rep_df['coverage'].iloc[0] if 'coverage' in rep_df.columns and not rep_df.empty else None,
-                '_imputed': True,
-                '_imputation_source': 'ground_truth',
-            })
-
-            # Record imputation
-            if report is not None:
-                report.imputation_records.append(ImputationRecord(
+        if report is not None:
+            report.availability.append(
+                PositionAvailability(
                     tool=tool_name,
                     replicate=str(rep),
                     reference=reference_id,
@@ -559,14 +420,13 @@ def fill_ground_truth_positions(
                 )
             )
 
-    missing_df = pd.DataFrame(missing_rows)
-    return pd.concat([tool_df, missing_df], ignore_index=True)
+    out = pd.DataFrame(all_rows)
+    return out
 
 
-def count_within_file_nan(tool_df: pd.DataFrame) -> int:
-    """Count positions with NaN score that are not from imputation."""
-    if tool_df.empty:
-        return 0
+def _score_metric_from_raw(score_type: str, score_raw: float) -> float:
+    if pd.isna(score_raw):
+        return 0.0
 
     st = str(score_type).lower()
     value = float(score_raw)
@@ -628,182 +488,117 @@ def build_metric_ready_table(
     if ground_truth_positions is None:
         out["label"] = 0
     else:
-        native_rows = tool_df
+        gt = {int(p) for p in ground_truth_positions}
+        out["label"] = out["position"].astype(int).isin(gt).astype(int)
 
-    return native_rows['score'].isna().sum()
+    return out
 
+
+def compute_no_call_diagnostics(
+    metric_ready_df: pd.DataFrame,
+    ground_truth_positions: Optional[Set[int]] = None,
+) -> pd.DataFrame:
+    """Compute no-call diagnostics per tool/replicate/reference."""
+    if metric_ready_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "reference",
+                "tool",
+                "replicate",
+                "n_universe",
+                "n_reported",
+                "n_no_call",
+                "no_call_rate",
+                "n_gt_total",
+                "n_gt_reported",
+                "gt_recall_raw",
+            ]
+        )
+
+    gt = {int(p) for p in (ground_truth_positions or set())}
+
+    rows = []
+    grp_cols = ["reference", "tool", "replicate"]
+    for (ref, tool, rep), sub in metric_ready_df.groupby(grp_cols, dropna=False):
+        n_universe = len(sub)
+        n_reported = int(sub["is_reported"].sum())
+        n_no_call = int(n_universe - n_reported)
+        no_call_rate = float(n_no_call / n_universe) if n_universe else np.nan
+
+        n_gt_total = len(gt)
+        if n_gt_total > 0:
+            gt_rows = sub[sub["position"].astype(int).isin(gt)]
+            n_gt_reported = int(gt_rows["is_reported"].sum())
+            gt_recall_raw = float(n_gt_reported / n_gt_total)
+        else:
+            n_gt_reported = 0
+            gt_recall_raw = np.nan
+
+        rows.append(
+            {
+                "reference": ref,
+                "tool": tool,
+                "replicate": rep,
+                "n_universe": n_universe,
+                "n_reported": n_reported,
+                "n_no_call": n_no_call,
+                "no_call_rate": no_call_rate,
+                "n_gt_total": n_gt_total,
+                "n_gt_reported": n_gt_reported,
+                "gt_recall_raw": gt_recall_raw,
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
+# -----------------------------------------------------------------------------
+# Backwards-compatible wrappers used by earlier code paths
+# -----------------------------------------------------------------------------
 
 def standardize_all_tool_outputs(
     tool_outputs: Dict[str, pd.DataFrame],
     ground_truth: Optional[pd.DataFrame] = None,
-) -> Tuple[Dict[str, pd.DataFrame], StandardizationReport]:
-    """
-    Standardize positions across all tools.
-
-    This function:
-    1. Standardizes positions across replicates (within each tool)
-    2. Fills missing ground truth positions (if ground truth provided)
-    3. Generates availability report
-
-    Args:
-        tool_outputs: Dictionary mapping tool names to DataFrames
-        ground_truth: Optional ground truth DataFrame
-
-    Returns:
-        Tuple of (standardized tool outputs, standardization report)
-    """
+):
+    """Legacy wrapper retained for compatibility with older run_analysis."""
+    del ground_truth
     report = StandardizationReport()
-    standardized_outputs = {}
-
-    for tool_name, tool_df in tool_outputs.items():
-        if tool_df.empty:
-            standardized_outputs[tool_name] = tool_df
-            continue
-
-        logger.info(f"Standardizing {tool_name}...")
-
-        # Count within-file NaN before standardization
-        within_file_nan = count_within_file_nan(tool_df)
-
-        # Count native positions per replicate BEFORE standardization
-        native_counts = {}
-        if 'replicate' in tool_df.columns:
-            for rep in tool_df['replicate'].unique():
-                rep_df = tool_df[tool_df['replicate'] == rep]
-                native_counts[rep] = len(rep_df)
-
-        # Step 1: Standardize across replicates
-        standardized_df = standardize_replicate_positions(tool_df, report)
-
-        # Count positions added from other replicates
-        added_from_reps = {}
-        if '_imputation_source' in standardized_df.columns:
-            for rep in standardized_df['replicate'].unique():
-                rep_df = standardized_df[standardized_df['replicate'] == rep]
-                from_reps = (rep_df['_imputation_source'] == 'other_rep').sum()
-                added_from_reps[rep] = from_reps
-
-        # Step 2: Fill ground truth positions (if provided)
-        pre_gt_len = len(standardized_df)
-        if ground_truth is not None and not ground_truth.empty:
-            standardized_df = fill_ground_truth_positions(standardized_df, ground_truth, report)
-
-        # Count positions added from ground truth
-        added_from_gt = {}
-        if '_imputation_source' in standardized_df.columns:
-            for rep in standardized_df['replicate'].unique():
-                rep_df = standardized_df[standardized_df['replicate'] == rep]
-                from_gt = (rep_df['_imputation_source'] == 'ground_truth').sum()
-                added_from_gt[rep] = from_gt
-
-        # Record availability for each replicate
-        if 'replicate' in standardized_df.columns:
-            for rep in standardized_df['replicate'].unique():
-                rep_df = standardized_df[standardized_df['replicate'] == rep]
-                report.availability.append(PositionAvailability(
-                    tool=tool_name,
-                    replicate=rep,
-                    native_positions=native_counts.get(rep, len(rep_df)),
-                    within_file_nan=within_file_nan // len(native_counts) if native_counts else within_file_nan,
-                    added_from_reps=added_from_reps.get(rep, 0),
-                    added_from_gt=added_from_gt.get(rep, 0),
-                    total_positions=len(rep_df),
-                ))
-
-        standardized_outputs[tool_name] = standardized_df
-
-    logger.info(f"Standardization complete. {len(report.imputation_records)} positions imputed.")
-    return standardized_outputs, report
+    return tool_outputs, report
 
 
 def generate_availability_report(
     tool_outputs: Dict[str, pd.DataFrame],
-    output_dir: Path
+    output_dir: Path,
 ) -> StandardizationReport:
-    """
-    Generate position availability report without modifying data.
-
-    This analyzes the current state of tool outputs and reports
-    on position coverage and NaN values.
-
-    Args:
-        tool_outputs: Dictionary mapping tool names to DataFrames
-        output_dir: Directory to save report
-
-    Returns:
-        StandardizationReport with availability information
-    """
     report = StandardizationReport()
-
-    for tool_name, tool_df in tool_outputs.items():
-        if tool_df.empty:
+    for tool, df in tool_outputs.items():
+        if df.empty:
             continue
-
-        if 'replicate' not in tool_df.columns:
-            # Single replicate case
-            within_nan = tool_df['score'].isna().sum()
-            imputed = tool_df['_imputed'].sum() if '_imputed' in tool_df.columns else 0
-
-            report.availability.append(PositionAvailability(
-                tool=tool_name,
-                replicate='all',
-                native_positions=len(tool_df) - imputed,
-                within_file_nan=within_nan - imputed,  # NaN that weren't imputed
-                added_from_reps=0,
-                added_from_gt=imputed,  # Assuming imputed = from GT
-                total_positions=len(tool_df),
-            ))
-        else:
-            for rep in tool_df['replicate'].unique():
-                rep_df = tool_df[tool_df['replicate'] == rep]
-                within_nan = rep_df['score'].isna().sum()
-                imputed = rep_df['_imputed'].sum() if '_imputed' in rep_df.columns else 0
-
-                report.availability.append(PositionAvailability(
-                    tool=tool_name,
-                    replicate=rep,
-                    native_positions=len(rep_df) - imputed,
-                    within_file_nan=max(0, within_nan - imputed),
-                    added_from_reps=0,  # Can't distinguish without full standardization
-                    added_from_gt=imputed,
-                    total_positions=len(rep_df),
-                ))
-
-    report.save(output_dir)
+        reps = sorted(df["replicate"].astype(str).unique()) if "replicate" in df.columns else ["rep1"]
+        refs = sorted(df["reference"].astype(str).unique()) if "reference" in df.columns else ["unknown"]
+        for rep in reps:
+            for ref in refs:
+                sub = df[(df["replicate"].astype(str) == rep) & (df["reference"].astype(str) == ref)]
+                report.availability.append(
+                    PositionAvailability(
+                        tool=tool,
+                        replicate=rep,
+                        reference=ref,
+                        native_positions=len(sub),
+                        added_from_universe=0,
+                        total_positions=len(sub),
+                    )
+                )
+    report.save(Path(output_dir))
     return report
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description='Standardize positions across tool outputs'
-    )
-    parser.add_argument('--input', '-i', required=True,
-                        help='Input directory with tool outputs')
-    parser.add_argument('--ground-truth', '-g',
-                        help='Ground truth file')
-    parser.add_argument('--output', '-o', required=True,
-                        help='Output directory')
-
+    parser = argparse.ArgumentParser(description="Position standardization helpers")
+    parser.add_argument("--references-csv", required=True)
     args = parser.parse_args()
 
-    from parse_outputs import load_all_tool_outputs
-    from benchmark_metrics import load_ground_truth
-
-    # Load data
-    tool_outputs = load_all_tool_outputs(args.input)
-
-    ground_truth = None
-    if args.ground_truth:
-        ground_truth = load_ground_truth(args.ground_truth)
-
-    # Standardize
-    standardized, report = standardize_all_tool_outputs(tool_outputs, ground_truth)
-
-    # Save report
-    output_dir = Path(args.output)
-    report.save(output_dir)
-
-    # Print summary
-    print(report.summary())
+    catalog = load_reference_catalog(Path(args.references_csv))
+    print(catalog.to_string(index=False))
