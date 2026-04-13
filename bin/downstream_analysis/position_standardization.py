@@ -485,6 +485,13 @@ def build_metric_ready_table(
     ]
     out["score_metric"] = _sanitize_score_metric(out["score_metric"])
 
+    # Positions reported by a tool but lacking a computable score (e.g.
+    # Nanocompore NaN p-values) are reclassified as unreported so they
+    # do not inflate reported-scope metrics.
+    if "is_reported" in out.columns and "score_raw" in out.columns:
+        nan_reported = out["is_reported"] & out["score_raw"].isna()
+        out.loc[nan_reported, "is_reported"] = False
+
     if ground_truth_positions is None:
         out["label"] = 0
     else:

@@ -111,8 +111,10 @@ def test_invalid_score_gate_keeps_computable_outputs(tmp_path, monkeypatch):
 
     assert not _is_true(row["metrics_valid"])
     assert row["metric_scope_note"] == "invalid_scores"
-    assert int(row["invalid_score_n"]) == 3
-    assert int(row["invalid_score_total"]) == 4
+    # Position 1 has score=NaN → reclassified as unreported (not counted here).
+    # Remaining 3 reported positions: 1.2 (invalid), -0.1 (invalid), 0.4 (valid).
+    assert int(row["invalid_score_n"]) == 2
+    assert int(row["invalid_score_total"]) == 3
     assert float(row["invalid_score_fraction"]) > 0.5
 
     # Core assertion: metrics remain populated when computable, despite gate.
