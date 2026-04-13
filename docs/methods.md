@@ -42,17 +42,17 @@ Ten tools were evaluated for their ability to detect RNA modifications by compar
 
 **JACUSA2** (v2.0.4; Piechotta et al., 2022) uses a pileup-based approach to detect positions with significant differences in base composition between conditions. The tool was run in pairwise comparison mode (`call-2`) with minimum coverage of 1 (`-c 1`), minimum score of 0 (`-m 0`), and minimum base quality of 0 (`-q 0`).
 
-**nanoRMS** (Begik et al., 2022) employs a K-nearest neighbours (KNN) classifier to predict modification status from EpiNano per-site error metrics, comparing mismatch frequencies between native and IVT samples.
+**nanoRMS** (Begik et al., 2022) employs a K-nearest neighbours (KNN) classifier to predict modification status from EpiNano per-site error metrics, comparing mismatch frequencies between native and IVT samples. nanoRMS was not included in the benchmarking analysis as it requires a pre-trained model and was not compatible with the comparative framework used here.
 
 ### Benchmarking parameter configuration
 
-To enable unbiased benchmarking across all tools, filtering thresholds were set to maximally permissive values so that all tested positions were reported in each tool's output. Specifically, p-value and false discovery rate (FDR) thresholds were set to 1.0, minimum coverage thresholds were set to 0 or 1, and odds ratio thresholds were set to 0 for tools that support these parameters (Tombo, Nanocompore, xPore, Yanocomp, ELIGOS2, EpiNano, DiffErr, DRUMMER, and JACUSA2). This approach allowed receiver operating characteristic (ROC) and precision-recall (PR) curves to be constructed across the full range of score thresholds for each tool.
+To enable unbiased benchmarking across all tools, filtering thresholds were set to maximally permissive values so that all tested positions were reported in each tool's output. Specifically, p-value and false discovery rate (FDR) thresholds were set to 1.0, minimum coverage thresholds were set to 0 or 1, and odds ratio thresholds were set to 0 for tools that support these parameters (Tombo, Nanocompore, xPore, Yanocomp, ELIGOS2, EpiNano, DiffErr, DRUMMER, and JACUSA2). nanoDoc reports a continuous score without user-adjustable thresholds and was included using its default output. nanoDoc produced results at 15 of 25 coverage levels (5x–1000x) owing to its internal coverage requirements. This approach allowed receiver operating characteristic (ROC) and precision-recall (PR) curves to be constructed across the full range of score thresholds for each tool.
 
 ## Downstream benchmarking analysis
 
 A custom Python analysis module (v1.0.0) was developed to standardise, compare, and benchmark the outputs of all ten modification detection tools. The module requires Python (>=3.10), pandas (>=1.5.0), NumPy (>=1.24.0), scikit-learn (>=1.3.0), matplotlib (>=3.7.0), and seaborn (>=0.12.0).
 
-**Output parsing and standardisation.** Each tool's native output format was parsed into a common schema containing tool name, reference, position (1-based), primary score, score type (p-value, FDR, z-score, probability, or score), and replicate identifier. Positions were standardised against the full reference universe (all positions from 1 to the reference length), with imputed positions tracked via an `_imputed` flag to ensure transparent handling of missing data.
+**Output parsing and standardisation.** Each tool's native output format was parsed into a common schema containing tool name, reference, position (1-based), primary score, score type (p-value, FDR, z-score, probability, or score), and replicate identifier. Positions were standardised against the full reference universe (all positions from 1 to the reference length), with imputed positions tracked via an `_imputed` flag to ensure transparent handling of missing data. Positions reported by a tool but lacking a computable score (e.g. Nanocompore positions where the GMM logistic regression did not converge) were assigned a score of zero, equivalent to unreported positions; all performance metrics were computed at universe scope (all reference positions) so this assignment does not affect the reported results.
 
 **Score harmonisation for AUROC/AUPRC.** Tool-specific output statistics were transformed into a common ranking metric before AUROC/AUPRC computation. For p-value/FDR-like outputs, the transformed score was `-log10(value)`; for z-scores, `abs(z)` was used; score-based outputs were used as reported. The exact per-tool mapping used in this coverage analysis is shown below.
 
@@ -64,13 +64,12 @@ A custom Python analysis module (v1.0.0) was developed to standardise, compare, 
 | nanoDoc | `scoreTotal` | Used as reported | Used (15 coverages only) |
 | Yanocomp | BED FDR score | `-log10(FDR)` | Used |
 | ELIGOS2 | `adjPval` | `-log10(adjPval)` | Used |
-| EpiNano (mis) | prediction `z_scores` (fallback `delta_mis`) | `abs(z)` | Used |
-| EpiNano (sum_err) | not selected by parser in this run | N/A in this AUROC/AUPRC set | Not separately analysed |
-| DiffErr | `g_fdr` (with `g_pval` as auxiliary field) | `-log10(FDR)` | Excluded (no valid metrics) |
+| EpiNano | `delta_sum_err` from delta-sum_err prediction file | Used as reported | Used |
+| DiffErr | `g_stat` (G-test statistic) | Used as reported | Used |
 | DRUMMER | `G_padj` (fallback `OR_padj`) | `-log10(adjusted p)` | Used |
 | JACUSA2 | BED score column | Used as reported | Used |
 
-For EpiNano, both mismatch (`mis`) and sum-of-errors (`sum_err`) outputs were generated upstream, but the downstream parser prioritised mismatch prediction files (`*mismatch*.prediction.csv`) when both were present. Therefore, AUROC/AUPRC curves were generated for a single EpiNano track in this run.
+For EpiNano, both mismatch (`mis`) and sum-of-errors (`sum_err`) outputs were generated upstream. The downstream parser prioritised delta-sum_err prediction files (`*delta-sum_err*.prediction.csv`), falling back to sum-err and then mismatch files when the preferred output was absent. The `delta_sum_err` column was used as the ranking score (higher values indicating greater modification signal). Therefore, AUROC/AUPRC curves were generated for a single EpiNano track in this run.
 
 **Benchmark metrics.** Classification performance was evaluated using known modification sites as ground truth. Area under the precision-recall curve (AUPRC) and area under the receiver operating characteristic curve (AUROC) were calculated using scikit-learn's `average_precision_score` and `roc_auc_score` functions, respectively. F1 score, precision, and recall were computed at optimal thresholds determined from the precision-recall curve. Confusion matrices (true positives, false positives, false negatives, true negatives) were generated at each tool's optimal operating point.
 
