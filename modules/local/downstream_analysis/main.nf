@@ -12,8 +12,6 @@ process DOWNSTREAM_ANALYSIS {
 
     output:
     path("downstream_analysis")         , emit: results
-    path("downstream_analysis/report")  , emit: report, optional: true
-    path("downstream_analysis/metrics") , emit: metrics, optional: true
     path "*.log"                        , emit: log, optional: true
     path "versions.yml"                 , emit: versions
 
