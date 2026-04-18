@@ -187,6 +187,8 @@ def load_reference_catalog(references_csv: Path) -> pd.DataFrame:
     for _, row in df.iterrows():
         target = str(row["target"]).strip().lower()
         ref_path = Path(str(row["reference"]).strip())
+        if not ref_path.is_absolute():
+            ref_path = (references_csv.parent / ref_path).resolve()
         if not ref_path.exists():
             raise FileNotFoundError(f"reference FASTA not found: {ref_path}")
 
