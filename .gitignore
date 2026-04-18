@@ -5,6 +5,7 @@ results/
 results_*/
 .DS_Store
 testing/
+samplesheets/
 testing*
 *.pyc
 __pycache__/
