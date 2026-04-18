@@ -247,7 +247,7 @@ workflow RNAMODBENCH {
         ch_report_trigger = DOWNSTREAM_ANALYSIS.out.versions
     }
 
-    ch_report_run_dir = ch_report_trigger.map { _ -> params.outdir.toString() }
+    ch_report_run_dir = ch_report_trigger.map { _ -> file(params.outdir).toString() }
     GENERATE_ERROR_REPORT(ch_report_run_dir)
     ch_versions = ch_versions.mix(GENERATE_ERROR_REPORT.out.versions)
 
