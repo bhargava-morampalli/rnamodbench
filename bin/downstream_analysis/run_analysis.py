@@ -25,7 +25,11 @@ from sklearn.metrics import precision_recall_curve, roc_curve
 # allow script-mode local imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from parse_outputs import load_all_tool_outputs, parse_tool_output
+from parse_outputs import (
+    build_reference_aliases,
+    load_all_tool_outputs,
+    parse_tool_output,
+)
 from benchmark_metrics import _metrics_from_arrays, calculate_metrics, load_ground_truth
 from data_quality import generate_quality_summary, validate_all_outputs
 from position_standardization import (
@@ -88,6 +92,7 @@ DIFFERR_GSTAT_SUBDIR = "differr_gstat"
 def load_tool_outputs_from_args(
     args: argparse.Namespace,
     differr_score_field: str = DIFFERR_PRIMARY_SCORE_FIELD,
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> Dict[str, pd.DataFrame]:
     tool_outputs: Dict[str, pd.DataFrame] = {}
 
@@ -107,6 +112,7 @@ def load_tool_outputs_from_args(
                 tool,
                 path,
                 differr_score_field=differr_score_field,
+                reference_aliases=reference_aliases,
             )
             if not df.empty:
                 tool_outputs[tool] = df
@@ -1129,6 +1135,7 @@ def run_analysis(
 def _load_tool_outputs_for_mode(
     args: argparse.Namespace,
     differr_score_field: str,
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> Dict[str, pd.DataFrame]:
     if args.input_dir:
         in_dir = Path(args.input_dir)
@@ -1139,9 +1146,14 @@ def _load_tool_outputs_for_mode(
             SUPPORTED_TOOLS,
             coverage_dirs=args.coverage_dirs,
             differr_score_field=differr_score_field,
+            reference_aliases=reference_aliases,
         )
 
-    return load_tool_outputs_from_args(args, differr_score_field=differr_score_field)
+    return load_tool_outputs_from_args(
+        args,
+        differr_score_field=differr_score_field,
+        reference_aliases=reference_aliases,
+    )
 
 
 def _resolve_differr_runs(
@@ -1213,6 +1225,22 @@ def main() -> None:
 
     references_csv = Path(args.references_csv) if args.references_csv else None
 
+    # Build reference aliases up-front so filename-based reference inference
+    # (e.g. Tombo) routes rows to canonical FASTA-header IDs that match the
+    # reference catalog. Failure here is non-fatal — without aliases the
+    # parser falls back to the legacy 16s/23s heuristic.
+    reference_aliases: Optional[Dict[str, str]] = None
+    if references_csv is not None:
+        try:
+            reference_aliases = build_reference_aliases(references_csv)
+            logger.info(
+                "Built %d reference alias entries from %s",
+                len(reference_aliases),
+                references_csv,
+            )
+        except Exception as exc:
+            logger.warning("Failed to build reference aliases from %s: %s", references_csv, exc)
+
     try:
         planned_runs = _resolve_differr_runs(Path(args.output_dir), args.differr_score_field)
     except ValueError as exc:
@@ -1226,7 +1254,11 @@ def main() -> None:
             mode_output_dir,
         )
         try:
-            tool_outputs = _load_tool_outputs_for_mode(args, differr_score_field=score_field)
+            tool_outputs = _load_tool_outputs_for_mode(
+                args,
+                differr_score_field=score_field,
+                reference_aliases=reference_aliases,
+            )
         except FileNotFoundError as exc:
             logger.error(str(exc))
             sys.exit(1)

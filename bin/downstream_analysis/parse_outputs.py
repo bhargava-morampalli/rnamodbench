@@ -79,9 +79,38 @@ def _find_column(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
     return None
 
 
-def _extract_reference_from_path(filepath: Path) -> str:
-    """Best-effort reference extraction from filename/path tokens."""
+def _extract_reference_from_path(
+    filepath: Path,
+    reference_aliases: Optional[Dict[str, str]] = None,
+) -> str:
+    """Best-effort reference extraction from filename/path tokens.
+
+    When ``reference_aliases`` is provided (lowercase alias -> canonical ID),
+    match aliases against path tokens with word boundaries; longest alias wins.
+    If aliases are provided but none match, return "unknown" so the row is
+    dropped downstream rather than relabeled to a generic "16s"/"23s" token.
+    The legacy "16s"/"23s"/"5s" fallback is only used when aliases are not
+    supplied (preserving backward compatibility for legacy single-reference
+    runs).
+    """
     tokens = [filepath.stem] + [p.name for p in list(filepath.parents)[:4]]
+
+    if reference_aliases:
+        sorted_aliases = sorted(
+            reference_aliases.items(), key=lambda kv: len(kv[0]), reverse=True
+        )
+        for token in tokens:
+            tl = token.lower()
+            for alias, canonical in sorted_aliases:
+                if not alias:
+                    continue
+                pattern = re.compile(
+                    rf"(?:^|[^a-z0-9]){re.escape(alias)}(?:$|[^a-z0-9])"
+                )
+                if pattern.search(tl):
+                    return canonical
+        return "unknown"
+
     for token in tokens:
         token_l = token.lower()
         if "16s" in token_l:
@@ -91,6 +120,46 @@ def _extract_reference_from_path(filepath: Path) -> str:
         if "5s" in token_l:
             return "5s"
     return "unknown"
+
+
+def build_reference_aliases(
+    references_csv: Union[str, Path],
+) -> Dict[str, str]:
+    """Build a lowercase-alias -> canonical-FASTA-header map from a references CSV.
+
+    For each row (target, reference_path) in the CSV, registers two aliases:
+      - target.lower()              -> FASTA header (first record id)
+      - fasta_header.lower()        -> FASTA header
+    """
+    csv_path = Path(references_csv)
+    if not csv_path.exists():
+        raise FileNotFoundError(f"references CSV not found: {csv_path}")
+
+    df = pd.read_csv(csv_path)
+    if "target" not in df.columns or "reference" not in df.columns:
+        raise ValueError("references CSV must have columns: target,reference")
+
+    aliases: Dict[str, str] = {}
+    for _, row in df.iterrows():
+        target = str(row["target"]).strip()
+        ref_path = Path(str(row["reference"]).strip())
+        if not ref_path.is_absolute():
+            ref_path = (csv_path.parent / ref_path).resolve()
+        if not ref_path.exists():
+            logger.warning("Reference FASTA not found while building aliases: %s", ref_path)
+            continue
+        header = None
+        with open(ref_path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith(">"):
+                    header = line[1:].split()[0].strip()
+                    break
+        if not header:
+            logger.warning("No FASTA header in %s; skipping alias", ref_path)
+            continue
+        aliases[target.lower()] = header
+        aliases[header.lower()] = header
+    return aliases
 
 
 def _extract_replicate_from_path(filepath: Path) -> str:
@@ -262,7 +331,10 @@ def _finalize_result(
 # -----------------------------------------------------------------------------
 
 def parse_tombo(
-    filepath: Union[str, Path], sample_id: str = None, replicate: str = None
+    filepath: Union[str, Path],
+    sample_id: str = None,
+    replicate: str = None,
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> pd.DataFrame:
     filepath = Path(filepath)
     logger.info("Parsing TOMBO output: %s", filepath)
@@ -283,7 +355,7 @@ def parse_tombo(
 
         out = pd.DataFrame(
             {
-                "reference": _extract_reference_from_path(filepath),
+                "reference": _extract_reference_from_path(filepath, reference_aliases),
                 "position": _safe_numeric(df[pos_col]),
                 "score": _safe_numeric(df[stat_col]) if stat_col else np.nan,
                 "score_type": "pvalue",
@@ -354,6 +426,7 @@ def parse_nanocompore(
     sample_id: str = None,
     replicate: str = None,
     pvalue_col: str = "GMM_logit_pvalue",
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> pd.DataFrame:
     filepath = Path(filepath)
 
@@ -395,7 +468,7 @@ def parse_nanocompore(
 
         out = pd.DataFrame(
             {
-                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath, reference_aliases),
                 "position": pos_vals,
                 "score": _safe_numeric(df[pval_col]) if pval_col else np.nan,
                 "score_type": "pvalue",
@@ -410,7 +483,10 @@ def parse_nanocompore(
 
 
 def parse_xpore(
-    filepath: Union[str, Path], sample_id: str = None, replicate: str = None
+    filepath: Union[str, Path],
+    sample_id: str = None,
+    replicate: str = None,
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> pd.DataFrame:
     filepath = Path(filepath)
 
@@ -445,7 +521,7 @@ def parse_xpore(
 
         out = pd.DataFrame(
             {
-                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath, reference_aliases),
                 "position": _safe_numeric(df[pos_col]) + 2,
                 "score": bh_fdr,
                 "score_type": "fdr",
@@ -466,7 +542,10 @@ def parse_xpore(
 
 
 def parse_eligos(
-    filepath: Union[str, Path], sample_id: str = None, replicate: str = None
+    filepath: Union[str, Path],
+    sample_id: str = None,
+    replicate: str = None,
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> pd.DataFrame:
     filepath = Path(filepath)
 
@@ -494,7 +573,7 @@ def parse_eligos(
 
         out = pd.DataFrame(
             {
-                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath, reference_aliases),
                 "position": _safe_numeric(df[pos_col]) + 1,
                 "score": _safe_numeric(df[score_col]) if score_col else np.nan,
                 "score_type": "pvalue",
@@ -682,7 +761,10 @@ def parse_differr(
 
 
 def parse_drummer(
-    filepath: Union[str, Path], sample_id: str = None, replicate: str = None
+    filepath: Union[str, Path],
+    sample_id: str = None,
+    replicate: str = None,
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> pd.DataFrame:
     filepath = Path(filepath)
 
@@ -707,7 +789,7 @@ def parse_drummer(
 
         out = pd.DataFrame(
             {
-                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath),
+                "reference": df[ref_col] if ref_col else _extract_reference_from_path(filepath, reference_aliases),
                 "position": _safe_numeric(df[pos_col]),
                 "score": _safe_numeric(df[score_col]) if score_col else np.nan,
                 "score_type": "pvalue",
@@ -798,7 +880,10 @@ def parse_jacusa2(
 
 
 def parse_nanodoc(
-    filepath: Union[str, Path], sample_id: str = None, replicate: str = None
+    filepath: Union[str, Path],
+    sample_id: str = None,
+    replicate: str = None,
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> pd.DataFrame:
     filepath = Path(filepath)
     logger.info("Parsing nanoDoc output: %s", filepath)
@@ -824,7 +909,7 @@ def parse_nanodoc(
 
         out = pd.DataFrame(
             {
-                "reference": _extract_reference_from_path(filepath),
+                "reference": _extract_reference_from_path(filepath, reference_aliases),
                 "position": _safe_numeric(df["pos"]),
                 "score": _safe_numeric(df["scoreTotal"]),
                 "score_type": "score",
@@ -845,6 +930,7 @@ def parse_tool_output(
     replicate: str = None,
     coverage: str = None,
     differr_score_field: str = "g_fdr_neglog10",
+    reference_aliases: Optional[Dict[str, str]] = None,
     **kwargs,
 ) -> pd.DataFrame:
     parsers = {
@@ -867,6 +953,19 @@ def parse_tool_output(
     parser_kwargs = dict(kwargs)
     if tool_l == "differr":
         parser_kwargs["score_field"] = differr_score_field
+
+    # Forward aliases only to parsers that accept the kwarg, so this stays a
+    # surgical, opt-in change for the parsers that fall back to filename-based
+    # reference inference (tombo, nanocompore, xpore, eligos, drummer, nanodoc).
+    if reference_aliases is not None and tool_l in {
+        "tombo",
+        "nanocompore",
+        "xpore",
+        "eligos",
+        "drummer",
+        "nanodoc",
+    }:
+        parser_kwargs["reference_aliases"] = reference_aliases
 
     df = parsers[tool_l](filepath, sample_id=sample_id, replicate=replicate, **parser_kwargs)
     if df.empty:
@@ -937,6 +1036,7 @@ def load_all_tool_outputs(
     tools: Optional[List[str]] = None,
     coverage_dirs: bool = False,
     differr_score_field: str = "g_fdr_neglog10",
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> Dict[str, pd.DataFrame]:
     output_dir = Path(output_dir)
 
@@ -944,14 +1044,25 @@ def load_all_tool_outputs(
         tools = SUPPORTED_TOOLS
 
     if coverage_dirs:
-        return _load_with_coverage_dirs(output_dir, tools, differr_score_field=differr_score_field)
-    return _load_standard_structure(output_dir, tools, differr_score_field=differr_score_field)
+        return _load_with_coverage_dirs(
+            output_dir,
+            tools,
+            differr_score_field=differr_score_field,
+            reference_aliases=reference_aliases,
+        )
+    return _load_standard_structure(
+        output_dir,
+        tools,
+        differr_score_field=differr_score_field,
+        reference_aliases=reference_aliases,
+    )
 
 
 def _load_standard_structure(
     output_dir: Path,
     tools: List[str],
     differr_score_field: str = "g_fdr_neglog10",
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> Dict[str, pd.DataFrame]:
     results: Dict[str, pd.DataFrame] = {}
 
@@ -967,7 +1078,12 @@ def _load_standard_structure(
 
         for inp in inputs:
             try:
-                df = parse_tool_output(tool, inp, differr_score_field=differr_score_field)
+                df = parse_tool_output(
+                    tool,
+                    inp,
+                    differr_score_field=differr_score_field,
+                    reference_aliases=reference_aliases,
+                )
                 if not df.empty:
                     dfs.append(df)
             except Exception as exc:
@@ -983,6 +1099,7 @@ def _load_with_coverage_dirs(
     output_dir: Path,
     tools: List[str],
     differr_score_field: str = "g_fdr_neglog10",
+    reference_aliases: Optional[Dict[str, str]] = None,
 ) -> Dict[str, pd.DataFrame]:
     results: Dict[str, List[pd.DataFrame]] = {tool: [] for tool in tools}
 
@@ -1010,6 +1127,7 @@ def _load_with_coverage_dirs(
                         inp,
                         coverage=coverage,
                         differr_score_field=differr_score_field,
+                        reference_aliases=reference_aliases,
                     )
                     if not df.empty:
                         results[tool].append(df)
@@ -1035,13 +1153,20 @@ if __name__ == "__main__":
     parser.add_argument("--output", "-o")
     parser.add_argument("--sample-id")
     parser.add_argument("--replicate")
+    parser.add_argument(
+        "--references-csv",
+        help="optional references CSV (target,reference) for alias-aware reference inference",
+    )
     args = parser.parse_args()
+
+    aliases = build_reference_aliases(args.references_csv) if args.references_csv else None
 
     parsed = parse_tool_output(
         args.tool,
         args.filepath,
         sample_id=args.sample_id,
         replicate=args.replicate,
+        reference_aliases=aliases,
     )
 
     if args.output:
