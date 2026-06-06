@@ -117,9 +117,6 @@
                         ]
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,82f87b8a082ab1051bce2b3978151f71"
-                ],
                 "indexed": [
                     [
                         {
@@ -234,9 +231,6 @@
                             "2166cca5-c0ab-49eb-aec1-fec09bdfbd83.fast5:md5,54ac4ec12232104381d2dcd619c9b4be"
                         ]
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,82f87b8a082ab1051bce2b3978151f71"
                 ]
             }
         ],

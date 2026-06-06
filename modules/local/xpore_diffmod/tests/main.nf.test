@@ -30,9 +30,7 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.diffmod },
-                { assert process.out.diffmod.get(0).get(1).toString().endsWith('diffmod') },
-                { assert process.out.versions },
-                { assert snapshot(process.out.versions).match() }
+                { assert process.out.diffmod.get(0).get(1).toString().endsWith('diffmod') }
             )
         }
     }
@@ -59,8 +57,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.diffmod },
-                { assert process.out.versions }
+                { assert process.out.diffmod }
             )
         }
     }

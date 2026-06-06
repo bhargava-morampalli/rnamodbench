@@ -11,7 +11,7 @@ process F5C_INDEX {
 
     output:
     tuple val(meta), path(fastq), path("*.index"), path("*.index.readdb"), path("*.index.gzi"), path("*.index.fai"), path(fast5_dir), emit: indexed
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('f5c'), eval('f5c --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -21,11 +21,6 @@ process F5C_INDEX {
     def summary_arg = sequencing_summary.name != 'NO_FILE' ? "-s ${sequencing_summary}" : ""
     """
     f5c index -t ${task.cpus} --iop ${task.cpus} ${summary_arg} -d $fast5_dir $fastq
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        f5c: \$(f5c --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
@@ -34,10 +29,5 @@ process F5C_INDEX {
     touch ${fastq}.index.readdb
     touch ${fastq}.index.gzi
     touch ${fastq}.index.fai
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        f5c: 1.1
-    END_VERSIONS
     """
 }

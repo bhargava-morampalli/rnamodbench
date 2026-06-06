@@ -16,9 +16,6 @@
                         ]
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,8e30481eac71d1a124d65796c7c7db3a"
-                ],
                 "fast5": [
                     [
                         {
@@ -32,9 +29,6 @@
                             "filename_mapping.txt:md5,daa77a4bdba25f22e1b40a17737c0841"
                         ]
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,8e30481eac71d1a124d65796c7c7db3a"
                 ]
             }
         ],

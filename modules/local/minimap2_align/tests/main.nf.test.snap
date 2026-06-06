@@ -11,9 +11,6 @@
                         "test.sam:md5,ea0563c293c8874c60b7de4dac3211fa"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,9e9eeae0002d466d580a9d6e0d003eb1"
-                ],
                 "sam": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test.sam:md5,ea0563c293c8874c60b7de4dac3211fa"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,9e9eeae0002d466d580a9d6e0d003eb1"
                 ]
             }
         ],

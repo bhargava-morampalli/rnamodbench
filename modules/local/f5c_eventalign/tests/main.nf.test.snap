@@ -11,9 +11,6 @@
                         "test_eventalign.txt:md5,b8975bae84ddeff211637f487fcb9226"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,fc2ab5950ea2c08672431ef59f9d9583"
-                ],
                 "eventalign": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test_eventalign.txt:md5,b8975bae84ddeff211637f487fcb9226"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,fc2ab5950ea2c08672431ef59f9d9583"
                 ]
             }
         ],

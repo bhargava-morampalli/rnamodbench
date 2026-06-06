@@ -13,7 +13,10 @@ process DOWNSTREAM_ANALYSIS {
     output:
     path("downstream_analysis")         , emit: results
     path "*.log"                        , emit: log, optional: true
-    path "versions.yml"                 , emit: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('sklearn'), eval('python -c \'import sklearn; print(sklearn.__version__)\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('matplotlib'), eval('python -c \'import matplotlib; print(matplotlib.__version__)\' 2>/dev/null || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -47,14 +50,6 @@ process DOWNSTREAM_ANALYSIS {
         ${args}
 
     echo "=== DOWNSTREAM_ANALYSIS completed at \$(date) ==="
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version 2>&1 | sed 's/Python //')
-        pandas: \$(python -c "import pandas; print(pandas.__version__)")
-        sklearn: \$(python -c "import sklearn; print(sklearn.__version__)")
-        matplotlib: \$(python -c "import matplotlib; print(matplotlib.__version__)")
-    END_VERSIONS
     """
 
     stub:
@@ -68,13 +63,5 @@ process DOWNSTREAM_ANALYSIS {
     touch downstream_analysis/metrics/all_metrics.csv
     touch downstream_analysis/tool_comparison/summary.csv
     touch downstream_analysis/report/report.html
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: 3.10.0
-        pandas: 2.0.0
-        sklearn: 1.3.0
-        matplotlib: 3.7.0
-    END_VERSIONS
     """
 }

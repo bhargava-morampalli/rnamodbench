@@ -44,10 +44,6 @@ output:
       type: file
       description: JSON file with per-site statistical model predictions
       pattern: "*_sm_preds.json"
-  - versions:
-      type: file
-      description: File containing software versions
-      pattern: "versions.yml"
 
 authors:
   - "@bhargava-morampalli"

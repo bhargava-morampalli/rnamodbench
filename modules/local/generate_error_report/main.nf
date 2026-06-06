@@ -14,7 +14,8 @@ process GENERATE_ERROR_REPORT {
     path "tool_availability_per_run.tsv", emit: availability
     path "error_summary.html", emit: html
     path "error_summary.csv" , emit: csv
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -28,12 +29,6 @@ process GENERATE_ERROR_REPORT {
         --run-dir "$run_dir" \\
         --pipeline-info-dir . \\
         --output error_summary
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version 2>&1 | sed 's/Python //')
-        pandas: \$(python -c "import pandas; print(pandas.__version__)")
-    END_VERSIONS
     """
 
     stub:
@@ -43,11 +38,5 @@ process GENERATE_ERROR_REPORT {
     touch tool_availability_per_run.tsv
     touch error_summary.html
     touch error_summary.csv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: 3.10.0
-        pandas: 2.0.0
-    END_VERSIONS
     """
 }

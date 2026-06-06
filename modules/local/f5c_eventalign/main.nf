@@ -10,7 +10,7 @@ process F5C_EVENTALIGN {
 
     output:
     tuple val(meta), path("*.txt"), emit: eventalign
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('f5c'), eval('f5c --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,21 +27,11 @@ process F5C_EVENTALIGN {
         -g $reference \\
         -r $fastq \\
         > ${prefix}_eventalign.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        f5c: \$(f5c --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}_eventalign.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        f5c: 1.1
-    END_VERSIONS
     """
 }

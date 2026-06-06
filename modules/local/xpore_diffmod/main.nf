@@ -11,7 +11,7 @@ process XPORE_DIFFMOD {
     output:
     tuple val(key), path("${key}_diffmod"), emit: diffmod
     path "*.log"                          , emit: log, optional: true
-    path "versions.yml"                   , emit: versions
+    tuple val("${task.process}"), val('xpore'), eval('xpore --version 2>&1 | sed \'s/^.*xpore //; s/ .*$//\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -55,11 +55,6 @@ YAML
     xpore diffmod --config config.yml --n_processes ${task.cpus} $args
 
     echo "=== XPORE_DIFFMOD completed at \$(date) ==="
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        xpore: \$(xpore --version 2>&1 | sed 's/^.*xpore //; s/ .*\$//')
-    END_VERSIONS
     """
 
     stub:
@@ -67,10 +62,5 @@ YAML
     """
     mkdir -p ${out_dir}
     touch ${out_dir}/diffmod.table
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        xpore: 2.1
-    END_VERSIONS
     """
 }

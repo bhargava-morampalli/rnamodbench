@@ -10,7 +10,7 @@ process EXTRACT_READ_IDS {
 
     output:
     tuple val(meta), path("*.read_ids.txt"), emit: read_ids
-    path "versions.yml"                    , emit: versions
+    tuple val("${task.process}"), val('seqkit'), eval('seqkit version | sed \'s/seqkit version //\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -19,21 +19,11 @@ process EXTRACT_READ_IDS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     seqkit seq -n -i $fastq > ${prefix}.read_ids.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        seqkit: \$(seqkit version | sed 's/seqkit version //')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.read_ids.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        seqkit: \$(seqkit version | sed 's/seqkit version //')
-    END_VERSIONS
     """
 }

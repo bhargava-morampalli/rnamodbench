@@ -11,7 +11,7 @@ process NANOCOMPORE_SAMPCOMP {
     output:
     tuple val(key), path("${prefix}"), emit: results
     path "*.log"                      , emit: log, optional: true
-    path "versions.yml"               , emit: versions
+    tuple val("${task.process}"), val('nanocompore'), eval('nanocompore --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -47,10 +47,6 @@ process NANOCOMPORE_SAMPCOMP {
 
     echo "=== NANOCOMPORE_SAMPCOMP completed at \$(date) ==="
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        nanocompore: \$(nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
@@ -61,9 +57,5 @@ process NANOCOMPORE_SAMPCOMP {
     touch ${prefix}/outSampComp_results.tsv
     touch ${prefix}/outSampComp_stats.tsv
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        nanocompore: \$(nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 }

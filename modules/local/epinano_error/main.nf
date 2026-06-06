@@ -11,7 +11,9 @@ process EPINANO_ERROR {
     output:
     tuple val(meta), path("${prefix}"), emit: results
     path "*.log"                      , emit: log, optional: true
-    path "versions.yml"               , emit: versions
+    tuple val("${task.process}"), val('epinano'), eval('python -c \'import importlib.metadata as m; print(m.version("epinano"))\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('R'), eval('R --version 2>&1 | head -1 | sed \'s/R version \\([^ ]*\\).*/\\1/\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -189,29 +191,6 @@ process EPINANO_ERROR {
 
     echo "=== EPINANO_ERROR completed at \$(date) ==="
 
-    epinano_version=\$(python - <<'PY'
-try:
-    import importlib.metadata as md
-except Exception:
-    import importlib_metadata as md  # type: ignore
-
-version = "unknown"
-for package in ("epinano", "EpiNano"):
-    try:
-        version = md.version(package)
-        break
-    except Exception:
-        pass
-print(version)
-PY
-)
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        epinano: \$epinano_version
-        python: \$(python --version 2>&1 | sed 's/Python //')
-        R: \$(R --version 2>&1 | head -1 | sed 's/R version \\([^ ]*\\).*/\\1/')
-    END_VERSIONS
     """
 
     stub:
@@ -223,11 +202,5 @@ PY
     touch ${prefix}/${meta.id}_mismatch_diff_err.csv
     touch ${prefix}/${meta.id}_sumerr_diff_err.csv
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        epinano: 1.2
-        python: 3.8.0
-        R: 4.0.0
-    END_VERSIONS
     """
 }

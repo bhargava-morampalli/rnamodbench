@@ -10,7 +10,7 @@ process SAMTOOLS_DEPTH {
 
     output:
     tuple val(meta), path("*.txt"), emit: depth
-    path "versions.yml"             , emit: versions
+    tuple val("${task.process}"), val('samtools'), eval('echo $(samtools --version 2>&1) | sed \'s/^.*samtools //; s/Using.*$//\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -19,21 +19,11 @@ process SAMTOOLS_DEPTH {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     samtools depth -a -m 0 $bam > ${prefix}.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
 }

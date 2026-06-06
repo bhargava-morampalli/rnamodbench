@@ -112,9 +112,6 @@
                         ]
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,0f31bcd7d63e5f2d107f7caa6a976683"
-                ],
                 "resquiggled": [
                     [
                         {
@@ -224,9 +221,6 @@
                             "2166cca5-c0ab-49eb-aec1-fec09bdfbd83.fast5:md5,4aa5dc5ca12dfaae725d78b8bb012615"
                         ]
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,0f31bcd7d63e5f2d107f7caa6a976683"
                 ]
             }
         ],

@@ -14,7 +14,6 @@ nextflow.enable.dsl=2
  *   - eventalign:       [ val(meta), path(eventalign) ] - for nanocompore/yanocomp (read_name column)
  *   - eventalign_xpore: [ val(meta), path(eventalign) ] - for xpore (read_index column)
  *   - tombo_resquiggled: [ val(meta), path(fast5) ] - resquiggled FAST5 files
- *   - versions:         [ path(versions.yml) ]
  *
  * Note: Data is processed dynamically based on meta.rrna.
  *       Reference selection is done using the ref_map parameter.
@@ -78,18 +77,9 @@ workflow SIGNAL_PROCESSING {
 
         TOMBO_RESQUIGGLE ( ch_tombo_input )
 
-        // Collect version info
-        versions_ch = Channel.empty()
-            .mix(F5C_EVENTALIGN.out.versions)
-            .mix(F5C_EVENTALIGN_XPORE.out.versions)
-            .mix(F5C_INDEX.out.versions)
-            .mix(TOMBO_RESQUIGGLE.out.versions)
-            .collect()
-
     emit:
         // Unified eventalign outputs (consumers can filter by meta.rrna and meta.type)
         eventalign       = F5C_EVENTALIGN.out.eventalign       // [ val(meta), path(eventalign) ]
         eventalign_xpore = F5C_EVENTALIGN_XPORE.out.eventalign // [ val(meta), path(eventalign) ]
         tombo_resquiggled = TOMBO_RESQUIGGLE.out.resquiggled   // [ val(meta), path(fast5) ]
-        versions         = versions_ch                          // [ path(versions.yml) ]
 }

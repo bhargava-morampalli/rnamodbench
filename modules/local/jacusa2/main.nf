@@ -11,7 +11,8 @@ process JACUSA2 {
     output:
     tuple val(meta), path("${prefix}.bed"), emit: bed
     path "*.log"                          , emit: log, optional: true
-    path "versions.yml"                   , emit: versions
+    tuple val("${task.process}"), val('jacusa2'), val('2.0.4'), topic: versions
+    tuple val("${task.process}"), val('java'), eval('java -version 2>&1 | head -1 | sed \'s/.*version "\\([^"]*\\)".*/\\1/\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -85,12 +86,6 @@ process JACUSA2 {
     rm -f native_md.bam native_md.bam.bai ivt_md.bam ivt_md.bam.bai
 
     echo "=== JACUSA2 completed at \$(date) ==="
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        jacusa2: \$(java -jar \$JACUSA_JAR 2>&1 | grep -oP '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1 || echo "2.0.4")
-        java: \$(java -version 2>&1 | head -1 | sed 's/.*version "\\([^"]*\\)".*/\\1/')
-    END_VERSIONS
     """
 
     stub:
@@ -99,11 +94,5 @@ process JACUSA2 {
     # Create stub BED file with JACUSA2 output format
     echo -e "##JACUSA2 v2.0.4" > ${prefix}.bed
     echo -e "#contig\\tstart\\tend\\tname\\tscore\\tstrand\\tinfo\\tfilter\\tref" >> ${prefix}.bed
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        jacusa2: 2.0.4
-        java: 1.8.0
-    END_VERSIONS
     """
 }

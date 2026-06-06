@@ -12,7 +12,7 @@ process YANOCOMP_PREPARE {
 
     output:
     tuple val(meta), path("*.hdf5"), emit: hdf5
-    path "versions.yml"            , emit: versions
+    tuple val("${task.process}"), val('yanocomp'), eval('yanocomp --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,21 +27,11 @@ process YANOCOMP_PREPARE {
         -e $eventalign \\
         ${summary_arg} \\
         -h ${prefix}.hdf5
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        yanocomp: \$(yanocomp --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.hdf5
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        yanocomp: 1.0.0
-    END_VERSIONS
     """
 }

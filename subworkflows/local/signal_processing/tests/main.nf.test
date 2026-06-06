@@ -52,7 +52,6 @@ nextflow_workflow {
         then {
             assertAll(
                 { assert workflow.success },
-                { assert workflow.out.versions },
                 { assert workflow.out.tombo_resquiggled },
                 { assert workflow.out.eventalign },
                 { assert workflow.out.eventalign_xpore }

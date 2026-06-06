@@ -11,7 +11,8 @@ process DRUMMER {
     output:
     tuple val(meta), path("${prefix}"), emit: results
     path "*.log"                      , emit: log, optional: true
-    path "versions.yml"               , emit: versions
+    tuple val("${task.process}"), val('drummer'), eval('python -c \'import importlib.metadata as m; print(m.version("drummer"))\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -126,28 +127,6 @@ PY
 
     echo "=== DRUMMER completed at \$(date) ==="
 
-    drummer_version=\$(python - <<'PY'
-try:
-    import importlib.metadata as md
-except Exception:
-    import importlib_metadata as md  # type: ignore
-
-version = "unknown"
-for package in ("drummer", "DRUMMER"):
-    try:
-        version = md.version(package)
-        break
-    except Exception:
-        pass
-print(version)
-PY
-)
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        drummer: \$drummer_version
-        python: \$(python --version 2>&1 | sed 's/Python //')
-    END_VERSIONS
     """
 
     stub:
@@ -156,10 +135,5 @@ PY
     mkdir -p ${prefix}
     echo -e "transcript_id\\tchrom\\tref_base\\tposition\\tread_depth\\tbase_fractions\\todds_ratio\\tpval\\tmotif\\tg_test\\tgenomic_pos" > ${prefix}/summary.txt
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        drummer: 1.0
-        python: 3.8.0
-    END_VERSIONS
     """
 }

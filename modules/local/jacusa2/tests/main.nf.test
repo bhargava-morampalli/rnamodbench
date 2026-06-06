@@ -42,8 +42,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.bed },
-                { assert process.out.versions }
+                { assert process.out.bed }
             )
         }
     }

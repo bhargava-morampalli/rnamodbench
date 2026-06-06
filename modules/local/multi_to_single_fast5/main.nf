@@ -10,7 +10,7 @@ process MULTI_TO_SINGLE_FAST5 {
 
     output:
     tuple val(meta), path("single_fast5_*"), emit: fast5
-    path "versions.yml"                   , emit: versions
+    tuple val("${task.process}"), val('ont-fast5-api'), eval('multi_to_single_fast5 --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -24,21 +24,11 @@ process MULTI_TO_SINGLE_FAST5 {
         --input_path ${fast5_dir} \\
         --save_path $out_dir \\
         --recursive
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        ont-fast5-api: \$(multi_to_single_fast5 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
     def out_dir = "single_fast5_${meta.id}"
     """
     mkdir -p $out_dir
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        ont-fast5-api: unknown
-    END_VERSIONS
     """
 }

@@ -26,9 +26,7 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.stats },
-                { assert process.out.stats.get(0).get(1).toString().endsWith('.feather') },
-                { assert process.out.versions },
-                { assert snapshot(process.out.versions).match() }
+                { assert process.out.stats.get(0).get(1).toString().endsWith('.feather') }
             )
         }
     }
@@ -51,8 +49,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.stats },
-                { assert process.out.versions }
+                { assert process.out.stats }
             )
         }
     }

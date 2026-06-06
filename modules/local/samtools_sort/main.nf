@@ -10,7 +10,7 @@ process SAMTOOLS_SORT {
 
     output:
     tuple val(meta), path("*_sorted.bam"), emit: bam
-    path "versions.yml"                   , emit: versions
+    tuple val("${task.process}"), val('samtools'), eval('echo $(samtools --version 2>&1) | sed \'s/^.*samtools //; s/Using.*$//\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -19,21 +19,11 @@ process SAMTOOLS_SORT {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     samtools view -S -b -h $sam | samtools sort -o ${prefix}_sorted.bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}_sorted.bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
 }

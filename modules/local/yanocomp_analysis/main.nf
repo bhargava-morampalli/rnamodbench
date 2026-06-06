@@ -13,7 +13,7 @@ process YANOCOMP_ANALYSIS {
     tuple val(meta), path("*.bed")             , emit: bed
     tuple val(meta), path("*_sm_preds.json")   , emit: json
     path "*.log"                               , emit: log, optional: true
-    path "versions.yml"                        , emit: versions
+    tuple val("${task.process}"), val('yanocomp'), eval('yanocomp --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -43,11 +43,6 @@ process YANOCOMP_ANALYSIS {
         -s ${prefix}_sm_preds.json
 
     echo "=== YANOCOMP_ANALYSIS completed at \$(date) ==="
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        yanocomp: \$(yanocomp --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
@@ -55,10 +50,5 @@ process YANOCOMP_ANALYSIS {
     """
     touch ${prefix}.bed
     touch ${prefix}_sm_preds.json
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        yanocomp: 1.0.0
-    END_VERSIONS
     """
 }

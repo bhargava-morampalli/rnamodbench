@@ -12,7 +12,8 @@ process TOMBO_TEXT_OUTPUT {
     output:
     tuple val(key), path("*.csv"), emit: csv
     path "*.log"                 , emit: log, optional: true
-    path "versions.yml"          , emit: versions
+    tuple val("${task.process}"), val('tombo'), eval('tombo --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -78,13 +79,6 @@ process TOMBO_TEXT_OUTPUT {
         logger.error(f"Error during processing: {str(e)}")
         raise
 
-    # Create versions file
-    import subprocess
-    with open("versions.yml", "w") as f:
-        f.write('"${task.process}":\\n')
-        tombo_version = subprocess.check_output(['tombo', '--version'], stderr=subprocess.STDOUT).decode().strip().split()[-1]
-        f.write('    tombo: ' + tombo_version + '\\n')
-        f.write('    pandas: ' + pd.__version__ + '\\n')
     """
 
     stub:
@@ -92,10 +86,5 @@ process TOMBO_TEXT_OUTPUT {
     """
     touch ${prefix}.csv
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        tombo: 1.5.1
-        pandas: 1.3.4
-    END_VERSIONS
     """
 }

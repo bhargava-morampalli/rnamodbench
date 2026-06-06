@@ -11,9 +11,6 @@
                         "test.txt:md5,69d49bf5e82d7714a54d9f36a5403cff"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,233d45b071cc76275b543cccfd36821b"
-                ],
                 "depth": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test.txt:md5,69d49bf5e82d7714a54d9f36a5403cff"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,233d45b071cc76275b543cccfd36821b"
                 ]
             }
         ],

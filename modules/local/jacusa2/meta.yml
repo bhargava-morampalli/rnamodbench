@@ -49,9 +49,5 @@ output:
       type: file
       description: BED-like file with variant calls and scores for modification detection
       pattern: "*_jacusa2.bed"
-  - versions:
-      type: file
-      description: File containing software versions
-      pattern: "versions.yml"
 authors:
   - "@bmorampa"

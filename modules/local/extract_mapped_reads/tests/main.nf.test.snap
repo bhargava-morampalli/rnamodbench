@@ -11,9 +11,6 @@
                         "test.fastq:md5,b69ed87fa2058eb05fdcd76ea19591b2"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,5775faa201543946107332027461de77"
-                ],
                 "fastq": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test.fastq:md5,b69ed87fa2058eb05fdcd76ea19591b2"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,5775faa201543946107332027461de77"
                 ]
             }
         ],

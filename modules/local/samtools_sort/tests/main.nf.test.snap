@@ -11,9 +11,6 @@
                         "test.sorted_sorted.bam:md5,4c62d947695276aafe80d7f01284bbe0"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,46f7a36082fa1f68285fe30d689244e8"
-                ],
                 "bam": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test.sorted_sorted.bam:md5,4c62d947695276aafe80d7f01284bbe0"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,46f7a36082fa1f68285fe30d689244e8"
                 ]
             }
         ],

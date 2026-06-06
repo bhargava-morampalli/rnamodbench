@@ -14,7 +14,6 @@ nextflow.enable.dsl=2
  * Outputs:
  *   - single_fast5: [ val(meta), path(fast5) ] - single-read FAST5 files for Tombo
  *   - f5c_ready:    [ val(meta), path(fastq), path(bam), path(bai), path(fast5) ] - for f5c processing
- *   - versions:     [ path(versions.yml) ]
  *
  * Note: Data is processed dynamically based on meta.rrna and meta.type.
  *       No hardcoded target types - supports any rRNA target.
@@ -55,14 +54,6 @@ workflow PREPARE_SIGNAL_DATA {
         // 3. Convert multi-read FAST5 to single-read FAST5 for Tombo
         MULTI_TO_SINGLE_FAST5 ( FAST5_SUBSET.out.fast5 )
 
-        // Collect all version files from modules
-        versions_ch = Channel.empty()
-        versions_ch = versions_ch
-            .mix(EXTRACT_READ_IDS.out.versions)
-            .mix(FAST5_SUBSET.out.versions)
-            .mix(MULTI_TO_SINGLE_FAST5.out.versions)
-            .collect()
-
         // Prepare input for f5c: [ meta, fastq, bam, bai, fast5 ]
         // Join original inputs (fastq, bam, bai) with subsetted fast5s
         ch_f5c_ready = ch_mapped_all
@@ -74,5 +65,4 @@ workflow PREPARE_SIGNAL_DATA {
     emit:
         single_fast5 = MULTI_TO_SINGLE_FAST5.out.fast5  // [ val(meta), path(fast5) ]
         f5c_ready    = ch_f5c_ready                      // [ val(meta), path(fastq), path(bam), path(bai), path(fast5) ]
-        versions     = versions_ch
 }

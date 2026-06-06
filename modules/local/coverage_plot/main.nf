@@ -11,7 +11,10 @@ process COVERAGE_PLOT {
 
     output:
     tuple val(meta), path("*.pdf"), emit: plot
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('matplotlib'), eval('python -c \'import matplotlib; print(matplotlib.__version__)\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('seaborn'), eval('python -c \'import seaborn; print(seaborn.__version__)\' 2>/dev/null || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -20,24 +23,11 @@ process COVERAGE_PLOT {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     coverage_plot.py -f $depth -t ${meta.id} -o ${prefix}.pdf
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //')
-        pandas: \$(python -c "import pandas; print(pandas.__version__)")
-        matplotlib: \$(python -c "import matplotlib; print(matplotlib.__version__)")
-        seaborn: \$(python -c "import seaborn; print(seaborn.__version__)")
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.pdf
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //')
-    END_VERSIONS
     """
 }

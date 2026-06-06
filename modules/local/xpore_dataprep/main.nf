@@ -10,7 +10,7 @@ process XPORE_DATAPREP {
 
     output:
     tuple val(meta), path("dataprep_*"), emit: dataprep
-    path "versions.yml"              , emit: versions
+    tuple val("${task.process}"), val('xpore'), eval('xpore --version 2>&1 | sed \'s/^.*xpore //; s/ .*$//\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -22,11 +22,6 @@ process XPORE_DATAPREP {
         --eventalign $eventalign \\
         --out_dir $out_dir \\
         --n_processes ${task.cpus}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        xpore: \$(xpore --version 2>&1 | sed 's/^.*xpore //; s/ .*\$//')
-    END_VERSIONS
     """
 
     stub:
@@ -37,10 +32,5 @@ process XPORE_DATAPREP {
     touch $out_dir/data.index
     touch $out_dir/data.json
     touch $out_dir/data.readcount
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        xpore: 2.1
-    END_VERSIONS
     """
 }

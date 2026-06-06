@@ -10,7 +10,7 @@ process NANOCOMPORE_EVENTALIGN_COLLAPSE {
 
     output:
     tuple val(meta), path("${prefix}"), emit: collapsed
-    path "versions.yml"                , emit: versions
+    tuple val("${task.process}"), val('nanocompore'), eval('nanocompore --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -23,11 +23,6 @@ process NANOCOMPORE_EVENTALIGN_COLLAPSE {
         -i $eventalign \\
         -o ${prefix} \\
         -t ${task.cpus}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        nanocompore: \$(nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
@@ -37,10 +32,5 @@ process NANOCOMPORE_EVENTALIGN_COLLAPSE {
     touch ${prefix}/eventalign.index
     touch ${prefix}/out_eventalign_collapse.tsv
     touch ${prefix}/out_eventalign_collapse.idx
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        nanocompore: \$(echo \$(nanocompore --version 2>&1) | sed 's/^.*nanocompore //; s/ .*\$//')
-    END_VERSIONS
     """
 }

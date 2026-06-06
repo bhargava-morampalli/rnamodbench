@@ -12,7 +12,8 @@ process DIFFERR {
     tuple val(meta), path("${prefix}.bed"), emit: bed
     tuple val(meta), path("${prefix}.hdf5"), emit: hdf5, optional: true
     path "*.log"                           , emit: log, optional: true
-    path "versions.yml"                    , emit: versions
+    tuple val("${task.process}"), val('differr'), eval('v=$(differr --version 2>/dev/null | grep -oE \'[0-9]+(\\.[0-9]+)+\' | head -1); echo ${v:-unknown}'), topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -68,17 +69,6 @@ process DIFFERR {
 
     echo "=== DIFFERR completed at \$(date) ==="
 
-    # differr does not support --version in some releases; keep probe non-fatal
-    differr_version=\$((differr --version 2>/dev/null || true) | head -1 | sed -E 's/^[^0-9]*([0-9]+(\\.[0-9]+)*)?.*\$/\\1/')
-    if [ -z "\$differr_version" ]; then
-        differr_version="unknown"
-    fi
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        differr: \$differr_version
-        python: \$(python --version 2>&1 | sed 's/Python //')
-    END_VERSIONS
     """
 
     stub:
@@ -87,10 +77,5 @@ process DIFFERR {
     # Create stub BED file with expected columns
     echo -e "chr\\tstart\\tend\\todds_ratio\\tg_stat\\tpval\\tfdr" > ${prefix}.bed
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        differr: 0.2
-        python: 3.8.0
-    END_VERSIONS
     """
 }

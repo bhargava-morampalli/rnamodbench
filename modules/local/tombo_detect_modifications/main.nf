@@ -12,7 +12,7 @@ process TOMBO_DETECT_MODIFICATIONS {
     output:
     tuple val(key), path("*.tombo.stats"), emit: stats
     path "*.log"                         , emit: log, optional: true
-    path "versions.yml"                  , emit: versions
+    tuple val("${task.process}"), val('tombo'), eval('tombo --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -44,21 +44,11 @@ process TOMBO_DETECT_MODIFICATIONS {
         --processes ${task.cpus}
 
     echo "=== TOMBO_DETECT_MODIFICATIONS completed at \$(date) ==="
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        tombo: \$(tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${key}"
     """
     touch ${prefix}.tombo.stats
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        tombo: 1.5.1
-    END_VERSIONS
     """
 }

@@ -13,7 +13,7 @@ process ELIGOS_PAIR_DIFF_MOD {
     output:
     tuple val(meta), path("${prefix}"), emit: results
     path "*.log"                      , emit: log, optional: true
-    path "versions.yml"               , emit: versions
+    tuple val("${task.process}"), val('eligos2'), eval('eligos2 --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -53,11 +53,6 @@ process ELIGOS_PAIR_DIFF_MOD {
         -o $prefix
 
     echo "=== ELIGOS_PAIR_DIFF_MOD completed at \$(date) ==="
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        eligos2: \$(eligos2 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
@@ -65,10 +60,5 @@ process ELIGOS_PAIR_DIFF_MOD {
     """
     mkdir -p $prefix
     touch ${prefix}/test_paired_diff_mod_result.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        eligos2: 2.1.0
-    END_VERSIONS
     """
 }

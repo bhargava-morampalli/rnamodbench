@@ -11,7 +11,7 @@ process MINIMAP2_ALIGN {
 
     output:
     tuple val(meta), path("*.sam"), emit: sam
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('minimap2'), eval('minimap2 --version 2>&1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -29,21 +29,11 @@ process MINIMAP2_ALIGN {
         $reference \\
         $reads \\
         > ${prefix}.sam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        minimap2: \$(minimap2 --version 2>&1)
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.sam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        minimap2: \$(minimap2 --version 2>&1)
-    END_VERSIONS
     """
 }

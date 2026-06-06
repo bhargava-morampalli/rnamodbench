@@ -11,9 +11,6 @@
                         "test.bam.bai:md5,ee5acb04501c456bf26722624058963f"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,73956177c2863ee3ed13ec5da30337b2"
-                ],
                 "bai": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test.bam.bai:md5,ee5acb04501c456bf26722624058963f"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,73956177c2863ee3ed13ec5da30337b2"
                 ]
             }
         ],

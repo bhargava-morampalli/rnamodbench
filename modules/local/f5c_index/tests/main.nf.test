@@ -51,8 +51,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.indexed },
-                { assert process.out.versions }
+                { assert process.out.indexed }
             )
         }
     }

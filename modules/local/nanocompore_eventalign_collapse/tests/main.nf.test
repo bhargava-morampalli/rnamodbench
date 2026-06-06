@@ -29,8 +29,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.collapsed },
-                { assert process.out.versions }
+                { assert process.out.collapsed }
             )
         }
     }

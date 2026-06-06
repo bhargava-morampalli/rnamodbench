@@ -18,8 +18,6 @@ include { DOWNSTREAM_ANALYSIS  } from '../modules/local/downstream_analysis'
 include { GENERATE_ERROR_REPORT } from '../modules/local/generate_error_report'
 
 workflow RNAMODBENCH {
-    ch_versions = Channel.empty()
-
     // =========================================================================
     // PARSE REFERENCES CSV
     // =========================================================================
@@ -143,7 +141,6 @@ workflow RNAMODBENCH {
     // Maps each sample ONCE to its designated reference (based on meta.rrna)
 
     MAPPING_RRNA(reads, ch_references)
-    ch_versions = ch_versions.mix(MAPPING_RRNA.out.versions)
 
     // =========================================================================
     // QC STATS
@@ -151,7 +148,6 @@ workflow RNAMODBENCH {
     // Unified BAM channel - QC_STATS processes all BAMs regardless of target
 
     QC_STATS(MAPPING_RRNA.out.mapped_bams)
-    ch_versions = ch_versions.mix(QC_STATS.out.versions)
 
     // =========================================================================
     // PREPARE SIGNAL DATA
@@ -200,7 +196,6 @@ workflow RNAMODBENCH {
         native_fast5,
         ivt_fast5
     )
-    ch_versions = ch_versions.mix(PREPARE_SIGNAL_DATA.out.versions)
 
     // =========================================================================
     // SIGNAL PROCESSING
@@ -211,7 +206,6 @@ workflow RNAMODBENCH {
         PREPARE_SIGNAL_DATA.out.f5c_ready,
         ch_ref_map
     )
-    ch_versions = ch_versions.mix(SIGNAL_PROCESSING.out.versions)
 
     // =========================================================================
     // MODIFICATION CALLING
@@ -224,8 +218,7 @@ workflow RNAMODBENCH {
         MAPPING_RRNA.out.mapped_bams,
         ch_ref_map
     )
-    ch_versions = ch_versions.mix(MODIFICATION_CALLING.out.versions)
-    ch_report_trigger = MODIFICATION_CALLING.out.versions
+    ch_report_trigger = MODIFICATION_CALLING.out.done
 
     // =========================================================================
     // OPTIONAL DOWNSTREAM ANALYSIS (default: disabled)
@@ -235,7 +228,7 @@ workflow RNAMODBENCH {
         def gt_input = params.ground_truth ? file(params.ground_truth, checkIfExists: true).toString() : 'NO_FILE'
         def refs_input = params.references ? file(params.references, checkIfExists: true).toString() : 'NO_FILE'
 
-        ch_modifications_dir = MODIFICATION_CALLING.out.versions
+        ch_modifications_dir = MODIFICATION_CALLING.out.done
             .map { _ -> file("${params.outdir}/modifications") }
 
         DOWNSTREAM_ANALYSIS(
@@ -243,31 +236,27 @@ workflow RNAMODBENCH {
             Channel.value(gt_input),
             Channel.value(refs_input)
         )
-        ch_versions = ch_versions.mix(DOWNSTREAM_ANALYSIS.out.versions)
-        ch_report_trigger = DOWNSTREAM_ANALYSIS.out.versions
+        ch_report_trigger = DOWNSTREAM_ANALYSIS.out.results
     }
 
     ch_report_run_dir = ch_report_trigger.map { _ -> file(params.outdir).toString() }
     GENERATE_ERROR_REPORT(ch_report_run_dir)
-    ch_versions = ch_versions.mix(GENERATE_ERROR_REPORT.out.versions)
 
     // =========================================================================
-    // COLLECT VERSIONS
+    // COLLECT VERSIONS (via topic channel)
     // =========================================================================
+    // Every process publishes [ process, tool, version ] tuples to the 'versions'
+    // topic; here we group them by process and write a single YAML file.
 
-    ch_versions
-        // Subworkflows emit either a single versions.yml path or a collected list of paths.
-        .flatMap { item -> item instanceof Collection ? item : [item] }
-        .map { version_file ->
-            version_file
-                .text
-                .readLines()
-                .findAll { line -> line.trim() != 'END_VERSIONS' }
-                .join('\n')
-                .trim()
+    Channel.topic('versions')
+        .map { process, tool, version ->
+            [ process.tokenize(':').last(), "  ${tool}: ${version}" ]
         }
-        .filter { entry -> entry }
         .unique()
+        .groupTuple()
+        .map { process, tool_versions ->
+            "${process}:\n${tool_versions.sort().join('\n')}"
+        }
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'software_versions.yml',

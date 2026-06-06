@@ -23,7 +23,7 @@ nextflow.enable.dsl=2
  *   - differr_bed:         [ val(meta), path(bed) ]
  *   - drummer_results:     [ val(meta), path(results) ]
  *   - jacusa2_bed:         [ val(meta), path(bed) ]
- *   - versions:            [ path(versions.yml) ]
+ *   - done:                [ collected terminal outputs ] - barrier signalling all tools finished
  *
  * Note: All tools group samples by ${meta.rrna}_${meta.replicate} and pair native/ivt.
  *       This works dynamically for any target type, not just 16s/23s.
@@ -53,9 +53,6 @@ workflow MODIFICATION_CALLING {
         ref_map            // val(map) - { 'target': ref_file, ... }
 
     main:
-        // Collect all version info
-        versions_ch = Channel.empty()
-
         // =====================================================================
         // TOMBO: Detect modifications by comparing native vs IVT
         // =====================================================================
@@ -75,7 +72,6 @@ workflow MODIFICATION_CALLING {
             .groupTuple()
 
         TOMBO_DETECT_MODIFICATIONS ( ch_tombo_ready )
-        versions_ch = versions_ch.mix(TOMBO_DETECT_MODIFICATIONS.out.versions)
 
         // TOMBO: Extract text output from stats files
         // Wire reference FASTA from ref_map using explicit key->rrna mapping
@@ -91,14 +87,12 @@ workflow MODIFICATION_CALLING {
             }
 
         TOMBO_TEXT_OUTPUT ( ch_tombo_stats_with_ref )
-        versions_ch = versions_ch.mix(TOMBO_TEXT_OUTPUT.out.versions)
 
         // =====================================================================
         // YANOCOMP: Prepare HDF5 files from f5c eventalign
         // =====================================================================
         ch_no_summary = file('NO_FILE')  // Placeholder for optional summary file
         YANOCOMP_PREPARE ( eventalign, ch_no_summary )
-        versions_ch = versions_ch.mix(YANOCOMP_PREPARE.out.versions)
 
         // Join native and IVT HDF5 files for comparison
         ch_yanocomp_ready = YANOCOMP_PREPARE.out.hdf5
@@ -126,13 +120,11 @@ workflow MODIFICATION_CALLING {
             }
 
         YANOCOMP_ANALYSIS ( ch_yanocomp_ready )
-        versions_ch = versions_ch.mix(YANOCOMP_ANALYSIS.out.versions)
 
         // =====================================================================
         // NANOCOMPORE: Collapse eventalign files
         // =====================================================================
         NANOCOMPORE_EVENTALIGN_COLLAPSE ( eventalign )
-        versions_ch = versions_ch.mix(NANOCOMPORE_EVENTALIGN_COLLAPSE.out.versions)
 
         // Group and pair native/IVT for nanocompore
         ch_nanocompore_grouped = NANOCOMPORE_EVENTALIGN_COLLAPSE.out.collapsed
@@ -170,13 +162,11 @@ workflow MODIFICATION_CALLING {
             }
 
         NANOCOMPORE_SAMPCOMP ( ch_nanocompore_ready )
-        versions_ch = versions_ch.mix(NANOCOMPORE_SAMPCOMP.out.versions)
 
         // =====================================================================
         // XPORE: Data preparation using xpore-compatible eventalign
         // =====================================================================
         XPORE_DATAPREP ( eventalign_xpore )
-        versions_ch = versions_ch.mix(XPORE_DATAPREP.out.versions)
 
         // Join native and IVT xpore data for comparison
         ch_xpore_ready = XPORE_DATAPREP.out.dataprep
@@ -195,7 +185,6 @@ workflow MODIFICATION_CALLING {
             }
 
         XPORE_DIFFMOD ( ch_xpore_ready )
-        versions_ch = versions_ch.mix(XPORE_DIFFMOD.out.versions)
 
         // =====================================================================
         // BAM-BASED TOOLS: ELIGOS, EPINANO, DIFFERR, DRUMMER, JACUSA2
@@ -235,19 +224,14 @@ workflow MODIFICATION_CALLING {
 
         // Run all BAM-based tools
         ELIGOS_PAIR_DIFF_MOD ( ch_bam_paired )
-        versions_ch = versions_ch.mix(ELIGOS_PAIR_DIFF_MOD.out.versions)
 
         EPINANO_ERROR ( ch_bam_paired )
-        versions_ch = versions_ch.mix(EPINANO_ERROR.out.versions)
 
         DIFFERR ( ch_bam_paired )
-        versions_ch = versions_ch.mix(DIFFERR.out.versions)
 
         DRUMMER ( ch_bam_paired )
-        versions_ch = versions_ch.mix(DRUMMER.out.versions)
 
         JACUSA2 ( ch_bam_paired )
-        versions_ch = versions_ch.mix(JACUSA2.out.versions)
 
         // NANORMS: Currently disabled as it requires EpiNano per-site CSV files
         ch_nanorms_results = Channel.empty()
@@ -263,5 +247,16 @@ workflow MODIFICATION_CALLING {
         drummer_results     = DRUMMER.out.results
         jacusa2_bed         = JACUSA2.out.bed
         nanorms_results     = ch_nanorms_results
-        versions            = versions_ch.collect()
+        // Barrier signalling that all modification-calling tools have finished.
+        // Replaces the old `versions.collect()` signal now that versions go via the topic channel.
+        done                = TOMBO_TEXT_OUTPUT.out.csv
+            .mix(YANOCOMP_ANALYSIS.out.bed)
+            .mix(NANOCOMPORE_SAMPCOMP.out.results)
+            .mix(XPORE_DIFFMOD.out.diffmod)
+            .mix(ELIGOS_PAIR_DIFF_MOD.out.results)
+            .mix(EPINANO_ERROR.out.results)
+            .mix(DIFFERR.out.bed)
+            .mix(DRUMMER.out.results)
+            .mix(JACUSA2.out.bed)
+            .collect()
 }

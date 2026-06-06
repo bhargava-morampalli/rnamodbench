@@ -26,9 +26,7 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.dataprep },
-                // { assert process.out.dataprep.get(0).get(1).toString().endsWith('dataprep') },
-                { assert process.out.versions },
-                { assert snapshot(process.out.versions).match() }
+                // { assert process.out.dataprep.get(0).get(1).toString().endsWith('dataprep') }
             )
         }
     }
@@ -51,8 +49,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.dataprep },
-                { assert process.out.versions }
+                { assert process.out.dataprep }
             )
         }
     }

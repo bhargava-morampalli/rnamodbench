@@ -11,9 +11,6 @@
                         "test.bam:md5,79b936d8f5eb1dc9d2dbe65c4b378cc4"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,277cc8b339782d658bdf35259c702710"
-                ],
                 "bam": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test.bam:md5,79b936d8f5eb1dc9d2dbe65c4b378cc4"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,277cc8b339782d658bdf35259c702710"
                 ]
             }
         ],

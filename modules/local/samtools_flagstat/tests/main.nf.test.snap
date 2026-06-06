@@ -11,9 +11,6 @@
                         "test_flagstat.txt:md5,c054220bfc908d26852cc3811b95bdaf"
                     ]
                 ],
-                "1": [
-                    "versions.yml:md5,ed7b2c76f625850b2e7b84b3f8ecaac0"
-                ],
                 "flagstat": [
                     [
                         {
@@ -22,9 +19,6 @@
                         },
                         "test_flagstat.txt:md5,c054220bfc908d26852cc3811b95bdaf"
                     ]
-                ],
-                "versions": [
-                    "versions.yml:md5,ed7b2c76f625850b2e7b84b3f8ecaac0"
                 ]
             }
         ],

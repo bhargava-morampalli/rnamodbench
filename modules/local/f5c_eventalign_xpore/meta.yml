@@ -66,10 +66,6 @@ output:
       type: file
       description: Eventalign output file with read_index column (xpore compatible)
       pattern: "*_eventalign_xpore.txt"
-  - versions:
-      type: file
-      description: File containing software versions
-      pattern: "versions.yml"
 
 authors:
   - "@bmorampa"

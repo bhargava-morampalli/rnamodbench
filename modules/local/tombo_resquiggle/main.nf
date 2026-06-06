@@ -11,7 +11,7 @@ process TOMBO_RESQUIGGLE {
 
     output:
     tuple val(meta), path(fast5), emit: resquiggled
-    path "versions.yml"         , emit: versions
+    tuple val("${task.process}"), val('tombo'), eval('tombo --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -24,19 +24,10 @@ process TOMBO_RESQUIGGLE {
         --processes $task.cpus \\
         $fast5 \\
         $reference
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        tombo: \$(tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo "unknown")
-    END_VERSIONS
     """
 
     stub:
     """
     mkdir -p ${fast5}
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        tombo: 1.5.1
-    END_VERSIONS
     """
 }
