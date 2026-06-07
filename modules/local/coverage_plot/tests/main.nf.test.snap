@@ -1,0 +1,98 @@
+{
+    "Should generate coverage plot from depth file": {
+        "content": [
+            {
+                "plot": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.pdf"
+                    ]
+                ],
+                "versions_matplotlib": [
+                    [
+                        "COVERAGE_PLOT",
+                        "matplotlib",
+                        "3.4.3"
+                    ]
+                ],
+                "versions_pandas": [
+                    [
+                        "COVERAGE_PLOT",
+                        "pandas",
+                        "1.3.4"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "COVERAGE_PLOT",
+                        "python",
+                        "3.9.23"
+                    ]
+                ],
+                "versions_seaborn": [
+                    [
+                        "COVERAGE_PLOT",
+                        "seaborn",
+                        "0.11.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-07T04:44:44.460122852",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    },
+    "Should work in stub mode": {
+        "content": [
+            {
+                "plot": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": false
+                        },
+                        "test_stub.pdf"
+                    ]
+                ],
+                "versions_matplotlib": [
+                    [
+                        "COVERAGE_PLOT",
+                        "matplotlib",
+                        "3.4.3"
+                    ]
+                ],
+                "versions_pandas": [
+                    [
+                        "COVERAGE_PLOT",
+                        "pandas",
+                        "1.3.4"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "COVERAGE_PLOT",
+                        "python",
+                        "3.9.23"
+                    ]
+                ],
+                "versions_seaborn": [
+                    [
+                        "COVERAGE_PLOT",
+                        "seaborn",
+                        "0.11.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-07T04:44:56.928785191",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}
