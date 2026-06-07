@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	start	complete	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar	workdir	scratch	error_action
+1	12/b8083e	78216	COVERAGE_PLOT (test_stub)	COMPLETED	0	2026-06-07 04:45:45.678	2026-06-07 04:45:45.770	2026-06-07 04:45:47.013	1.3s	734ms	410.4%	4 MB	10.7 MB	35.3 MB	59.7 KB	/home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/work/12/b8083e047a6cb93427746a03abb011	-	-

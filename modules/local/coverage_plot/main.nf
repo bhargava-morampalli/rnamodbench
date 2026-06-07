@@ -11,10 +11,10 @@ process COVERAGE_PLOT {
 
     output:
     tuple val(meta), path("*.pdf"), emit: plot
-    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
-    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), topic: versions
-    tuple val("${task.process}"), val('matplotlib'), eval('python -c \'import matplotlib; print(matplotlib.__version__)\' 2>/dev/null || echo unknown'), topic: versions
-    tuple val("${task.process}"), val('seaborn'), eval('python -c \'import seaborn; print(seaborn.__version__)\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), emit: versions_python, topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), emit: versions_pandas, topic: versions
+    tuple val("${task.process}"), val('matplotlib'), eval('python -c \'import matplotlib; print(matplotlib.__version__)\' 2>/dev/null || echo unknown'), emit: versions_matplotlib, topic: versions
+    tuple val("${task.process}"), val('seaborn'), eval('python -c \'import seaborn; print(seaborn.__version__)\' 2>/dev/null || echo unknown'), emit: versions_seaborn, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

@@ -1,54 +1,146 @@
-name: "coverage_plot"
-description: Generate coverage plots from samtools depth output
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: coverage_plot
+description: Generate per-sample coverage PDF plots from samtools depth output
 keywords:
   - coverage
   - visualization
-  - plot
   - depth
   - samtools
+  - quality-control
 tools:
   - python:
       description: Python programming language
       homepage: https://www.python.org/
       documentation: https://docs.python.org/3/
+      tool_dev_url: https://github.com/python/cpython
       licence: ["PSF-2.0"]
   - pandas:
-      description: Powerful data structures for data analysis
+      description: Python library providing data structures and data analysis tools
       homepage: https://pandas.pydata.org/
       documentation: https://pandas.pydata.org/docs/
+      tool_dev_url: https://github.com/pandas-dev/pandas
       licence: ["BSD-3-Clause"]
   - matplotlib:
-      description: Comprehensive library for creating static, animated, and interactive visualizations
+      description: Python library for creating static, animated, and interactive visualizations
       homepage: https://matplotlib.org/
       documentation: https://matplotlib.org/stable/contents.html
+      tool_dev_url: https://github.com/matplotlib/matplotlib
       licence: ["PSF-2.0"]
   - seaborn:
-      description: Statistical data visualization library based on matplotlib
+      description: Python statistical data visualization library based on matplotlib
       homepage: https://seaborn.pydata.org/
       documentation: https://seaborn.pydata.org/tutorial.html
+      tool_dev_url: https://github.com/mwaskom/seaborn
       licence: ["BSD-3-Clause"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - depth:
-      type: file
-      description: Depth file from samtools depth (TSV format with columns: chrom, position, depth)
-      pattern: "*.{depth,txt}"
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', single_end:false ]`
+    - depth:
+        type: file
+        description: Per-base depth file from samtools depth with chrom, position, and depth columns
+        pattern: "*.{depth,txt}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
 
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - plot:
-      type: file
-      description: Coverage plot in PDF format
-      pattern: "*.pdf"
+  plot:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', single_end:false ]`
+      - "*.pdf":
+          type: file
+          description: Coverage plot in PDF format
+          pattern: "*.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  versions_python:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - python:
+          type: string
+          description: The name of the tool
+      - "python --version 2>&1 | sed 's/Python //' || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_pandas:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - pandas:
+          type: string
+          description: The name of the tool
+      - "python -c 'import pandas; print(pandas.__version__)' 2>/dev/null || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_matplotlib:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - matplotlib:
+          type: string
+          description: The name of the tool
+      - "python -c 'import matplotlib; print(matplotlib.__version__)' 2>/dev/null || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_seaborn:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - seaborn:
+          type: string
+          description: The name of the tool
+      - "python -c 'import seaborn; print(seaborn.__version__)' 2>/dev/null || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - python:
+          type: string
+          description: The name of the tool
+      - "python --version 2>&1 | sed 's/Python //' || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - pandas:
+          type: string
+          description: The name of the tool
+      - "python -c 'import pandas; print(pandas.__version__)' 2>/dev/null || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - matplotlib:
+          type: string
+          description: The name of the tool
+      - "python -c 'import matplotlib; print(matplotlib.__version__)' 2>/dev/null || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - seaborn:
+          type: string
+          description: The name of the tool
+      - "python -c 'import seaborn; print(seaborn.__version__)' 2>/dev/null || echo unknown":
+          type: eval
+          description: The expression to obtain the version of the tool
 
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

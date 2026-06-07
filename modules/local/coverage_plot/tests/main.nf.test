@@ -26,7 +26,12 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.plot },
-                { assert process.out.plot.get(0).get(1).toString().endsWith('.pdf') }
+                { assert process.out.plot.get(0).get(1).toString().endsWith('.pdf') },
+                { assert process.out.versions_python },
+                { assert process.out.versions_pandas },
+                { assert process.out.versions_matplotlib },
+                { assert process.out.versions_seaborn },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["plot"])).match() }
             )
         }
     }
@@ -49,7 +54,12 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.plot }
+                { assert process.out.plot },
+                { assert process.out.versions_python },
+                { assert process.out.versions_pandas },
+                { assert process.out.versions_matplotlib },
+                { assert process.out.versions_seaborn },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["plot"])).match() }
             )
         }
     }
