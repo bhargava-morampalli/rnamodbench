@@ -20,6 +20,9 @@ nextflow_process {
                     file("${projectDir}/modules/local/f5c_index/tests/data/fast5/100read_fast5", checkIfExists: true),
                     file("${projectDir}/modules/local/f5c_index/tests/data/test.fastq.gz", checkIfExists: true)
                 ]
+                def no_summary = file("NO_FILE")
+                no_summary.text = ""
+                input[1] = no_summary
                 """
             }
         }
@@ -27,7 +30,8 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(process.out).match() }
+                { assert snapshot(process.out).match() },
+                { assert process.out.versions_f5c }
             )
         }
     }
@@ -44,6 +48,9 @@ nextflow_process {
                     file("${projectDir}/modules/local/f5c_index/tests/data/fast5/100read_fast5", checkIfExists: true),
                     file("${projectDir}/modules/local/f5c_index/tests/data/test.fastq.gz", checkIfExists: true)
                 ]
+                def no_summary = file("NO_FILE")
+                no_summary.text = ""
+                input[1] = no_summary
                 """
             }
         }
@@ -51,7 +58,8 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.indexed }
+                { assert process.out.indexed },
+                { assert process.out.versions_f5c }
             )
         }
     }

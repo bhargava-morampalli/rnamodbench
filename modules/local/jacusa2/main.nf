@@ -11,8 +11,8 @@ process JACUSA2 {
     output:
     tuple val(meta), path("${prefix}.bed"), emit: bed
     path "*.log"                          , emit: log, optional: true
-    tuple val("${task.process}"), val('jacusa2'), val('2.0.4'), topic: versions
-    tuple val("${task.process}"), val('java'), eval('java -version 2>&1 | head -1 | sed \'s/.*version "\\([^"]*\\)".*/\\1/\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('jacusa2'), val('2.0.4'), emit: versions_jacusa2, topic: versions
+    tuple val("${task.process}"), val('java'), eval('java -version 2>&1 | head -1 | sed \'s/.*version "\\([^"]*\\)".*/\\1/\' || echo unknown'), emit: versions_java, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

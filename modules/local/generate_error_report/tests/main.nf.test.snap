@@ -1,0 +1,71 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "0": [
+                    "process_status.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    "log_events.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "2": [
+                    "tool_availability_per_run.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "3": [
+                    "error_summary.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "4": [
+                    "error_summary.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "5": [
+                    [
+                        "GENERATE_ERROR_REPORT",
+                        "python",
+                        "3.14.5"
+                    ]
+                ],
+                "6": [
+                    [
+                        "GENERATE_ERROR_REPORT",
+                        "pandas",
+                        "3.0.3"
+                    ]
+                ],
+                "availability": [
+                    "tool_availability_per_run.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "csv": [
+                    "error_summary.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "html": [
+                    "error_summary.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "log_events": [
+                    "log_events.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "process_status": [
+                    "process_status.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "versions_pandas": [
+                    [
+                        "GENERATE_ERROR_REPORT",
+                        "pandas",
+                        "3.0.3"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "GENERATE_ERROR_REPORT",
+                        "python",
+                        "3.14.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T15:15:49.087949172",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

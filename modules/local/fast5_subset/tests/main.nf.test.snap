@@ -1,41 +1,29 @@
 {
-    "Should subset fast5 files based on read IDs": {
+    "Should work in stub mode": {
         "content": [
             {
-                "0": [
-                    [
-                        {
-                            "id": "test",
-                            "fast5_dir": [
-                                "batch_0.fast5:md5,32603e73a2b7ef66cd956fc74c640285"
-                            ]
-                        },
-                        [
-                            "batch0.fast5:md5,631f0a781888ee59de4471f576b762b6",
-                            "filename_mapping.txt:md5,daa77a4bdba25f22e1b40a17737c0841"
-                        ]
-                    ]
-                ],
                 "fast5": [
                     [
                         {
-                            "id": "test",
-                            "fast5_dir": [
-                                "batch_0.fast5:md5,32603e73a2b7ef66cd956fc74c640285"
-                            ]
+                            "fast5_dir": "fast5_input",
+                            "id": "test_stub"
                         },
-                        [
-                            "batch0.fast5:md5,631f0a781888ee59de4471f576b762b6",
-                            "filename_mapping.txt:md5,daa77a4bdba25f22e1b40a17737c0841"
-                        ]
+                        "fast5_subset"
+                    ]
+                ],
+                "versions_ont_fast5_api": [
+                    [
+                        "FAST5_SUBSET",
+                        "ont-fast5-api",
+                        "3.14"
                     ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T15:00:37.125738421",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.2"
-        },
-        "timestamp": "2025-12-07T20:29:15.720105206"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

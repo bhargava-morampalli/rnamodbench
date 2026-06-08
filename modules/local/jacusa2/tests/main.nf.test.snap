@@ -1,0 +1,67 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_16s_rep1",
+                            "rrna": "16s",
+                            "replicate": "rep1"
+                        },
+                        "test_16s_rep1_jacusa2.bed:md5,aabc3440947cbf2b4d85778daebf3d6d"
+                    ]
+                ],
+                "1": [
+                    
+                ],
+                "2": [
+                    [
+                        "JACUSA2",
+                        "jacusa2",
+                        "2.0.4"
+                    ]
+                ],
+                "3": [
+                    [
+                        "JACUSA2",
+                        "java",
+                        "17.0.10"
+                    ]
+                ],
+                "bed": [
+                    [
+                        {
+                            "id": "test_16s_rep1",
+                            "rrna": "16s",
+                            "replicate": "rep1"
+                        },
+                        "test_16s_rep1_jacusa2.bed:md5,aabc3440947cbf2b4d85778daebf3d6d"
+                    ]
+                ],
+                "log": [
+                    
+                ],
+                "versions_jacusa2": [
+                    [
+                        "JACUSA2",
+                        "jacusa2",
+                        "2.0.4"
+                    ]
+                ],
+                "versions_java": [
+                    [
+                        "JACUSA2",
+                        "java",
+                        "17.0.10"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T15:00:52.099414239",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

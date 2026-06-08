@@ -14,8 +14,8 @@ process GENERATE_ERROR_REPORT {
     path "tool_availability_per_run.tsv", emit: availability
     path "error_summary.html", emit: html
     path "error_summary.csv" , emit: csv
-    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
-    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), emit: versions_python, topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), emit: versions_pandas, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

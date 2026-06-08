@@ -10,7 +10,7 @@ process FAST5_SUBSET {
 
     output:
     tuple val(meta), path("fast5_subset"), emit: fast5
-    tuple val("${task.process}"), val('ont-fast5-api'), eval('fast5_subset --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('ont-fast5-api'), eval('fast5_subset --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_ont_fast5_api, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

@@ -1,3 +1,5 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "fast5_subset"
 description: Subset multi-read fast5 files based on a list of read IDs
 keywords:
@@ -17,26 +19,52 @@ tools:
       licence: ["MPL-2.0"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information and fast5_dir path
-        e.g. `[ id:'sample1', fast5_dir:'/path/to/fast5/files' ]`
-  - read_ids:
-      type: file
-      description: Text file containing list of read IDs to extract (one per line)
-      pattern: "*.txt"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information and fast5_dir path
+          e.g. `[ id:'sample1', fast5_dir:'/path/to/fast5/files' ]`
+    - read_ids:
+        type: file
+        description: Text file containing list of read IDs to extract (one per line)
+        pattern: "*.txt"
+    - fast5_dir:
+        type: file
+        description: fast5_dir file
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', fast5_dir:'/path/to/fast5/files' ]`
-  - fast5:
-      type: directory
-      description: Directory containing subset of fast5 files with only specified reads
-      pattern: "fast5_subset"
-
+  fast5:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', fast5_dir:'/path/to/fast5/files' ]`
+      - fast5_subset:
+          type: directory
+          description: Directory containing subset of fast5 files with only specified
+            reads
+          pattern: "fast5_subset"
+  versions_ont_fast5_api:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - ont-fast5-api:
+          type: string
+          description: The name of the tool
+      - fast5_subset --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - ont-fast5-api:
+          type: string
+          description: The name of the tool
+      - fast5_subset --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

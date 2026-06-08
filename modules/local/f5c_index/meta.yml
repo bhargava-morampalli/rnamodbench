@@ -1,3 +1,5 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "f5c_index"
 description: Index nanopore FAST5 files for methylation calling with f5c
 keywords:
@@ -21,32 +23,75 @@ tools:
       licence: ["MIT"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - fast5_dir:
-      type: directory
-      description: Directory containing FAST5 files from Oxford Nanopore sequencing
-      pattern: "*/"
-  - fastq:
-      type: file
-      description: Basecalled FASTQ file from Oxford Nanopore sequencing
-      pattern: "*.{fastq,fq,fastq.gz,fq.gz}"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', single_end:false ]`
+    - fast5_dir:
+        type: directory
+        description: Directory containing FAST5 files from Oxford Nanopore sequencing
+        pattern: "*/"
+    - fastq:
+        type: file
+        description: Basecalled FASTQ file from Oxford Nanopore sequencing
+        pattern: "*.{fastq,fq,fastq.gz,fq.gz}"
+  - - sequencing_summary:
+        type: file
+        description: sequencing_summary file
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - indexed:
-      type: tuple
-      description: |
-        Tuple containing meta, fastq file, index files (.index, .index.readdb,
-        .index.gzi, .index.fai), and fast5 directory for downstream f5c analysis
-      pattern: "*"
-
+  indexed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', single_end:false ]`
+      - fastq:
+          type: file
+          description: indexed output file
+          pattern: '*'
+      - '*.index':
+          type: file
+          description: indexed output file
+          pattern: '*.index'
+      - '*.index.readdb':
+          type: file
+          description: indexed output file
+          pattern: '*.index.readdb'
+      - '*.index.gzi':
+          type: file
+          description: indexed output file
+          pattern: '*.index.gzi'
+      - '*.index.fai':
+          type: file
+          description: indexed output file
+          pattern: '*.index.fai'
+      - fast5_dir:
+          type: directory
+          description: indexed output directory
+          pattern: fast5_dir
+  versions_f5c:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - f5c:
+          type: string
+          description: The name of the tool
+      - f5c --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - f5c:
+          type: string
+          description: The name of the tool
+      - f5c --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"
