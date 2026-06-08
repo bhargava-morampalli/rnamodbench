@@ -1,0 +1,45 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": true
+                        },
+                        "test_stub_eventalign_xpore.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "F5C_EVENTALIGN_XPORE",
+                        "f5c",
+                        "1.5"
+                    ]
+                ],
+                "eventalign": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": true
+                        },
+                        "test_stub_eventalign_xpore.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_f5c": [
+                    [
+                        "F5C_EVENTALIGN_XPORE",
+                        "f5c",
+                        "1.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T17:04:04.388605228",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

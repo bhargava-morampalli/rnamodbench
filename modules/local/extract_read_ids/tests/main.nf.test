@@ -29,7 +29,8 @@ nextflow_process {
                 { assert path(process.out.read_ids[0][1]).readLines().size() == 3 }, // Should extract 3 read IDs
                 { assert path(process.out.read_ids[0][1]).readLines().contains("read1_nanopore_test") },
                 { assert path(process.out.read_ids[0][1]).readLines().contains("read2_nanopore_test") },
-                { assert path(process.out.read_ids[0][1]).readLines().contains("read3_nanopore_test") }
+                { assert path(process.out.read_ids[0][1]).readLines().contains("read3_nanopore_test") },
+                { assert process.out.versions_seqkit }
             )
         }
     }
@@ -52,7 +53,8 @@ nextflow_process {
                 { assert process.success },
                 { assert snapshot(process.out).match() },
                 { assert path(process.out.read_ids[0][1]).exists() },
-                { assert path(process.out.read_ids[0][1]).readLines().size() == 3 }
+                { assert path(process.out.read_ids[0][1]).readLines().size() == 3 },
+                { assert process.out.versions_seqkit }
             )
         }
     }
@@ -75,7 +77,8 @@ nextflow_process {
                 { assert process.success },
                 { assert snapshot(process.out).match() },
                 { assert path(process.out.read_ids[0][1]).exists() },
-                { assert path(process.out.read_ids[0][1]).readLines().size() == 0 }
+                { assert path(process.out.read_ids[0][1]).readLines().size() == 0 },
+                { assert process.out.versions_seqkit }
             )
         }
     }
@@ -99,7 +102,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(process.out).match() },
-                { assert path(process.out.read_ids[0][1]).exists() }
+                { assert path(process.out.read_ids[0][1]).exists() },
+                { assert process.out.versions_seqkit }
             )
         }
     }

@@ -11,6 +11,13 @@
                         "test.fastq:md5,b69ed87fa2058eb05fdcd76ea19591b2"
                     ]
                 ],
+                "1": [
+                    [
+                        "EXTRACT_MAPPED_READS",
+                        "samtools",
+                        "1.17"
+                    ]
+                ],
                 "fastq": [
                     [
                         {
@@ -19,13 +26,20 @@
                         },
                         "test.fastq:md5,b69ed87fa2058eb05fdcd76ea19591b2"
                     ]
+                ],
+                "versions_samtools": [
+                    [
+                        "EXTRACT_MAPPED_READS",
+                        "samtools",
+                        "1.17"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T16:26:21.62591366",
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
-        },
-        "timestamp": "2025-10-23T21:12:26.608711582"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

@@ -10,6 +10,7 @@ nextflow_process {
     tag "f5c/eventalign"
     tag "nanopore"
 
+
     test("Should perform eventalign on nanopore data with f5c index") {
 
         when {
@@ -34,7 +35,8 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(process.out).match() }
+                { assert snapshot(process.out).match() },
+                { assert process.out.versions_f5c }
             )
         }
     }
@@ -65,7 +67,9 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.eventalign }
+                { assert process.out.eventalign },
+                { assert snapshot(process.out).match() },
+                { assert process.out.versions_f5c }
             )
         }
     }

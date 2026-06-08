@@ -10,7 +10,7 @@ process F5C_EVENTALIGN_XPORE {
 
     output:
     tuple val(meta), path("*.txt"), emit: eventalign
-    tuple val("${task.process}"), val('f5c'), eval('f5c --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('f5c'), eval('f5c --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_f5c, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

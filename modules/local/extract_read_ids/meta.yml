@@ -1,3 +1,5 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "extract_read_ids"
 description: Extract read IDs from Nanopore FASTQ files using seqkit
 keywords:
@@ -15,26 +17,48 @@ tools:
       licence: MIT
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. [ id:'test' ]
-  - fastq:
-      type: file
-      description: Input Nanopore FASTQ file
-      pattern: "*.{fastq,fq,fastq.gz,fq.gz}"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - fastq:
+        type: file
+        description: Input Nanopore FASTQ file
+        pattern: "*.{fastq,fq,fastq.gz,fq.gz}"
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. [ id:'test' ]
-  - read_ids:
-      type: file
-      description: Text file containing extracted read IDs
-      pattern: "*.read_ids.txt"
-
+  read_ids:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test' ]
+      - '*.read_ids.txt':
+          type: file
+          description: Text file containing extracted read IDs
+          pattern: "*.read_ids.txt"
+  versions_seqkit:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - seqkit:
+          type: string
+          description: The name of the tool
+      - seqkit version | sed 's/seqkit version //' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - seqkit:
+          type: string
+          description: The name of the tool
+      - seqkit version | sed 's/seqkit version //' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

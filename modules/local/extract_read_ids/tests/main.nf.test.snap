@@ -10,6 +10,13 @@
                         "empty_test.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
+                "1": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
+                ],
                 "read_ids": [
                     [
                         {
@@ -17,14 +24,21 @@
                         },
                         "empty_test.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
+                ],
+                "versions_seqkit": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T07:05:34.285966805",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-10-23T19:35:50.438769331"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     },
     "nanopore fastq compressed": {
         "content": [
@@ -37,6 +51,13 @@
                         "test_nanopore_gz.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
                     ]
                 ],
+                "1": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
+                ],
                 "read_ids": [
                     [
                         {
@@ -44,14 +65,21 @@
                         },
                         "test_nanopore_gz.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
                     ]
+                ],
+                "versions_seqkit": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T07:05:27.433477785",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-10-23T19:35:46.369864765"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     },
     "nanopore fastq uncompressed": {
         "content": [
@@ -64,6 +92,13 @@
                         "test_nanopore.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
                     ]
                 ],
+                "1": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
+                ],
                 "read_ids": [
                     [
                         {
@@ -71,14 +106,21 @@
                         },
                         "test_nanopore.read_ids.txt:md5,b32c43f73be5548cdf8f4e85b436f9ea"
                     ]
+                ],
+                "versions_seqkit": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T07:05:20.663056748",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-10-23T19:35:42.332951922"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     },
     "nanopore fastq - stub": {
         "content": [
@@ -91,6 +133,13 @@
                         "test_stub.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
+                "1": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
+                ],
                 "read_ids": [
                     [
                         {
@@ -98,13 +147,20 @@
                         },
                         "test_stub.read_ids.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
+                ],
+                "versions_seqkit": [
+                    [
+                        "EXTRACT_READ_IDS",
+                        "seqkit",
+                        "seqkit v2.3.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T07:05:41.136441371",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-10-23T19:35:54.486721683"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }
