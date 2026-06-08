@@ -12,8 +12,8 @@ process DIFFERR {
     tuple val(meta), path("${prefix}.bed"), emit: bed
     tuple val(meta), path("${prefix}.hdf5"), emit: hdf5, optional: true
     path "*.log"                           , emit: log, optional: true
-    tuple val("${task.process}"), val('differr'), eval('v=$(differr --version 2>/dev/null | grep -oE \'[0-9]+(\\.[0-9]+)+\' | head -1); echo ${v:-unknown}'), topic: versions
-    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('differr'), eval('v=$(differr --version 2>/dev/null | grep -oE \'[0-9]+(\\.[0-9]+)+\' | head -1); echo ${v:-unknown}'), emit: versions_differr, topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), emit: versions_python, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

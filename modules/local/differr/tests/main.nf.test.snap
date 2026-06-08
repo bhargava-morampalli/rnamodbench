@@ -1,0 +1,73 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_16s_rep1",
+                            "rrna": "16s",
+                            "replicate": "rep1"
+                        },
+                        "test_16s_rep1_differr.bed:md5,8918a2eef1fe46741aa67da7706f2653"
+                    ]
+                ],
+                "1": [
+                    
+                ],
+                "2": [
+                    
+                ],
+                "3": [
+                    [
+                        "DIFFERR",
+                        "differr",
+                        "unknown"
+                    ]
+                ],
+                "4": [
+                    [
+                        "DIFFERR",
+                        "python",
+                        "3.11.9"
+                    ]
+                ],
+                "bed": [
+                    [
+                        {
+                            "id": "test_16s_rep1",
+                            "rrna": "16s",
+                            "replicate": "rep1"
+                        },
+                        "test_16s_rep1_differr.bed:md5,8918a2eef1fe46741aa67da7706f2653"
+                    ]
+                ],
+                "hdf5": [
+                    
+                ],
+                "log": [
+                    
+                ],
+                "versions_differr": [
+                    [
+                        "DIFFERR",
+                        "differr",
+                        "unknown"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "DIFFERR",
+                        "python",
+                        "3.11.9"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T02:42:43.281649311",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}
