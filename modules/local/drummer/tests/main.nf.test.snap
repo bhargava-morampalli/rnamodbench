@@ -1,0 +1,40 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "log": [
+                    
+                ],
+                "results": [
+                    [
+                        {
+                            "id": "test_16s_rep1",
+                            "replicate": "rep1",
+                            "rrna": "16s"
+                        },
+                        "test_16s_rep1_drummer"
+                    ]
+                ],
+                "versions_drummer": [
+                    [
+                        "DRUMMER",
+                        "drummer",
+                        "unknown"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "DRUMMER",
+                        "python",
+                        "3.10.19"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T02:45:52.117707817",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

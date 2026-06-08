@@ -11,9 +11,9 @@ process EPINANO_ERROR {
     output:
     tuple val(meta), path("${prefix}"), emit: results
     path "*.log"                      , emit: log, optional: true
-    tuple val("${task.process}"), val('epinano'), eval('python -c \'import importlib.metadata as m; print(m.version("epinano"))\' 2>/dev/null || echo unknown'), topic: versions
-    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
-    tuple val("${task.process}"), val('R'), eval('R --version 2>&1 | head -1 | sed \'s/R version \\([^ ]*\\).*/\\1/\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('epinano'), eval('python -c \'import importlib.metadata as m; print(m.version("epinano"))\' 2>/dev/null || echo unknown'), emit: versions_epinano, topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), emit: versions_python, topic: versions
+    tuple val("${task.process}"), val('R'), eval('R --version 2>&1 | head -1 | sed \'s/R version \\([^ ]*\\).*/\\1/\' || echo unknown'), emit: versions_r, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

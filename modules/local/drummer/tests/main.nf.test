@@ -42,7 +42,10 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.results }
+                { assert process.out.results },
+                { assert process.out.versions_drummer },
+                { assert process.out.versions_python },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["results"])).match() }
             )
         }
     }

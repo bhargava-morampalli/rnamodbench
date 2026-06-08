@@ -1,0 +1,33 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "log": [
+                    
+                ],
+                "results": [
+                    [
+                        {
+                            "id": "test_16s_rep1",
+                            "replicate": "rep1",
+                            "rrna": "16s"
+                        },
+                        "test_16s_rep1_eligos"
+                    ]
+                ],
+                "versions_eligos2": [
+                    [
+                        "ELIGOS_PAIR_DIFF_MOD",
+                        "eligos2",
+                        ""
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T05:51:27.277454251",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

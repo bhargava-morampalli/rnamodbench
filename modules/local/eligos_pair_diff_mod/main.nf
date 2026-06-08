@@ -13,7 +13,7 @@ process ELIGOS_PAIR_DIFF_MOD {
     output:
     tuple val(meta), path("${prefix}"), emit: results
     path "*.log"                      , emit: log, optional: true
-    tuple val("${task.process}"), val('eligos2'), eval('eligos2 --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('eligos2'), eval('eligos2 --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_eligos2, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

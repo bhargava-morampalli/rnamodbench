@@ -1,5 +1,8 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: epinano_error
-description: Detect RNA modifications using EpiNano-Error by comparing base-calling error rates between native and control samples
+description: Detect RNA modifications using EpiNano-Error by comparing base-calling
+  error rates between native and control samples
 keywords:
   - rna modification
   - m6A
@@ -9,45 +12,114 @@ keywords:
   - error-based detection
 tools:
   - epinano:
-      description: Detection of RNA modifications from Oxford Nanopore direct RNA sequencing reads
+      description: Detection of RNA modifications from Oxford Nanopore direct RNA
+        sequencing reads
       homepage: https://github.com/novoalab/EpiNano
       documentation: https://github.com/novoalab/EpiNano/blob/master/README.md
       licence: ["MIT"]
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
-  - native_bam:
-      type: file
-      description: Sorted BAM file from native RNA sample (modified)
-      pattern: "*.bam"
-  - native_bai:
-      type: file
-      description: BAM index file for native sample
-      pattern: "*.bai"
-  - ivt_bam:
-      type: file
-      description: Sorted BAM file from IVT (control/unmodified) sample
-      pattern: "*.bam"
-  - ivt_bai:
-      type: file
-      description: BAM index file for IVT sample
-      pattern: "*.bai"
-  - reference:
-      type: file
-      description: Reference FASTA file
-      pattern: "*.{fa,fasta}"
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+    - native_bam:
+        type: file
+        description: Sorted BAM file from native RNA sample (modified)
+        pattern: "*.bam"
+    - native_bai:
+        type: file
+        description: BAM index file for native sample
+        pattern: "*.bai"
+    - ivt_bam:
+        type: file
+        description: Sorted BAM file from IVT (control/unmodified) sample
+        pattern: "*.bam"
+    - ivt_bai:
+        type: file
+        description: BAM index file for IVT sample
+        pattern: "*.bai"
+    - reference:
+        type: file
+        description: Reference FASTA file
+        pattern: "*.{fa,fasta}"
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
-  - results:
-      type: directory
-      description: Directory containing EpiNano-Error results including differential error analysis
-      pattern: "*_epinano_error"
+  results:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', rrna:'16s', replicate:'rep1' ]
+      - ${prefix}:
+          type: directory
+          description: Directory containing EpiNano-Error results including differential
+            error analysis
+          pattern: "*_epinano_error"
+  log:
+    - - '*.log':
+          type: file
+          description: Log file
+          pattern: '*.log'
+  versions_epinano:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - epinano:
+          type: string
+          description: The name of the tool
+      - python -c 'import importlib.metadata as m; print(m.version("epinano"))' 2>/dev/null || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_python:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - python:
+          type: string
+          description: The name of the tool
+      - python --version 2>&1 | sed 's/Python //' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_r:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - R:
+          type: string
+          description: The name of the tool
+      - R --version 2>&1 | head -1 | sed 's/R version \\([^ ]*\\).*/\\1/' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - epinano:
+          type: string
+          description: The name of the tool
+      - python -c 'import importlib.metadata as m; print(m.version("epinano"))' 2>/dev/null || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - python:
+          type: string
+          description: The name of the tool
+      - python --version 2>&1 | sed 's/Python //' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - R:
+          type: string
+          description: The name of the tool
+      - R --version 2>&1 | head -1 | sed 's/R version \\([^ ]*\\).*/\\1/' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bmorampa"
+maintainers:
   - "@bmorampa"

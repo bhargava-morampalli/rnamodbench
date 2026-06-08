@@ -11,8 +11,8 @@ process DRUMMER {
     output:
     tuple val(meta), path("${prefix}"), emit: results
     path "*.log"                      , emit: log, optional: true
-    tuple val("${task.process}"), val('drummer'), eval('python -c \'import importlib.metadata as m; print(m.version("drummer"))\' 2>/dev/null || echo unknown'), topic: versions
-    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('drummer'), eval('python -c \'import importlib.metadata as m; print(m.version("drummer"))\' 2>/dev/null || echo unknown'), emit: versions_drummer, topic: versions
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed \'s/Python //\' || echo unknown'), emit: versions_python, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
