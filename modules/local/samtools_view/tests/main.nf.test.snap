@@ -8,7 +8,14 @@
                             "id": "test",
                             "single_end": false
                         },
-                        "test.bam:md5,79b936d8f5eb1dc9d2dbe65c4b378cc4"
+                        "test.bam:md5,cc3c23f0eeaae52f4a778667dd34d393"
+                    ]
+                ],
+                "1": [
+                    [
+                        "SAMTOOLS_VIEW",
+                        "samtools",
+                        "1.17"
                     ]
                 ],
                 "bam": [
@@ -17,15 +24,22 @@
                             "id": "test",
                             "single_end": false
                         },
-                        "test.bam:md5,79b936d8f5eb1dc9d2dbe65c4b378cc4"
+                        "test.bam:md5,cc3c23f0eeaae52f4a778667dd34d393"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "SAMTOOLS_VIEW",
+                        "samtools",
+                        "1.17"
                     ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T16:24:31.374163117",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.2"
-        },
-        "timestamp": "2025-12-07T20:37:07.578736204"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

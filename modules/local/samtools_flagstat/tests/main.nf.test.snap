@@ -11,6 +11,13 @@
                         "test_flagstat.txt:md5,c054220bfc908d26852cc3811b95bdaf"
                     ]
                 ],
+                "1": [
+                    [
+                        "SAMTOOLS_FLAGSTAT",
+                        "samtools",
+                        "1.17"
+                    ]
+                ],
                 "flagstat": [
                     [
                         {
@@ -19,13 +26,20 @@
                         },
                         "test_flagstat.txt:md5,c054220bfc908d26852cc3811b95bdaf"
                     ]
+                ],
+                "versions_samtools": [
+                    [
+                        "SAMTOOLS_FLAGSTAT",
+                        "samtools",
+                        "1.17"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T16:23:45.842279771",
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
-        },
-        "timestamp": "2025-10-23T20:44:46.625683329"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

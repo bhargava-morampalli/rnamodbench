@@ -1,3 +1,5 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "samtools_flagstat"
 description: Generate alignment statistics from BAM/SAM files
 keywords:
@@ -19,26 +21,48 @@ tools:
       licence: ["MIT"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - sam:
-      type: file
-      description: BAM/SAM file for statistics calculation
-      pattern: "*.{bam,sam}"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', single_end:false ]`
+    - sam:
+        type: file
+        description: BAM/SAM file for statistics calculation
+        pattern: "*.{bam,sam}"
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - flagstat:
-      type: file
-      description: Alignment statistics file
-      pattern: "*_flagstat.txt"
-
+  flagstat:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', single_end:false ]`
+      - '*_flagstat.txt':
+          type: file
+          description: Alignment statistics file
+          pattern: "*_flagstat.txt"
+  versions_samtools:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - samtools:
+          type: string
+          description: The name of the tool
+      - (samtools --version 2>/dev/null || echo unknown) | head -n 1 | cut -d " " -f 2:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - samtools:
+          type: string
+          description: The name of the tool
+      - (samtools --version 2>/dev/null || echo unknown) | head -n 1 | cut -d " " -f 2:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

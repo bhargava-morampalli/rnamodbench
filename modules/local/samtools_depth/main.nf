@@ -10,7 +10,7 @@ process SAMTOOLS_DEPTH {
 
     output:
     tuple val(meta), path("*.txt"), emit: depth
-    tuple val("${task.process}"), val('samtools'), eval('echo $(samtools --version 2>&1) | sed \'s/^.*samtools //; s/Using.*$//\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('samtools'), eval('(samtools --version 2>/dev/null || echo unknown) | head -n 1 | cut -d " " -f 2'), emit: versions_samtools, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
