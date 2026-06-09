@@ -10,7 +10,7 @@ process MULTI_TO_SINGLE_FAST5 {
 
     output:
     tuple val(meta), path("single_fast5_*"), emit: fast5
-    tuple val("${task.process}"), val('ont-fast5-api'), eval('multi_to_single_fast5 --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('ont-fast5-api'), eval('multi_to_single_fast5 --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_ont_fast5_api, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

@@ -1,3 +1,5 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "multi_to_single_fast5"
 description: Convert multi-read fast5 files to single-read fast5 files
 keywords:
@@ -20,26 +22,48 @@ tools:
       licence: ["MPL-2.0"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1' ]`
-  - fast5_dir:
-      type: directory
-      description: Directory containing multi-read fast5 files
-      pattern: "*"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1' ]`
+    - fast5_dir:
+        type: directory
+        description: Directory containing multi-read fast5 files
+        pattern: "*"
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1' ]`
-  - fast5:
-      type: directory
-      description: Directory containing single-read fast5 files
-      pattern: "single_fast5"
-
+  fast5:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - single_fast5_*:
+          type: directory
+          description: Directory containing single-read fast5 files
+          pattern: "single_fast5"
+  versions_ont_fast5_api:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - ont-fast5-api:
+          type: string
+          description: The name of the tool
+      - multi_to_single_fast5 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - ont-fast5-api:
+          type: string
+          description: The name of the tool
+      - multi_to_single_fast5 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

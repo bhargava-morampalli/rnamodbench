@@ -10,7 +10,7 @@ process NANOCOMPORE_EVENTALIGN_COLLAPSE {
 
     output:
     tuple val(meta), path("${prefix}"), emit: collapsed
-    tuple val("${task.process}"), val('nanocompore'), eval('nanocompore --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('nanocompore'), eval('nanocompore --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_nanocompore, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

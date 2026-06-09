@@ -1,5 +1,8 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "nanocompore_eventalign_collapse"
-description: Collapse nanopolish/f5c eventalign output by kmers rather than by event for nanocompore analysis
+description: Collapse nanopolish/f5c eventalign output by kmers rather than by event
+  for nanocompore analysis
 keywords:
   - nanopore
   - rna-modifications
@@ -8,7 +11,8 @@ keywords:
   - kmer-collapse
 tools:
   - nanocompore:
-      description: Software suite to identify differences in ONT nanopore sequencing raw signal corresponding to RNA modifications
+      description: Software suite to identify differences in ONT nanopore sequencing
+        raw signal corresponding to RNA modifications
       homepage: https://nanocompore.rna.rocks/
       documentation: https://nanocompore.rna.rocks/
       tool_dev_url: https://github.com/tleonardi/nanocompore
@@ -16,26 +20,50 @@ tools:
       licence: ["GPL-3.0-only"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - eventalign:
-      type: file
-      description: Output from f5c eventalign or nanopolish eventalign containing per-read event-level signal data
-      pattern: "*.txt"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', single_end:false ]`
+    - eventalign:
+        type: file
+        description: Output from f5c eventalign or nanopolish eventalign containing
+          per-read event-level signal data
+        pattern: "*.txt"
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - collapsed:
-      type: directory
-      description: Directory containing collapsed eventalign data by kmers (eventalign.index, out_eventalign_collapse.tsv, out_eventalign_collapse.idx)
-      pattern: "*"
-
+  collapsed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', single_end:false ]`
+      - ${prefix}:
+          type: directory
+          description: Directory containing collapsed eventalign data by kmers (eventalign.index,
+            out_eventalign_collapse.tsv, out_eventalign_collapse.idx)
+          pattern: "*"
+  versions_nanocompore:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - nanocompore:
+          type: string
+          description: The name of the tool
+      - nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - nanocompore:
+          type: string
+          description: The name of the tool
+      - nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

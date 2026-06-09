@@ -11,7 +11,7 @@ process MINIMAP2_ALIGN {
 
     output:
     tuple val(meta), path("*.sam"), emit: sam
-    tuple val("${task.process}"), val('minimap2'), eval('minimap2 --version 2>&1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('minimap2'), eval('minimap2 --version 2>&1 || echo unknown'), emit: versions_minimap2, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

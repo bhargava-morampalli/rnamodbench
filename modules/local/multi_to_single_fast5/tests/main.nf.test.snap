@@ -1,43 +1,28 @@
 {
-    "Should convert multi-read fast5 to single-read fast5 files": {
+    "Should work in stub mode": {
         "content": [
             {
-                "0": [
-                    [
-                        {
-                            "id": "test"
-                        },
-                        [
-                            [
-                                "read_aaaabbbb-1111-2222-3333-444444444444.fast5:md5,b99ef22447b6279eeeebba2b7d8a84d8",
-                                "read_ccccdddd-5555-6666-7777-888888888888.fast5:md5,b99ef22447b6279eeeebba2b7d8a84d8",
-                                "read_eeeeffff-9999-aaaa-bbbb-cccccccccccc.fast5:md5,b99ef22447b6279eeeebba2b7d8a84d8"
-                            ],
-                            "filename_mapping.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
                 "fast5": [
                     [
                         {
-                            "id": "test"
+                            "id": "test_stub"
                         },
-                        [
-                            [
-                                "read_aaaabbbb-1111-2222-3333-444444444444.fast5:md5,b99ef22447b6279eeeebba2b7d8a84d8",
-                                "read_ccccdddd-5555-6666-7777-888888888888.fast5:md5,b99ef22447b6279eeeebba2b7d8a84d8",
-                                "read_eeeeffff-9999-aaaa-bbbb-cccccccccccc.fast5:md5,b99ef22447b6279eeeebba2b7d8a84d8"
-                            ],
-                            "filename_mapping.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
+                        "single_fast5_test_stub"
+                    ]
+                ],
+                "versions_ont_fast5_api": [
+                    [
+                        "MULTI_TO_SINGLE_FAST5",
+                        "ont-fast5-api",
+                        "3.14"
                     ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T15:18:34.911632162",
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
-        },
-        "timestamp": "2025-10-23T22:04:01.059352918"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

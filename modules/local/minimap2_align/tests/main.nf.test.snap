@@ -11,6 +11,13 @@
                         "test.sam:md5,ea0563c293c8874c60b7de4dac3211fa"
                     ]
                 ],
+                "1": [
+                    [
+                        "MINIMAP2_ALIGN",
+                        "minimap2",
+                        "2.24-r1122"
+                    ]
+                ],
                 "sam": [
                     [
                         {
@@ -19,13 +26,20 @@
                         },
                         "test.sam:md5,ea0563c293c8874c60b7de4dac3211fa"
                     ]
+                ],
+                "versions_minimap2": [
+                    [
+                        "MINIMAP2_ALIGN",
+                        "minimap2",
+                        "2.24-r1122"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-06-08T15:18:18.462544041",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.2"
-        },
-        "timestamp": "2025-12-07T20:35:56.321183214"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

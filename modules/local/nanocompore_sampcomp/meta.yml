@@ -1,5 +1,8 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "nanocompore_sampcomp"
-description: Compare two conditions to identify differential RNA modifications using nanocompore
+description: Compare two conditions to identify differential RNA modifications using
+  nanocompore
 keywords:
   - nanopore
   - rna-modifications
@@ -8,7 +11,8 @@ keywords:
   - native-vs-ivt
 tools:
   - nanocompore:
-      description: Software suite to identify differences in ONT nanopore sequencing raw signal corresponding to RNA modifications
+      description: Software suite to identify differences in ONT nanopore sequencing
+        raw signal corresponding to RNA modifications
       homepage: https://nanocompore.rna.rocks/
       documentation: https://nanocompore.rna.rocks/
       tool_dev_url: https://github.com/tleonardi/nanocompore
@@ -16,36 +20,64 @@ tools:
       licence: ["GPL-3.0-only"]
 
 input:
-  - key:
-      type: string
-      description: Unique identifier for the comparison
-  - condition1_label:
-      type: string
-      description: Label for condition 1 (e.g., 'native', 'wt')
-  - condition2_label:
-      type: string
-      description: Label for condition 2 (e.g., 'ivt', 'ko')
-  - condition1_files:
-      type: file
-      description: List of collapsed eventalign TSV files for condition 1 replicates
-      pattern: "*.tsv"
-  - condition2_files:
-      type: file
-      description: List of collapsed eventalign TSV files for condition 2 replicates
-      pattern: "*.tsv"
-  - fasta:
-      type: file
-      description: Reference genome or transcriptome FASTA file
-      pattern: "*.{fa,fasta}"
-
+  - - key:
+        type: string
+        description: Unique identifier for the comparison
+    - condition1_label:
+        type: string
+        description: Label for condition 1 (e.g., 'native', 'wt')
+    - condition2_label:
+        type: string
+        description: Label for condition 2 (e.g., 'ivt', 'ko')
+    - condition1_files:
+        type: file
+        description: List of collapsed eventalign TSV files for condition 1 replicates
+        pattern: "*.tsv"
+    - condition2_files:
+        type: file
+        description: List of collapsed eventalign TSV files for condition 2 replicates
+        pattern: "*.tsv"
+    - fasta:
+        type: file
+        description: Reference genome or transcriptome FASTA file
+        pattern: "*.{fa,fasta}"
 output:
-  - key:
-      type: string
-      description: Unique identifier for the comparison
-  - results:
-      type: directory
-      description: Directory containing nanocompore results (outSampComp.db, outSampComp_results.tsv, outSampComp_stats.tsv)
-      pattern: "*_sampcomp"
-
+  results:
+    - - key:
+          type: string
+          description: Unique identifier for the comparison
+      - ${prefix}:
+          type: directory
+          description: Directory containing nanocompore results (outSampComp.db,
+            outSampComp_results.tsv, outSampComp_stats.tsv)
+          pattern: "*_sampcomp"
+  log:
+    - - '*.log':
+          type: file
+          description: Log file
+          pattern: '*.log'
+  versions_nanocompore:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - nanocompore:
+          type: string
+          description: The name of the tool
+      - nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - nanocompore:
+          type: string
+          description: The name of the tool
+      - nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"
