@@ -1,5 +1,8 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "yanocomp_prepare"
-description: Prepare f5c eventalign output for yanocomp analysis by converting to HDF5 format
+description: Prepare f5c eventalign output for yanocomp analysis by converting to
+  HDF5 format
 keywords:
   - nanopore
   - rna-modifications
@@ -15,26 +18,53 @@ tools:
       licence: ["MIT"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - eventalign:
-      type: file
-      description: Output from f5c eventalign containing per-read event-level signal data
-      pattern: "*.txt"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', single_end:false ]`
+    - eventalign:
+        type: file
+        description: Output from f5c eventalign containing per-read event-level
+          signal data
+        pattern: "*.txt"
+  - - summary:
+        type: file
+        description: summary file
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - hdf5:
-      type: file
-      description: HDF5 file containing processed eventalign data ready for comparison
-      pattern: "*.hdf5"
-
+  hdf5:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', single_end:false ]`
+      - '*.hdf5':
+          type: file
+          description: HDF5 file containing processed eventalign data ready for
+            comparison
+          pattern: "*.hdf5"
+  versions_yanocomp:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - yanocomp:
+          type: string
+          description: The name of the tool
+      - yanocomp --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - yanocomp:
+          type: string
+          description: The name of the tool
+      - yanocomp --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

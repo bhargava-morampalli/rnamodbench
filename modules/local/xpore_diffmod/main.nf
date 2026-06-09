@@ -11,7 +11,7 @@ process XPORE_DIFFMOD {
     output:
     tuple val(key), path("${key}_diffmod"), emit: diffmod
     path "*.log"                          , emit: log, optional: true
-    tuple val("${task.process}"), val('xpore'), eval('xpore --version 2>&1 | sed \'s/^.*xpore //; s/ .*$//\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('xpore'), eval('xpore --version 2>&1 | sed \'s/^.*xpore //; s/ .*$//\' || echo unknown'), emit: versions_xpore, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

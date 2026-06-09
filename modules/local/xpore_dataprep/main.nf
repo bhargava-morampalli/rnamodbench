@@ -10,7 +10,7 @@ process XPORE_DATAPREP {
 
     output:
     tuple val(meta), path("dataprep_*"), emit: dataprep
-    tuple val("${task.process}"), val('xpore'), eval('xpore --version 2>&1 | sed \'s/^.*xpore //; s/ .*$//\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('xpore'), eval('xpore --version 2>&1 | sed \'s/^.*xpore //; s/ .*$//\' || echo unknown'), emit: versions_xpore, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

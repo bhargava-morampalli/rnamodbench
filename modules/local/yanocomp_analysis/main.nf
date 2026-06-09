@@ -13,7 +13,7 @@ process YANOCOMP_ANALYSIS {
     tuple val(meta), path("*.bed")             , emit: bed
     tuple val(meta), path("*_sm_preds.json")   , emit: json
     path "*.log"                               , emit: log, optional: true
-    tuple val("${task.process}"), val('yanocomp'), eval('yanocomp --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('yanocomp'), eval('yanocomp --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_yanocomp, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

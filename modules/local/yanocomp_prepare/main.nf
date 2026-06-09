@@ -12,7 +12,7 @@ process YANOCOMP_PREPARE {
 
     output:
     tuple val(meta), path("*.hdf5"), emit: hdf5
-    tuple val("${task.process}"), val('yanocomp'), eval('yanocomp --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('yanocomp'), eval('yanocomp --version 2>/dev/null | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_yanocomp, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

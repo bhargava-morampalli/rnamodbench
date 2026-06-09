@@ -1,0 +1,56 @@
+{
+    "Should detect differential modifications between native and IVT": {
+        "content": [
+            {
+                "diffmod": [
+                    [
+                        "test",
+                        "test_diffmod"
+                    ]
+                ],
+                "log": [
+                    "test_xpore.log"
+                ],
+                "versions_xpore": [
+                    [
+                        "XPORE_DIFFMOD",
+                        "xpore",
+                        "2.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T17:00:06.821095913",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    },
+    "Should work in stub mode": {
+        "content": [
+            {
+                "diffmod": [
+                    [
+                        "test_stub",
+                        "test_stub_diffmod"
+                    ]
+                ],
+                "log": [
+                    
+                ],
+                "versions_xpore": [
+                    [
+                        "XPORE_DIFFMOD",
+                        "xpore",
+                        "2.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T16:50:44.954608067",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "hdf5": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": false
+                        },
+                        "test_stub.hdf5"
+                    ]
+                ],
+                "versions_yanocomp": [
+                    [
+                        "YANOCOMP_PREPARE",
+                        "yanocomp",
+                        ""
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T16:55:27.191136005",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

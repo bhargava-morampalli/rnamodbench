@@ -1,5 +1,8 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "xpore_diffmod"
-description: Detect differential RNA modifications between sample groups using xPore's statistical framework
+description: Detect differential RNA modifications between sample groups using xPore's
+  statistical framework
 keywords:
   - nanopore
   - rna-modifications
@@ -8,7 +11,8 @@ keywords:
   - native-vs-ivt
 tools:
   - xpore:
-      description: Python package for identification and quantification of differential RNA modifications from direct RNA sequencing
+      description: Python package for identification and quantification of differential
+        RNA modifications from direct RNA sequencing
       homepage: https://github.com/GoekeLab/xpore
       documentation: https://xpore.readthedocs.io
       tool_dev_url: https://github.com/GoekeLab/xpore
@@ -16,25 +20,54 @@ tools:
       licence: ["MIT"]
 
 input:
-  - key:
-      type: string
-      description: Unique identifier for the comparison
-  - types:
-      type: list
-      description: List of sample types/groups to compare (e.g., ['native', 'ivt'])
-  - dataprep_dirs:
-      type: directory
-      description: List of xpore dataprep output directories corresponding to each sample type
-      pattern: "dataprep"
-
+  - - key:
+        type: string
+        description: Unique identifier for the comparison
+    - types:
+        type: list
+        description: List of sample types/groups to compare (e.g., ['native', 'ivt'])
+    - dataprep_dirs:
+        type: directory
+        description: List of xpore dataprep output directories corresponding to
+          each sample type
+        pattern: "dataprep"
 output:
-  - key:
-      type: string
-      description: Unique identifier for the comparison
-  - diffmod:
-      type: directory
-      description: Directory containing differential modification results (diffmod.table with statistics and predictions)
-      pattern: "diffmod"
-
+  diffmod:
+    - - key:
+          type: string
+          description: Unique identifier for the comparison
+      - ${key}_diffmod:
+          type: directory
+          description: Directory containing differential modification results (diffmod.table
+            with statistics and predictions)
+          pattern: "diffmod"
+  log:
+    - - '*.log':
+          type: file
+          description: Log file
+          pattern: '*.log'
+  versions_xpore:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - xpore:
+          type: string
+          description: The name of the tool
+      - xpore --version 2>&1 | sed 's/^.*xpore //; s/ .*$//' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - xpore:
+          type: string
+          description: The name of the tool
+      - xpore --version 2>&1 | sed 's/^.*xpore //; s/ .*$//' || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

@@ -12,6 +12,7 @@ nextflow_process {
     // Integration test disabled due to missing container (using python:3.9 placeholder)
 
     test("Should work in stub mode") {
+        config "modules/local/yanocomp_prepare/tests/nextflow.config"
 
         options "-stub"
 
@@ -22,6 +23,9 @@ nextflow_process {
                     [ id: 'test_stub', single_end: false ],
                     file("${projectDir}/modules/local/yanocomp_prepare/tests/data/test_eventalign.txt", checkIfExists: true)
                 ]
+                def no_summary = file("NO_FILE")
+                no_summary.text = ""
+                input[1] = no_summary
                 """
             }
         }
@@ -29,7 +33,9 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.hdf5 }
+                { assert process.out.hdf5 },
+                { assert process.out.versions_yanocomp },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["hdf5"])).match() }
             )
         }
     }

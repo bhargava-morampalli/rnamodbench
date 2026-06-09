@@ -12,6 +12,7 @@ nextflow_process {
     // Integration test disabled due to missing container (using python:3.9 placeholder)
 
     test("Should work in stub mode") {
+        config "modules/local/yanocomp_analysis/tests/nextflow.config"
 
         options "-stub"
 
@@ -31,7 +32,9 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.bed },
-                { assert process.out.json }
+                { assert process.out.json },
+                { assert process.out.versions_yanocomp },
+                { assert snapshot(process.out).match() }
             )
         }
     }
