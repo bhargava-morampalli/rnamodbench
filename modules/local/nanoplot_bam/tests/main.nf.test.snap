@@ -1,0 +1,56 @@
+{
+    "Should work in stub mode": {
+        "content": [
+            {
+                "stats": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": false
+                        },
+                        "test_stub.feather"
+                    ]
+                ],
+                "versions_nanoplot": [
+                    [
+                        "NANOPLOT_BAM",
+                        "nanoplot",
+                        "unknown"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T15:52:08.818291636",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    },
+    "Should generate feather file from BAM file": {
+        "content": [
+            {
+                "stats": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.feather"
+                    ]
+                ],
+                "versions_nanoplot": [
+                    [
+                        "NANOPLOT_BAM",
+                        "nanoplot",
+                        "unknown"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T15:51:47.792867626",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    }
+}

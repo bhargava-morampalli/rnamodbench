@@ -1,5 +1,8 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "nanoplot_bam"
-description: Extract statistics from BAM files and save as feather format for NanoPlot visualization
+description: Extract statistics from BAM files and save as feather format for NanoPlot
+  visualization
 keywords:
   - nanopore
   - long-read
@@ -16,33 +19,57 @@ tools:
       doi: "10.1093/bioinformatics/bty149"
       licence: ["MIT"]
   - nanoget:
-      description: Functions to extract information from Oxford Nanopore sequencing data
+      description: Functions to extract information from Oxford Nanopore sequencing
+        data
       homepage: https://github.com/wdecoster/nanoget
       documentation: https://github.com/wdecoster/nanoget
       tool_dev_url: https://github.com/wdecoster/nanoget
       licence: ["MIT"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - bam:
-      type: file
-      description: Sorted BAM file from Oxford Nanopore sequencing alignment
-      pattern: "*.bam"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', single_end:false ]`
+    - bam:
+        type: file
+        description: Sorted BAM file from Oxford Nanopore sequencing alignment
+        pattern: "*.bam"
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - stats:
-      type: file
-      description: Statistics extracted from BAM file in feather format (Apache Arrow)
-      pattern: "*.feather"
-
+  stats:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', single_end:false ]`
+      - '*.feather':
+          type: file
+          description: Statistics extracted from BAM file in feather format (Apache
+            Arrow)
+          pattern: "*.feather"
+  versions_nanoplot:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - nanoplot:
+          type: string
+          description: The name of the tool
+      - (NanoPlot --version 2>/dev/null || echo unknown) | cut -d " " -f 2:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - nanoplot:
+          type: string
+          description: The name of the tool
+      - (NanoPlot --version 2>/dev/null || echo unknown) | cut -d " " -f 2:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

@@ -10,7 +10,7 @@ process NANOPLOT_BAM {
 
     output:
     tuple val(meta), path("*.feather"), emit: stats
-    tuple val("${task.process}"), val('nanoplot'), eval('NanoPlot --version 2>&1 | sed \'s/NanoPlot //\' || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('nanoplot'), eval('(NanoPlot --version 2>/dev/null || echo unknown) | cut -d " " -f 2'), emit: versions_nanoplot, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
