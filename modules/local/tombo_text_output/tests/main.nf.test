@@ -27,7 +27,9 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(process.out).match() }
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["log"])).match() },
+                { assert process.out.versions_tombo },
+                { assert process.out.versions_pandas }
             )
         }
     }
@@ -51,7 +53,9 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.bed }
+                { assert process.out.csv },
+                { assert process.out.versions_tombo },
+                { assert process.out.versions_pandas }
             )
         }
     }

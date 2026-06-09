@@ -30,7 +30,8 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(process.out).match() }
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["log"])).match() },
+                { assert process.out.versions_tombo }
             )
         }
     }
@@ -57,7 +58,8 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.stats }
+                { assert process.out.stats },
+                { assert process.out.versions_tombo }
             )
         }
     }

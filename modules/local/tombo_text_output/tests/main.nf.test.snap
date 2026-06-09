@@ -2,16 +2,35 @@
     "Should convert tombo stats to CSV format": {
         "content": [
             {
-                "0": [],
-                "1": [],
-                "bed": [],
-                "log": []
+                "csv": [
+                    [
+                        "16s_test",
+                        "16s_test.csv:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "log": [
+                    "16s_test_tombo_text.log"
+                ],
+                "versions_pandas": [
+                    [
+                        "TOMBO_TEXT_OUTPUT",
+                        "pandas",
+                        "1.3.4"
+                    ]
+                ],
+                "versions_tombo": [
+                    [
+                        "TOMBO_TEXT_OUTPUT",
+                        "tombo",
+                        "1.5.1"
+                    ]
+                ]
             }
         ],
+        "timestamp": "2026-06-08T16:46:38.99175342",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.2"
-        },
-        "timestamp": "2026-02-12T12:06:48.390985414"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

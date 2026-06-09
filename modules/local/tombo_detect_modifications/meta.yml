@@ -1,3 +1,5 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "tombo_detect_modifications"
 description: Detect modified bases by comparing native and IVT RNA nanopore data
 keywords:
@@ -20,25 +22,53 @@ tools:
       licence: ["mpl-2.0"]
 
 input:
-  - key:
-      type: string
-      description: Sample identifier/key
-  - types:
-      type: list
-      description: List of sample types (e.g., ['native', 'ivt'])
-  - fast5_dirs:
-      type: list
-      description: List of directories containing resquiggled FAST5 files corresponding to each sample type
-      pattern: "[*/]"
-
+  - - key:
+        type: string
+        description: Sample identifier/key
+    - types:
+        type: list
+        description: List of sample types (e.g., ['native', 'ivt'])
+    - fast5_dirs:
+        type: list
+        description: List of directories containing resquiggled FAST5 files corresponding
+          to each sample type
+        pattern: "[*/]"
 output:
-  - key:
-      type: string
-      description: Sample identifier/key
-  - stats:
-      type: file
-      description: Tombo statistics file containing modification detection results
-      pattern: "*.tombo.stats"
-
+  stats:
+    - - key:
+          type: string
+          description: Sample identifier/key
+      - '*.tombo.stats':
+          type: file
+          description: Tombo statistics file containing modification detection results
+          pattern: "*.tombo.stats"
+  log:
+    - - '*.log':
+          type: file
+          description: Log file
+          pattern: '*.log'
+  versions_tombo:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - tombo:
+          type: string
+          description: The name of the tool
+      - tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - tombo:
+          type: string
+          description: The name of the tool
+      - tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

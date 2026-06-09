@@ -27,7 +27,8 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(process.out).match() }
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["resquiggled"])).match() },
+                { assert process.out.versions_tombo }
             )
         }
     }
@@ -51,7 +52,8 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert process.out.resquiggled }
+                { assert process.out.resquiggled },
+                { assert process.out.versions_tombo }
             )
         }
     }

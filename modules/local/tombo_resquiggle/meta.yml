@@ -1,3 +1,5 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "tombo_resquiggle"
 description: Re-annotate raw nanopore signal with genomic alignment from basecalls
 keywords:
@@ -21,30 +23,53 @@ tools:
       licence: ["mpl-2.0"]
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - fast5:
-      type: directory
-      description: Directory containing FAST5 files from Oxford Nanopore sequencing
-      pattern: "*/"
-  - reference:
-      type: file
-      description: Reference genome in FASTA format
-      pattern: "*.{fasta,fa,fna}"
-
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', single_end:false ]`
+    - fast5:
+        type: directory
+        description: Directory containing FAST5 files from Oxford Nanopore sequencing
+        pattern: "*/"
+    - reference:
+        type: file
+        description: Reference genome in FASTA format
+        pattern: "*.{fasta,fa,fna}"
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  - resquiggled:
-      type: directory
-      description: Directory containing resquiggled FAST5 files with corrected signal-to-sequence alignment
-      pattern: "*/"
-
+  resquiggled:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', single_end:false ]`
+      - fast5:
+          type: directory
+          description: Directory containing resquiggled FAST5 files with corrected
+            signal-to-sequence alignment
+          pattern: "*/"
+  versions_tombo:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - tombo:
+          type: string
+          description: The name of the tool
+      - tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - tombo:
+          type: string
+          description: The name of the tool
+      - tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
+  - "@bhargava-morampalli"
+maintainers:
   - "@bhargava-morampalli"

@@ -11,7 +11,7 @@ process TOMBO_RESQUIGGLE {
 
     output:
     tuple val(meta), path(fast5), emit: resquiggled
-    tuple val("${task.process}"), val('tombo'), eval('tombo --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), topic: versions
+    tuple val("${task.process}"), val('tombo'), eval('tombo --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_tombo, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
