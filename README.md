@@ -20,50 +20,7 @@
 
 ## Data Flow
 
-```mermaid
-graph TD
-    A[samplesheet.csv] --> C[Input validation and metadata build]
-    B[references.csv] --> C
-
-    C --> D[Mapping: minimap2 -> samtools]
-    D --> E[QC: flagstat, depth, coverage, nanoplot]
-
-    D --> F[Extract mapped FASTQ]
-    F --> G[Extract read IDs]
-    G --> H[FAST5 subset]
-    H --> I[Multi-to-single FAST5]
-
-    D --> J[f5c index]
-    H --> J
-    J --> K[f5c eventalign read_name]
-    J --> L[f5c eventalign_xpore read_index]
-
-    I --> M[tombo resquiggle]
-
-    M --> N[Tombo detect + text output]
-    K --> O[Yanocomp prep + gmmtest]
-    K --> P[Nanocompore collapse + sampcomp]
-    L --> Q[xPore dataprep + diffmod]
-
-    D --> R[BAM-based callers]
-    R --> S[ELIGOS]
-    R --> T[EpiNano-Error]
-    R --> U[DiffErr]
-    R --> V[DRUMMER]
-    R --> W[JACUSA2]
-
-    N --> X[modifications/]
-    O --> X
-    P --> X
-    Q --> X
-    S --> X
-    T --> X
-    U --> X
-    V --> X
-    W --> X
-
-    X --> Y[pipeline_info/software_versions.yml]
-```
+![rnamodbench metro map](docs/images/metro_map.svg)
 
 Caller input routing:
 - `tombo`: resquiggled single FAST5

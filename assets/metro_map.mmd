@@ -1,0 +1,123 @@
+%%metro title: rnamodbench
+%%metro style: nfcore
+%%metro mode: light
+%%metro files: reads_in | FASTQ | Native + IVT
+%%metro file: refs_in | FASTA | References
+%%metro dir: fast5_in | FAST5
+%%metro dir: qc_out | QC
+%%metro dir: mods_out | modifications
+%%metro file: report_out | HTML | Error report
+%%metro line: bam | Basecall-error callers (native vs IVT BAMs) | #2db572
+%%metro line: eventalign | Signal-level: f5c eventalign | #0570b0
+%%metro line: tombo | Signal-level: Tombo resquiggle | #ff8c00
+%%metro line: qc | Alignment QC | #b0b0b0
+%%metro marker: downstream | circle, open
+%%metro marker_legend: circle, open | Opt-in (--run_downstream)
+%%metro legend: bl
+%%metro grid: mapping | 0,0
+%%metro grid: signal_prep | 1,0
+%%metro grid: f5c_proc | 2,0
+%%metro grid: tombo_proc | 2,1
+%%metro grid: qc_stats | 0,1
+%%metro grid: mod_calling | 3,0,2
+%%metro grid: reporting | 4,0
+
+graph LR
+    subgraph mapping [Mapping]
+        reads_in[ ]
+        refs_in[ ]
+        minimap2[minimap2]
+        samtools[samtools view/sort/index]
+        extract_mapped[Extract mapped reads]
+
+        reads_in -->|bam,eventalign,tombo,qc| minimap2
+        refs_in -->|bam,eventalign,tombo,qc| minimap2
+        minimap2 -->|bam,qc| samtools
+        minimap2 -->|eventalign,tombo| extract_mapped
+    end
+
+    subgraph qc_stats [QC]
+        flagstat[flagstat]
+        depth[samtools depth]
+        coverage_plot[Coverage plot]
+        nanoplot[NanoPlot]
+        qc_out[ ]
+
+        flagstat -->|qc| depth
+        depth -->|qc| coverage_plot
+        coverage_plot -->|qc| nanoplot
+        nanoplot -->|qc| qc_out
+    end
+
+    subgraph signal_prep [Signal data prep]
+        fast5_in[ ]
+        read_ids[Extract read IDs]
+        fast5_subset[FAST5 subset]
+
+        fast5_in -->|eventalign,tombo| fast5_subset
+        read_ids -->|eventalign,tombo| fast5_subset
+    end
+
+    subgraph f5c_proc [f5c]
+        f5c_index[f5c index]
+        f5c_eventalign[eventalign]
+        f5c_eventalign_xpore[eventalign xPore]
+
+        f5c_index -->|eventalign| f5c_eventalign
+        f5c_index -->|eventalign| f5c_eventalign_xpore
+    end
+
+    subgraph tombo_proc [Tombo]
+        multi_to_single[Multi-to-single FAST5]
+        tombo_resquiggle[resquiggle]
+
+        multi_to_single -->|tombo| tombo_resquiggle
+    end
+
+    subgraph mod_calling [Modification calling]
+        tombo_detect[Tombo]
+        yanocomp[Yanocomp]
+        nanocompore[Nanocompore]
+        xpore[xPore]
+        eligos[ELIGOS]
+        epinano[EpiNano-Error]
+        differr[DiffErr]
+        drummer[DRUMMER]
+        jacusa2[JACUSA2]
+        mods_out[ ]
+
+        tombo_detect -->|tombo| mods_out
+        yanocomp -->|eventalign| mods_out
+        nanocompore -->|eventalign| mods_out
+        xpore -->|eventalign| mods_out
+        eligos -->|bam| mods_out
+        epinano -->|bam| mods_out
+        differr -->|bam| mods_out
+        drummer -->|bam| mods_out
+        jacusa2 -->|bam| mods_out
+    end
+
+    subgraph reporting [Reporting]
+        downstream[Downstream analysis]
+        error_report[Error report]
+        report_out[ ]
+
+        downstream -->|bam,eventalign,tombo| error_report
+        error_report -->|bam,eventalign,tombo| report_out
+    end
+
+    %% Inter-section edges
+    samtools -->|qc| flagstat
+    extract_mapped -->|eventalign,tombo| read_ids
+    fast5_subset -->|eventalign| f5c_index
+    fast5_subset -->|tombo| multi_to_single
+    tombo_resquiggle -->|tombo| tombo_detect
+    f5c_eventalign -->|eventalign| yanocomp
+    f5c_eventalign -->|eventalign| nanocompore
+    f5c_eventalign_xpore -->|eventalign| xpore
+    samtools -->|bam| eligos
+    samtools -->|bam| epinano
+    samtools -->|bam| differr
+    samtools -->|bam| drummer
+    samtools -->|bam| jacusa2
+    mods_out -->|bam,eventalign,tombo| downstream
