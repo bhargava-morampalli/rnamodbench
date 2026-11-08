@@ -42,7 +42,6 @@ include { EPINANO_ERROR                   } from '../../../modules/local/epinano
 include { DIFFERR                         } from '../../../modules/local/differr'
 include { DRUMMER                         } from '../../../modules/local/drummer'
 include { JACUSA2                         } from '../../../modules/local/jacusa2'
-// Note: NANORMS is not included as it requires EpiNano per-site CSV files which are not currently generated
 
 workflow MODIFICATION_CALLING {
     take:
@@ -233,9 +232,6 @@ workflow MODIFICATION_CALLING {
 
         JACUSA2 ( ch_bam_paired )
 
-        // NANORMS: Currently disabled as it requires EpiNano per-site CSV files
-        ch_nanorms_results = Channel.empty()
-
     emit:
         tombo_csv           = TOMBO_TEXT_OUTPUT.out.csv
         yanocomp_bed        = YANOCOMP_ANALYSIS.out.bed
@@ -246,7 +242,6 @@ workflow MODIFICATION_CALLING {
         differr_bed         = DIFFERR.out.bed
         drummer_results     = DRUMMER.out.results
         jacusa2_bed         = JACUSA2.out.bed
-        nanorms_results     = ch_nanorms_results
         // Barrier signalling that all modification-calling tools have finished.
         // Replaces the old `versions.collect()` signal now that versions go via the topic channel.
         done                = TOMBO_TEXT_OUTPUT.out.csv
