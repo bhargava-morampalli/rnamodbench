@@ -229,7 +229,7 @@ workflow RNAMODBENCH {
         def refs_input = params.references ? file(params.references, checkIfExists: true).toString() : 'NO_FILE'
 
         ch_modifications_dir = MODIFICATION_CALLING.out.done
-            .map { _ -> file("${params.outdir}/modifications") }
+            .map { _trigger -> file("${params.outdir}/modifications") }
 
         DOWNSTREAM_ANALYSIS(
             ch_modifications_dir,
@@ -239,7 +239,7 @@ workflow RNAMODBENCH {
         ch_report_trigger = DOWNSTREAM_ANALYSIS.out.results
     }
 
-    ch_report_run_dir = ch_report_trigger.map { _ -> file(params.outdir).toString() }
+    ch_report_run_dir = ch_report_trigger.map { _trigger -> file(params.outdir).toString() }
     GENERATE_ERROR_REPORT(ch_report_run_dir)
 
     // =========================================================================
