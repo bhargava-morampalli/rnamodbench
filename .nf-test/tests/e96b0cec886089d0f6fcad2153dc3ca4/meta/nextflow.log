@@ -1,0 +1,138 @@
+Jun-07 04:45:36.133 [main] DEBUG nextflow.cli.Launcher - $> nextflow -quiet -log /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/meta/nextflow.log run /home/bmorampa/rnamodbench/.nf-test-e96b0cec886089d0f6fcad2153dc3ca4.nf -c /home/bmorampa/rnamodbench/nextflow.config -c /home/bmorampa/rnamodbench/tests/nextflow.config -params-file /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/meta/params.json -ansi-log false -profile test,conda -with-trace /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/meta/trace.csv -w /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/work -stub
+Jun-07 04:45:36.167 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 26.04.3
+Jun-07 04:45:36.178 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/bmorampa/.nextflow/plugins; core-plugins: nf-amazon@3.9.1,nf-azure@1.22.5,nf-cloudcache@0.6.0,nf-codecommit@0.5.2,nf-console@1.3.0,nf-google@1.27.3,nf-k8s@1.5.4,nf-seqera@0.20.1,nf-tower@1.28.0,nf-wave@1.21.0
+Jun-07 04:45:36.188 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Jun-07 04:45:36.189 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Jun-07 04:45:36.190 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.14.1 in 'deployment' mode
+Jun-07 04:45:36.199 [main] DEBUG nextflow.util.RetryConfig - Missing nextflow session - using default retry config
+Jun-07 04:45:36.264 [main] DEBUG nextflow.plugin.PluginUpdater - Using plugin repository: HttpPluginRepository [registry]; url=https://registry.nextflow.io/api
+Jun-07 04:45:36.267 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Jun-07 04:45:36.287 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /home/bmorampa/rnamodbench/nextflow.config
+Jun-07 04:45:36.289 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /home/bmorampa/rnamodbench/nextflow.config
+Jun-07 04:45:36.289 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /home/bmorampa/rnamodbench/tests/nextflow.config
+Jun-07 04:45:36.290 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/rnamodbench/nextflow.config
+Jun-07 04:45:36.290 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/rnamodbench/nextflow.config
+Jun-07 04:45:36.290 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bmorampa/rnamodbench/tests/nextflow.config
+Jun-07 04:45:36.292 [main] DEBUG nextflow.config.ConfigParserFactory - Using config parser v2
+Jun-07 04:45:36.300 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,conda`
+Jun-07 04:45:36.766 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,conda`
+Jun-07 04:45:36.902 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,conda`
+Jun-07 04:45:37.007 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [debug, conda, mamba, docker, arm, singularity, podman, shifter, charliecloud, apptainer, gitpod, test, test_full]
+Jun-07 04:45:37.033 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-schema@2.6.1, nf-wave@1.16.1]
+Jun-07 04:45:37.033 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Jun-07 04:45:37.034 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-schema@2.6.1, nf-wave@1.16.1]
+Jun-07 04:45:37.035 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-schema version: 2.6.1
+Jun-07 04:45:37.039 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-schema@2.6.1' resolved
+Jun-07 04:45:37.039 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-schema@2.6.1'
+Jun-07 04:45:37.041 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-schema@2.6.1
+Jun-07 04:45:37.041 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-wave version: 1.16.1
+Jun-07 04:45:37.043 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-wave@1.16.1' resolved
+Jun-07 04:45:37.043 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-wave@1.16.1'
+Jun-07 04:45:37.048 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-wave@1.16.1
+Jun-07 04:45:37.056 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/bmorampa/.nextflow/secrets/store.json
+Jun-07 04:45:37.058 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@1e01b133] - activable => nextflow.secret.LocalSecretsProvider@1e01b133
+Jun-07 04:45:37.065 [main] INFO  nextflow.cli.CmdRun - Launching `/home/bmorampa/rnamodbench/.nf-test-e96b0cec886089d0f6fcad2153dc3ca4.nf` [peaceful_gilbert] - revision: 5aec134c20
+Jun-07 04:45:37.105 [main] DEBUG nextflow.Session - Session UUID: 11eacf61-16bd-414f-9dd7-9e01b7f640d9
+Jun-07 04:45:37.105 [main] DEBUG nextflow.Session - Run name: peaceful_gilbert
+Jun-07 04:45:37.106 [main] DEBUG nextflow.Session - Executor pool size: 12
+Jun-07 04:45:37.110 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Jun-07 04:45:37.112 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jun-07 04:45:37.123 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 26.04.3 build 12259
+  Created: 28-05-2026 08:48 UTC (14:18 IDT)
+  System: Linux 6.17.0-35-generic
+  Runtime: Groovy 4.0.31 on OpenJDK 64-Bit Server VM 17.0.10+7
+  Encoding: UTF-8 (UTF-8)
+  Process: 78074@gandalf [127.0.1.1]
+  CPUs: 12 - Mem: 93.4 GB (72.1 GB) - Swap: 8 GB (8 GB)
+Jun-07 04:45:37.133 [main] DEBUG nextflow.Session - Work-dir: /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/work [ext2/ext3]
+Jun-07 04:45:37.150 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Jun-07 04:45:37.156 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
+Jun-07 04:45:37.157 [main] DEBUG nextflow.Session - Observer factory (v2): DefaultObserverFactory
+Jun-07 04:45:37.163 [main] DEBUG nextflow.Session - Observer factory (v2): WaveFactory
+Jun-07 04:45:37.164 [main] DEBUG nextflow.Session - Observer factory (v2): ValidationObserverFactory
+Jun-07 04:45:37.177 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Jun-07 04:45:37.181 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
+Jun-07 04:45:37.223 [main] DEBUG nextflow.Session - Session start
+Jun-07 04:45:37.226 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/meta/trace.csv
+Jun-07 04:45:37.228 [main] DEBUG n.validation.config.ValidationConfig - Set `validation.lenientMode` to false
+Jun-07 04:45:37.229 [main] DEBUG n.validation.config.ValidationConfig - Set `validation.monochromeLogs` to true due to the ANSI log settings.
+Jun-07 04:45:37.229 [main] DEBUG n.validation.config.ValidationConfig - Set `validation.parametersSchema` to nextflow_schema.json
+Jun-07 04:45:37.230 [main] DEBUG n.validation.config.ValidationConfig - Added the following parameters to the ignored parameters: [rnamodbench_trace_timestamp]
+Jun-07 04:45:37.231 [main] DEBUG n.validation.config.HelpConfig - Set `validation.help.enabled` to true
+Jun-07 04:45:37.231 [main] DEBUG n.validation.config.HelpConfig - Set `validation.help.showHidden` to false
+Jun-07 04:45:37.231 [main] DEBUG n.validation.config.HelpConfig - Set `validation.help.command` to nextflow run bhargava-morampalli/rnamodbench --input samplesheet.csv --outdir results --references references.csv
+Jun-07 04:45:37.232 [main] DEBUG n.validation.config.SummaryConfig - Set `validation.summary.beforeText` to 
+Jun-07 04:45:37.232 [main] DEBUG n.validation.config.SummaryConfig - Set `validation.summary.afterText` to 
+Jun-07 04:45:37.237 [main] DEBUG nextflow.script.ScriptLoaderFactory - Using script parser v2
+Jun-07 04:45:37.464 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Jun-07 04:45:37.538 [main] DEBUG n.script.dsl.ProcessConfigBuilder - Config settings `withLabel:process_low` matches labels `process_low` for process with name COVERAGE_PLOT
+Jun-07 04:45:37.540 [main] DEBUG n.script.dsl.ProcessConfigBuilder - Config settings `withName:COVERAGE_PLOT` matches process COVERAGE_PLOT
+Jun-07 04:45:37.543 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-07 04:45:37.543 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-07 04:45:37.548 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Jun-07 04:45:37.551 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=12; memory=84 GB; capacity=12; pollInterval=100ms; dumpInterval=5m
+Jun-07 04:45:37.552 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Jun-07 04:45:37.570 [main] DEBUG nextflow.processor.TaskProcessor - Creating process 'COVERAGE_PLOT': maxForks=0; fair=false; array=0
+Jun-07 04:45:37.611 [main] DEBUG nextflow.Session - Process names: COVERAGE_PLOT
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: GENERATE_ERROR_REPORT
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: MINIMAP2_.*
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_VIEW
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_SORT
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_INDEX
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_FLAGSTAT
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: SAMTOOLS_DEPTH
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: NANOPLOT_BAM
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: EXTRACT_MAPPED_READS
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: EXTRACT_READ_IDS
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: FAST5_SUBSET
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: MULTI_TO_SINGLE_FAST5
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_RESQUIGGLE
+Jun-07 04:45:37.619 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_DETECT_MODIFICATIONS
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: TOMBO_TEXT_OUTPUT
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: F5C_INDEX
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: F5C_EVENTALIGN
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: F5C_EVENTALIGN_XPORE
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: YANOCOMP_PREPARE
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: YANOCOMP_ANALYSIS
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: NANOCOMPORE_EVENTALIGN_COLLAPSE
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: NANOCOMPORE_SAMPCOMP
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: XPORE_DATAPREP
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: XPORE_DIFFMOD
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: ELIGOS_PAIR_DIFF_MOD
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: EPINANO_ERROR
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: DIFFERR
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: DRUMMER
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: JACUSA2
+Jun-07 04:45:37.620 [main] WARN  nextflow.Session - There's no process matching config selector: DOWNSTREAM_ANALYSIS
+Jun-07 04:45:37.623 [main] DEBUG nextflow.Session - Igniting dataflow network (1)
+Jun-07 04:45:37.623 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > COVERAGE_PLOT
+Jun-07 04:45:37.623 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  _nf_script_b1a068e99c17d233: /home/bmorampa/rnamodbench/modules/local/coverage_plot/main.nf
+  Main: /home/bmorampa/rnamodbench/.nf-test-e96b0cec886089d0f6fcad2153dc3ca4.nf
+Jun-07 04:45:37.623 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Jun-07 04:45:37.623 [main] DEBUG nextflow.Session - Session await
+Jun-07 04:45:37.664 [Actor Thread 11] INFO  nextflow.conda.CondaCache - Creating env using conda: /home/bmorampa/rnamodbench/modules/local/coverage_plot/environment.yml [cache /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/work/conda/env-1bab443b943044cebbc295d495c3d289]
+Jun-07 04:45:45.639 [Actor Thread 11] DEBUG nextflow.conda.CondaCache - 'conda' create complete env=/home/bmorampa/rnamodbench/modules/local/coverage_plot/environment.yml path=/home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/work/conda/env-1bab443b943044cebbc295d495c3d289
+Jun-07 04:45:45.677 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Jun-07 04:45:45.679 [Task submitter] INFO  nextflow.Session - [12/b8083e] Submitted process > COVERAGE_PLOT (test_stub)
+Jun-07 04:45:47.015 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: COVERAGE_PLOT (test_stub); status: COMPLETED; exit: 0; error: -; workDir: /home/bmorampa/rnamodbench/.nf-test/tests/e96b0cec886089d0f6fcad2153dc3ca4/work/12/b8083e047a6cb93427746a03abb011]
+Jun-07 04:45:47.015 [Task monitor] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'TaskFinalizer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jun-07 04:45:47.035 [TaskFinalizer-1] WARN  nextflow.processor.PublishDir - Process `COVERAGE_PLOT` publishDir path contains a variable with a null value
+Jun-07 04:45:47.039 [TaskFinalizer-1] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'PublishDir' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jun-07 04:45:47.045 [main] DEBUG nextflow.Session - Session await > all processes finished
+Jun-07 04:45:47.114 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Jun-07 04:45:47.114 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Jun-07 04:45:47.116 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'TaskFinalizer' shutdown completed (hard=false)
+Jun-07 04:45:47.116 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'PublishDir' shutdown completed (hard=false)
+Jun-07 04:45:47.123 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=1; failedCount=0; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=1.5s; failedDuration=0ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=2; peakMemory=12 GB; ]
+Jun-07 04:45:47.132 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
+Jun-07 04:45:47.368 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
+Jun-07 04:45:47.396 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
+Jun-07 04:45:47.400 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Jun-07 04:45:47.404 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-wave@1.16.1'
+Jun-07 04:45:47.404 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-wave
+Jun-07 04:45:47.404 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-schema@2.6.1'
+Jun-07 04:45:47.404 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-schema
+Jun-07 04:45:47.404 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'FileTransfer' shutdown completed (hard=false)
+Jun-07 04:45:47.404 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

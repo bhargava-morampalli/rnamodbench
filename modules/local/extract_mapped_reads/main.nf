@@ -10,7 +10,7 @@ process EXTRACT_MAPPED_READS {
 
     output:
     tuple val(meta), path("*.fastq"), emit: fastq
-    path "versions.yml"               , emit: versions
+    tuple val("${task.process}"), val('samtools'), eval('(samtools --version 2>/dev/null || echo unknown) | head -n 1 | cut -d " " -f 2'), emit: versions_samtools, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -26,21 +26,11 @@ process EXTRACT_MAPPED_READS {
         $args \\
         $sam \\
         > ${prefix}.fastq
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.fastq
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
 }

@@ -1,14 +1,56 @@
 {
+    "Should work in stub mode": {
+        "content": [
+            {
+                "dataprep": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": false
+                        },
+                        "dataprep_test_stub"
+                    ]
+                ],
+                "versions_xpore": [
+                    [
+                        "XPORE_DATAPREP",
+                        "xpore",
+                        "2.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-06-08T16:50:14.61323156",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
+    },
     "Should prepare xpore data directory from eventalign output": {
         "content": [
-            [
-                "versions.yml:md5,a493704744841afd3fbfdb4171fe5e0f"
-            ]
+            {
+                "dataprep": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "dataprep_test"
+                    ]
+                ],
+                "versions_xpore": [
+                    [
+                        "XPORE_DATAPREP",
+                        "xpore",
+                        "2.0"
+                    ]
+                ]
+            }
         ],
+        "timestamp": "2026-06-08T16:49:59.634143309",
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
-        },
-        "timestamp": "2025-10-31T12:58:07.246350482"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

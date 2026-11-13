@@ -1,0 +1,9 @@
+
+Error nextflow.config:275:1: Variable declarations cannot be mixed with config statements
+│ 275 | def trace_timestamp = new java.util.Date().format( 'yyyy-MM-dd_HH-mm-s
+╰     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+ERROR ~ Config parsing failed
+
+ -- Check '/home/bmorampa/rnamodbench/.nf-test/tests/64ea786b876780bb2ad2709ce9f6ed19/meta/nextflow.log' file for details

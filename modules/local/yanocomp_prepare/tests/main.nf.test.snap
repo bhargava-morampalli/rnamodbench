@@ -1,14 +1,29 @@
 {
-    "Should prepare HDF5 from eventalign output": {
+    "Should work in stub mode": {
         "content": [
-            [
-                "versions.yml:md5,71ce8032e1e1d1136ade80ef5125cddb"
-            ]
+            {
+                "hdf5": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": false
+                        },
+                        "test_stub.hdf5"
+                    ]
+                ],
+                "versions_yanocomp": [
+                    [
+                        "YANOCOMP_PREPARE",
+                        "yanocomp",
+                        "unknown"
+                    ]
+                ]
+            }
         ],
+        "timestamp": "2026-11-13T12:40:21.206307372",
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
-        },
-        "timestamp": "2025-10-31T12:07:53.438314064"
+            "nf-test": "0.9.5",
+            "nextflow": "26.08.0"
+        }
     }
 }

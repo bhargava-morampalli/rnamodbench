@@ -13,7 +13,6 @@ nextflow.enable.dsl=2
  * Outputs:
  *   - mapped_bams:   [ val(meta), path(bam), path(bai) ] - sorted, indexed BAM files
  *   - mapped_fastqs: [ val(meta), path(fastq) ] - extracted mapped reads as FASTQ
- *   - versions:      [ path(versions.yml) ]
  *
  * Note: Downstream branching should be done by consumers using meta.rrna and meta.type
  */
@@ -76,18 +75,7 @@ workflow MAPPING_RRNA {
         ch_bam_bai = SAMTOOLS_SORT.out.bam
             .join(SAMTOOLS_INDEX.out.bai)
 
-        // Collect all version files from modules
-        versions_ch = Channel.empty()
-        versions_ch = versions_ch
-            .mix(MINIMAP2_ALIGN.out.versions)
-            .mix(SAMTOOLS_VIEW.out.versions)
-            .mix(SAMTOOLS_SORT.out.versions)
-            .mix(SAMTOOLS_INDEX.out.versions)
-            .mix(EXTRACT_MAPPED_READS.out.versions)
-            .collect()
-
     emit:
         mapped_bams   = ch_bam_bai                    // [ val(meta), path(bam), path(bai) ]
         mapped_fastqs = EXTRACT_MAPPED_READS.out.fastq // [ val(meta), path(fastq) ]
-        versions      = versions_ch
 }

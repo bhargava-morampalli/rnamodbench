@@ -11,6 +11,7 @@ nextflow_process {
 
     test("Should work in stub mode") {
 
+        config "modules/local/eligos_pair_diff_mod/tests/nextflow.config"
         options "-stub"
 
         when {
@@ -45,7 +46,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.results },
-                { assert process.out.versions }
+                { assert process.out.versions_eligos2 },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["results"])).match() }
             )
         }
     }

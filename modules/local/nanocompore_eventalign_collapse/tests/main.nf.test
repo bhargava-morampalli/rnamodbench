@@ -30,7 +30,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.collapsed },
-                { assert process.out.versions }
+                { assert process.out.versions_nanocompore },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["collapsed"])).match() }
             )
         }
     }

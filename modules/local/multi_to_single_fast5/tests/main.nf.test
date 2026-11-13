@@ -30,7 +30,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.fast5 },
-                { assert process.out.versions }
+                { assert process.out.versions_ont_fast5_api },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["fast5"])).match() }
             )
         }
     }

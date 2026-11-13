@@ -78,7 +78,7 @@ nextflow_workflow {
         then {
             assertAll(
                 { assert workflow.success },
-                { assert workflow.out.versions }
+                { assert workflow.out.done }
             )
         }
     }

@@ -1,14 +1,29 @@
 {
-    "Should collapse eventalign data by kmers": {
+    "Should work in stub mode": {
         "content": [
-            [
-                
-            ]
+            {
+                "collapsed": [
+                    [
+                        {
+                            "id": "test_stub",
+                            "single_end": false
+                        },
+                        "test_stub"
+                    ]
+                ],
+                "versions_nanocompore": [
+                    [
+                        "NANOCOMPORE_EVENTALIGN_COLLAPSE",
+                        "nanocompore",
+                        "1.0.4"
+                    ]
+                ]
+            }
         ],
+        "timestamp": "2026-06-08T15:18:54.988802532",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.2"
-        },
-        "timestamp": "2025-12-07T20:20:34.216263371"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

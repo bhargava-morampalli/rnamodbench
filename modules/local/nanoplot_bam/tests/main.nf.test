@@ -27,8 +27,8 @@ nextflow_process {
                 { assert process.success },
                 { assert process.out.stats },
                 { assert process.out.stats.get(0).get(1).toString().endsWith('.feather') },
-                { assert process.out.versions },
-                { assert snapshot(process.out.versions).match() }
+                { assert process.out.versions_nanoplot },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["stats"])).match() }
             )
         }
     }
@@ -52,7 +52,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert process.out.stats },
-                { assert process.out.versions }
+                { assert process.out.versions_nanoplot },
+                { assert snapshot(sanitizeOutput(process.out, unstableKeys:["stats"])).match() }
             )
         }
     }
