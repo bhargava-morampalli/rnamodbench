@@ -9,3 +9,4 @@ samplesheets/
 testing*
 *.pyc
 __pycache__/
+.nf-test.log
