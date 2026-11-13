@@ -14,15 +14,15 @@
                     [
                         "MULTI_TO_SINGLE_FAST5",
                         "ont-fast5-api",
-                        "3.14"
+                        "4.1.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-06-08T15:18:34.911632162",
+        "timestamp": "2026-11-13T12:37:38.4373997",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.3"
+            "nextflow": "26.08.0"
         }
     }
 }

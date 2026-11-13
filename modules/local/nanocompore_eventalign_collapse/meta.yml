@@ -49,7 +49,7 @@ output:
       - nanocompore:
           type: string
           description: The name of the tool
-      - nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+      - nanocompore --version 2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+' | head -1 | grep . || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
 topics:
@@ -60,7 +60,7 @@ topics:
       - nanocompore:
           type: string
           description: The name of the tool
-      - nanocompore --version 2>/dev/null | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+      - nanocompore --version 2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+' | head -1 | grep . || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
 authors:

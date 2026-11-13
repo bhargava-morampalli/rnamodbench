@@ -49,7 +49,7 @@ output:
       - ont-fast5-api:
           type: string
           description: The name of the tool
-      - multi_to_single_fast5 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+      - python -c 'import importlib.metadata as m; print(m.version("ont-fast5-api"))' 2>/dev/null || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
 topics:
@@ -60,7 +60,7 @@ topics:
       - ont-fast5-api:
           type: string
           description: The name of the tool
-      - multi_to_single_fast5 --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+      - python -c 'import importlib.metadata as m; print(m.version("ont-fast5-api"))' 2>/dev/null || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
 authors:

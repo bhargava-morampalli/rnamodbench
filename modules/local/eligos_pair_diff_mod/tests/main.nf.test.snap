@@ -19,15 +19,15 @@
                     [
                         "ELIGOS_PAIR_DIFF_MOD",
                         "eligos2",
-                        ""
+                        "unknown"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-06-08T05:51:27.277454251",
+        "timestamp": "2026-11-13T12:35:45.246892743",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.3"
+            "nextflow": "26.08.0"
         }
     }
 }

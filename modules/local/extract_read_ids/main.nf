@@ -10,7 +10,7 @@ process EXTRACT_READ_IDS {
 
     output:
     tuple val(meta), path("*.read_ids.txt"), emit: read_ids
-    tuple val("${task.process}"), val('seqkit'), eval('seqkit version | sed \'s/seqkit version //\' || echo unknown'), emit: versions_seqkit, topic: versions
+    tuple val("${task.process}"), val('seqkit'), eval('seqkit version 2>/dev/null | grep -oE \'[0-9]+(\\.[0-9]+)+\' | head -1 | grep . || echo unknown'), emit: versions_seqkit, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

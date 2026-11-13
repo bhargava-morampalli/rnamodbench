@@ -67,7 +67,7 @@ output:
       - drummer:
           type: string
           description: The name of the tool
-      - python -c 'import importlib.metadata as m; print(m.version("drummer"))' 2>/dev/null || echo unknown:
+      - git -C drummer_repo rev-parse --short HEAD 2>/dev/null || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
   versions_python:
@@ -88,7 +88,7 @@ topics:
       - drummer:
           type: string
           description: The name of the tool
-      - python -c 'import importlib.metadata as m; print(m.version("drummer"))' 2>/dev/null || echo unknown:
+      - git -C drummer_repo rev-parse --short HEAD 2>/dev/null || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:

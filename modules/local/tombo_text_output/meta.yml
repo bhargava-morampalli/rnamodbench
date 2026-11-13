@@ -53,7 +53,7 @@ output:
       - tombo:
           type: string
           description: The name of the tool
-      - tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+      - tombo --version 2>&1 | grep -oE '[0-9]+(\\.[0-9]+)+' | head -1 | grep . || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
   versions_pandas:
@@ -74,7 +74,7 @@ topics:
       - tombo:
           type: string
           description: The name of the tool
-      - tombo --version 2>&1 | grep -oP '[0-9]+\\.[0-9]+[0-9.]*' | head -1 || echo unknown:
+      - tombo --version 2>&1 | grep -oE '[0-9]+(\\.[0-9]+)+' | head -1 | grep . || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:

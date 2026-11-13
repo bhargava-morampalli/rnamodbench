@@ -12,7 +12,7 @@ process TOMBO_TEXT_OUTPUT {
     output:
     tuple val(key), path("*.csv"), emit: csv
     path "*.log"                 , emit: log, optional: true
-    tuple val("${task.process}"), val('tombo'), eval('tombo --version 2>&1 | grep -oP \'[0-9]+\\.[0-9]+[0-9.]*\' | head -1 || echo unknown'), emit: versions_tombo, topic: versions
+    tuple val("${task.process}"), val('tombo'), eval('tombo --version 2>&1 | grep -oE \'[0-9]+(\\.[0-9]+)+\' | head -1 | grep . || echo unknown'), emit: versions_tombo, topic: versions
     tuple val("${task.process}"), val('pandas'), eval('python -c \'import pandas; print(pandas.__version__)\' 2>/dev/null || echo unknown'), emit: versions_pandas, topic: versions
 
     when:
