@@ -1,6 +1,7 @@
 process GENERATE_ERROR_REPORT {
     tag "${run_dir}"
     label 'process_single'
+    cache false
 
     conda "${moduleDir}/../downstream_analysis/environment.yml"
     container null
