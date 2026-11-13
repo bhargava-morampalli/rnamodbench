@@ -2,7 +2,7 @@ process GENERATE_ERROR_REPORT {
     tag "${run_dir}"
     label 'process_single'
 
-    conda "${projectDir}/modules/local/downstream_analysis/environment.yml"
+    conda "${moduleDir}/../downstream_analysis/environment.yml"
     container null
 
     input:
@@ -25,7 +25,7 @@ process GENERATE_ERROR_REPORT {
     echo "=== GENERATE_ERROR_REPORT started at \$(date) ==="
     echo "Run directory: $run_dir"
 
-    python ${projectDir}/bin/generate_error_report.py \\
+    generate_error_report.py \\
         --run-dir "$run_dir" \\
         --pipeline-info-dir . \\
         --output error_summary

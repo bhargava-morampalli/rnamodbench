@@ -20,8 +20,8 @@ process NANOCOMPORE_SAMPCOMP {
     // Output ALL positions for ROC curve analysis (pvalue_thr=1), with 5-mer context and logistic regression
     def args = task.ext.args ?: '--sequence_context 2 --pvalue_thr 1 --logit'
     prefix = task.ext.prefix ?: "${key}_sampcomp"
-    def cond1_files = condition1_files.collect{ "${it}/out_eventalign_collapse.tsv" }.join(',')
-    def cond2_files = condition2_files.collect{ "${it}/out_eventalign_collapse.tsv" }.join(',')
+    def cond1_files = condition1_files.collect{ it -> "${it}/out_eventalign_collapse.tsv" }.join(',')
+    def cond2_files = condition2_files.collect{ it -> "${it}/out_eventalign_collapse.tsv" }.join(',')
     """
     # Capture stdout and stderr to log file
     exec > >(tee -a ${prefix}.log) 2>&1

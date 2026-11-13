@@ -36,7 +36,7 @@ workflow PREPARE_SIGNAL_DATA {
         ch_mapped_all = mapped_fastqs.join(mapped_bams)
 
         // 1. Extract read IDs from mapped FASTQ files
-        ch_fastqs_for_ids = ch_mapped_all.map { meta, fastq, bam, bai -> [ meta, fastq ] }
+        ch_fastqs_for_ids = ch_mapped_all.map { meta, fastq, _bam, _bai -> [ meta, fastq ] }
         EXTRACT_READ_IDS ( ch_fastqs_for_ids )
 
         // 2. Subset the FAST5 directory to get relevant files

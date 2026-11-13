@@ -19,8 +19,8 @@ process TOMBO_DETECT_MODIFICATIONS {
 
     script:
     def prefix = task.ext.prefix ?: "${key}"
-    def native_idx = types.findIndexOf { it == 'native' }
-    def ivt_idx = types.findIndexOf { it == 'ivt' }
+    def native_idx = types.findIndexOf { it -> it == 'native' }
+    def ivt_idx = types.findIndexOf { it -> it == 'ivt' }
     def native_dir = fast5_dirs[native_idx]
     def ivt_dir = fast5_dirs[ivt_idx]
     """

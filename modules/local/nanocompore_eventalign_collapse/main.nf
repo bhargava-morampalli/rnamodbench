@@ -22,7 +22,8 @@ process NANOCOMPORE_EVENTALIGN_COLLAPSE {
     nanocompore eventalign_collapse \\
         -i $eventalign \\
         -o ${prefix} \\
-        -t ${task.cpus}
+        -t ${task.cpus} \\
+        ${args}
     """
 
     stub:

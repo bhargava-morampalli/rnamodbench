@@ -30,7 +30,7 @@ workflow QC_STATS {
 
     main:
         // Extract just BAM files (without BAI) for tools that don't need index
-        ch_bams = bams.map { meta, bam, bai -> [ meta, bam ] }
+        ch_bams = bams.map { meta, bam, _bai -> [ meta, bam ] }
 
         // Mapping statistics with samtools flagstat
         SAMTOOLS_FLAGSTAT ( ch_bams )

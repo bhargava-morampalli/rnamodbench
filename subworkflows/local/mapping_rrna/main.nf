@@ -45,18 +45,18 @@ workflow MAPPING_RRNA {
         // Result: [ target, meta, fastq, ref_file ]
         ch_reads_with_ref = ch_reads_keyed
             .combine(ch_refs_normalized)
-            .filter { read_target, meta, fastq, ref_target, ref_file ->
+            .filter { read_target, _meta, _fastq, ref_target, _ref_file ->
                 read_target == ref_target
             }
-            .map { read_target, meta, fastq, ref_target, ref_file ->
+            .map { _read_target, meta, fastq, _ref_target, ref_file ->
                 [ meta, fastq, ref_file ]
             }
 
         // Map reads to their designated reference using minimap2
         // Input: [ meta, fastq, reference ]
         MINIMAP2_ALIGN (
-            ch_reads_with_ref.map { meta, fastq, ref -> [ meta, fastq ] },
-            ch_reads_with_ref.map { meta, fastq, ref -> ref }
+            ch_reads_with_ref.map { meta, fastq, _ref -> [ meta, fastq ] },
+            ch_reads_with_ref.map { _meta, _fastq, ref -> ref }
         )
 
         // Convert SAM to BAM
