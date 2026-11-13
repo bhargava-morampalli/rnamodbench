@@ -1,6 +1,9 @@
 process TOMBO_RESQUIGGLE {
     tag "$meta.id"
     label 'process_high'
+    // tombo resquiggle writes into its input fast5 files and creates lock files
+    // inside the input folder; copy inputs so upstream outputs stay untouched
+    stageInMode 'copy'
 
     conda "${moduleDir}/environment.yml"
     // No pre-built container available for ont-tombo - Wave will build from conda environment
