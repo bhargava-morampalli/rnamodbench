@@ -9,6 +9,7 @@ process DOWNSTREAM_ANALYSIS {
     path(modifications_dir)
     val(ground_truth)
     val(references_csv)
+    path(scripts_dir, stageAs: 'downstream_scripts')
 
     output:
     path("downstream_analysis")         , emit: results
@@ -38,7 +39,7 @@ process DOWNSTREAM_ANALYSIS {
     echo "References CSV:    ${references_csv}"
     echo "==========================================="
 
-    python ${projectDir}/bin/downstream_analysis/run_analysis.py \\
+    python ${scripts_dir}/run_analysis.py \\
         --input-dir ${modifications_dir} \\
         --output-dir downstream_analysis \\
         ${gt_arg} \\

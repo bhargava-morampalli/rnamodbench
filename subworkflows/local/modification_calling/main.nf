@@ -56,7 +56,7 @@ workflow MODIFICATION_CALLING {
         // TOMBO: Detect modifications by comparing native vs IVT
         // =====================================================================
         ch_tombo_key_to_rrna = tombo_resquiggled
-            .map { meta, fast5 ->
+            .map { meta, _fast5 ->
                 def key = "${meta.rrna}_${meta.replicate}"
                 [ key, meta.rrna ]
             }
@@ -100,7 +100,7 @@ workflow MODIFICATION_CALLING {
                 [ key, meta.type, hdf5, meta.rrna, meta.replicate ]
             }
             .groupTuple()
-            .filter { key, types, hdf5s, rrnas, replicates ->
+            .filter { key, types, _hdf5s, _rrnas, _replicates ->
                 def has_native = types.contains('native')
                 def has_ivt = types.contains('ivt')
                 if (!has_native || !has_ivt) {
@@ -113,8 +113,8 @@ workflow MODIFICATION_CALLING {
                 meta.id = key
                 meta.rrna = rrnas[0]
                 meta.replicate = replicates[0]
-                def native_idx = types.findIndexOf { it == 'native' }
-                def ivt_idx = types.findIndexOf { it == 'ivt' }
+                def native_idx = types.findIndexOf { it -> it == 'native' }
+                def ivt_idx = types.findIndexOf { it -> it == 'ivt' }
                 [ meta, hdf5s[native_idx], hdf5s[ivt_idx] ]
             }
 
@@ -132,7 +132,7 @@ workflow MODIFICATION_CALLING {
                 [ key, meta.type, collapsed_dir, meta.rrna ]
             }
             .groupTuple()
-            .filter { key, types, collapsed_dirs, rrnas ->
+            .filter { key, types, _collapsed_dirs, _rrnas ->
                 def has_native = types.contains('native')
                 def has_ivt = types.contains('ivt')
                 if (!has_native || !has_ivt) {
@@ -142,8 +142,8 @@ workflow MODIFICATION_CALLING {
             }
             .map { key, types, collapsed_dirs, rrnas ->
                 def rrna = rrnas[0]
-                def native_idx = types.findIndexOf { it == 'native' }
-                def ivt_idx = types.findIndexOf { it == 'ivt' }
+                def native_idx = types.findIndexOf { it -> it == 'native' }
+                def ivt_idx = types.findIndexOf { it -> it == 'ivt' }
                 def native_dir = collapsed_dirs[native_idx]
                 def ivt_dir = collapsed_dirs[ivt_idx]
                 [ key, 'native', 'ivt', native_dir, ivt_dir, rrna ]
@@ -174,7 +174,7 @@ workflow MODIFICATION_CALLING {
                 [ key, meta.type, dataprep_dir ]
             }
             .groupTuple()
-            .filter { key, types, dataprep_dirs ->
+            .filter { key, types, _dataprep_dirs ->
                 def has_native = types.contains('native')
                 def has_ivt = types.contains('ivt')
                 if (!has_native || !has_ivt) {
@@ -195,7 +195,7 @@ workflow MODIFICATION_CALLING {
                 [ key, meta, bam, bai, meta.type ]
             }
             .groupTuple()
-            .filter { key, metas, bams_list, bais_list, types ->
+            .filter { key, _metas, _bams_list, _bais_list, types ->
                 def has_native = types.contains('native')
                 def has_ivt = types.contains('ivt')
                 if (!has_native || !has_ivt) {
@@ -204,8 +204,8 @@ workflow MODIFICATION_CALLING {
                 has_native && has_ivt
             }
             .map { key, metas, bams_list, bais_list, types ->
-                def native_idx = types.findIndexOf { it == 'native' }
-                def ivt_idx = types.findIndexOf { it == 'ivt' }
+                def native_idx = types.findIndexOf { it -> it == 'native' }
+                def ivt_idx = types.findIndexOf { it -> it == 'ivt' }
                 def meta = [:]
                 meta.id = key
                 meta.rrna = metas[0].rrna

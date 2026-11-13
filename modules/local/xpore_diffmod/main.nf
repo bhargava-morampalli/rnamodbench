@@ -17,8 +17,8 @@ process XPORE_DIFFMOD {
     task.ext.when == null || task.ext.when
 
     script:
-    def native_idx = types.findIndexOf { it == 'native' }
-    def ivt_idx = types.findIndexOf { it == 'ivt' }
+    def native_idx = types.findIndexOf { it -> it == 'native' }
+    def ivt_idx = types.findIndexOf { it -> it == 'ivt' }
     def native_dir = dataprep_dirs[native_idx]
     def ivt_dir = dataprep_dirs[ivt_idx]
     def args = task.ext.args ?: ''

@@ -25,7 +25,7 @@ nextflow_workflow {
                 def stub_ref = file("\${projectDir}/modules/local/minimap2_align/tests/data/reference.fasta")
 
                 // input[0]: unified reads channel
-                input[0] = Channel.of(
+                input[0] = channel.of(
                     [ meta_16s_native, stub_fastq ],
                     [ meta_16s_ivt, stub_fastq ],
                     [ meta_23s_native, stub_fastq ],
@@ -33,7 +33,7 @@ nextflow_workflow {
                 )
 
                 // input[1]: references channel [ target, ref_file ]
-                input[1] = Channel.of(
+                input[1] = channel.of(
                     [ '16s', stub_ref ],
                     [ '23s', stub_ref ]
                 )

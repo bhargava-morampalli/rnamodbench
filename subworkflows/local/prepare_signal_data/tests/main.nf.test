@@ -29,7 +29,7 @@ nextflow_workflow {
                 def stub_fast5_ivt = file("\${projectDir}/tests/data/fast5/ivt_rep1")
 
                 // input[0]: unified mapped_fastqs channel [ meta, fastq ]
-                input[0] = Channel.of(
+                input[0] = channel.of(
                     [ meta_16s_native, stub_fastq ],
                     [ meta_16s_ivt, stub_fastq ],
                     [ meta_23s_native, stub_fastq ],
@@ -37,7 +37,7 @@ nextflow_workflow {
                 )
 
                 // input[1]: unified mapped_bams channel [ meta, bam, bai ]
-                input[1] = Channel.of(
+                input[1] = channel.of(
                     [ meta_16s_native, stub_bam, stub_bai ],
                     [ meta_16s_ivt, stub_bam, stub_bai ],
                     [ meta_23s_native, stub_bam, stub_bai ],
@@ -45,10 +45,10 @@ nextflow_workflow {
                 )
 
                 // input[2]: native_fast5_dir
-                input[2] = stub_fast5_native
+                input[2] = channel.value(stub_fast5_native)
 
                 // input[3]: ivt_fast5_dir
-                input[3] = stub_fast5_ivt
+                input[3] = channel.value(stub_fast5_ivt)
                 """
             }
         }

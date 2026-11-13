@@ -45,14 +45,14 @@ workflow SIGNAL_PROCESSING {
 
         // F5C Index
         // Input: [ meta, fast5_dir, fastq ], sequencing_summary (optional)
-        ch_index_input = ch_inputs.map { meta, fastq, bam, bai, fast5, ref -> [ meta, fast5, fastq ] }
+        ch_index_input = ch_inputs.map { meta, fastq, _bam, _bai, fast5, _ref -> [ meta, fast5, fastq ] }
         ch_no_summary = file('NO_FILE')  // Placeholder for optional sequencing_summary
         F5C_INDEX ( ch_index_input, ch_no_summary )
 
         // F5C Eventalign
         // Input: [ meta, fastq, idx, readdb, gzi, fai, bam, bai, fast5, ref ]
         ch_eventalign_input = F5C_INDEX.out.indexed
-            .join(ch_inputs.map { meta, fastq, bam, bai, fast5, ref -> [ meta, bam, bai, ref ] })
+            .join(ch_inputs.map { meta, _fastq, bam, bai, _fast5, ref -> [ meta, bam, bai, ref ] })
             .map { meta, fastq, idx, readdb, gzi, fai, fast5, bam, bai, ref ->
                 [ meta, fastq, idx, readdb, gzi, fai, bam, bai, fast5, ref ]
             }

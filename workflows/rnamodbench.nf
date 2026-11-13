@@ -25,7 +25,7 @@ workflow RNAMODBENCH {
     // Creates channel: [ val(target), path(reference) ]
 
     if (params.references) {
-        ch_references = Channel
+        ch_references = channel
             .fromPath(params.references, checkIfExists: true)
             .splitCsv(header: true)
             .map { row ->
@@ -59,11 +59,11 @@ workflow RNAMODBENCH {
     } else if (params.ref_16s && params.ref_23s) {
         // DEPRECATED: Support legacy ref_16s/ref_23s parameters for backwards compatibility
         log.warn "Using deprecated ref_16s/ref_23s parameters. Please migrate to --references CSV format."
-        ch_references = Channel.of(
+        ch_references = channel.of(
             ['16s', file(params.ref_16s, checkIfExists: true)],
             ['23s', file(params.ref_23s, checkIfExists: true)]
         )
-        ch_ref_map = Channel.value([
+        ch_ref_map = channel.value([
             '16s': file(params.ref_16s),
             '23s': file(params.ref_23s)
         ])
@@ -78,7 +78,7 @@ workflow RNAMODBENCH {
     // Creates channel: [ val(meta), path(fastq) ]
     // meta contains: id, single_end, type, replicate, fast5_dir, rrna
 
-    reads = Channel
+    reads = channel
         .fromPath(params.input, checkIfExists: true)
         .splitCsv(header: true, sep: ',')
         .map { row ->
@@ -98,7 +98,7 @@ workflow RNAMODBENCH {
         }
 
     // Get unique targets from samplesheet for validation
-    ch_targets = reads.map { meta, fastq -> meta.rrna }.unique()
+    ch_targets = reads.map { meta, _fastq -> meta.rrna }.unique()
 
     // Validate that all targets in samplesheet have corresponding references
     ch_targets
@@ -113,7 +113,7 @@ workflow RNAMODBENCH {
     // Validate that each target+replicate has both native AND IVT samples
     // All downstream modification calling tools require native vs IVT comparison
     reads
-        .map { meta, fastq ->
+        .map { meta, _fastq ->
             def key = "${meta.rrna}_${meta.replicate}"
             [ key, meta.type ]
         }
@@ -132,8 +132,8 @@ workflow RNAMODBENCH {
         .collect()
 
     // Split reads by type for downstream FAST5 handling
-    native_reads = reads.filter { it[0].type == 'native' }
-    ivt_reads = reads.filter { it[0].type == 'ivt' }
+    native_reads = reads.filter { meta, _fastq -> meta.type == 'native' }
+    ivt_reads = reads.filter { meta, _fastq -> meta.type == 'ivt' }
 
     // =========================================================================
     // MAPPING
@@ -155,17 +155,17 @@ workflow RNAMODBENCH {
     // Pooled FAST5 mode: require exactly one canonical FAST5 directory per type.
     // Canonicalization uses real paths so symlink/path variants collapse.
     native_fast5 = native_reads
-        .map { meta, fastq ->
+        .map { meta, _fastq ->
             try {
                 meta.fast5_dir.toRealPath().toString()
-            } catch (Exception e) {
+            } catch (Exception _e) {
                 error "ERROR: Could not resolve FAST5 directory for sample '${meta.id}' (${meta.type}): ${meta.fast5_dir}"
             }
         }
         .unique()
         .collect()
         .map { dirs ->
-            def sorted_dirs = dirs.collect { it }.sort()
+            def sorted_dirs = dirs.collect { it -> it }.sort()
             if (sorted_dirs.size() != 1) {
                 error "ERROR: Pooled FAST5 mode requires exactly one FAST5 directory for type 'native'. Found ${sorted_dirs.size()}: ${sorted_dirs.join(', ')}"
             }
@@ -173,17 +173,17 @@ workflow RNAMODBENCH {
         }
 
     ivt_fast5 = ivt_reads
-        .map { meta, fastq ->
+        .map { meta, _fastq ->
             try {
                 meta.fast5_dir.toRealPath().toString()
-            } catch (Exception e) {
+            } catch (Exception _e) {
                 error "ERROR: Could not resolve FAST5 directory for sample '${meta.id}' (${meta.type}): ${meta.fast5_dir}"
             }
         }
         .unique()
         .collect()
         .map { dirs ->
-            def sorted_dirs = dirs.collect { it }.sort()
+            def sorted_dirs = dirs.collect { it -> it }.sort()
             if (sorted_dirs.size() != 1) {
                 error "ERROR: Pooled FAST5 mode requires exactly one FAST5 directory for type 'ivt'. Found ${sorted_dirs.size()}: ${sorted_dirs.join(', ')}"
             }
@@ -233,8 +233,9 @@ workflow RNAMODBENCH {
 
         DOWNSTREAM_ANALYSIS(
             ch_modifications_dir,
-            Channel.value(gt_input),
-            Channel.value(refs_input)
+            channel.value(gt_input),
+            channel.value(refs_input),
+            file("${projectDir}/bin/downstream_analysis", checkIfExists: true)
         )
         ch_report_trigger = DOWNSTREAM_ANALYSIS.out.results
     }
@@ -248,7 +249,7 @@ workflow RNAMODBENCH {
     // Every process publishes [ process, tool, version ] tuples to the 'versions'
     // topic; here we group them by process and write a single YAML file.
 
-    Channel.topic('versions')
+    channel.topic('versions')
         .map { process, tool, version ->
             [ process.tokenize(':').last(), "  ${tool}: ${version}" ]
         }
