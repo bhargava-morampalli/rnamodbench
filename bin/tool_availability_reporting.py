@@ -353,7 +353,9 @@ def load_process_status(run_context: RunContext) -> pd.DataFrame:
                 task_id = str(raw.get("task_id", "") or "").strip()
                 workdir = str(raw.get("workdir", "") or "").strip()
                 process_name = str(raw.get("name", "") or "").strip()
-                if native_id:
+                if process_name:
+                    identity = f"name:{process_name}"
+                elif native_id:
                     identity = f"native:{native_id}"
                 elif task_id:
                     identity = f"task:{task_id}"
@@ -663,7 +665,7 @@ def _collapse_statuses(statuses: Sequence[str], observed_count: int, required_co
         return "ABORTED"
     if observed_count < required_count:
         return "PARTIAL"
-    if status_set == {"COMPLETED"}:
+    if status_set and status_set <= {"COMPLETED", "CACHED"}:
         return "COMPLETED"
     return "PARTIAL"
 
