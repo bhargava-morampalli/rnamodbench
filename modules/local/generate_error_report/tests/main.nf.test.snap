@@ -21,14 +21,14 @@
                     [
                         "GENERATE_ERROR_REPORT",
                         "python",
-                        "3.14.5"
+                        "3.15.2"
                     ]
                 ],
                 "6": [
                     [
                         "GENERATE_ERROR_REPORT",
                         "pandas",
-                        "3.0.3"
+                        "3.1.1"
                     ]
                 ],
                 "availability": [
@@ -50,22 +50,22 @@
                     [
                         "GENERATE_ERROR_REPORT",
                         "pandas",
-                        "3.0.3"
+                        "3.1.1"
                     ]
                 ],
                 "versions_python": [
                     [
                         "GENERATE_ERROR_REPORT",
                         "python",
-                        "3.14.5"
+                        "3.15.2"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-06-08T15:15:49.087949172",
+        "timestamp": "2026-11-13T14:52:27.391713325",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.3"
+            "nextflow": "26.08.0"
         }
     }
 }

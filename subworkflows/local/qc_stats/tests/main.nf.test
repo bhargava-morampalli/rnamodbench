@@ -24,7 +24,7 @@ nextflow_workflow {
                 def stub_bai = file("\${projectDir}/modules/local/samtools_flagstat/tests/data/test.bam.bai")
 
                 // input[0]: unified bams channel [ meta, bam, bai ]
-                input[0] = Channel.of(
+                input[0] = channel.of(
                     [ meta_16s_native, stub_bam, stub_bai ],
                     [ meta_16s_ivt, stub_bam, stub_bai ],
                     [ meta_23s_native, stub_bam, stub_bai ],

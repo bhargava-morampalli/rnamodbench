@@ -13,6 +13,7 @@ nextflow_workflow {
     tag "xpore"
 
     test("Should work in stub mode") {
+        config "subworkflows/local/modification_calling/tests/nextflow.config"
 
         options "-stub"
 
@@ -37,7 +38,7 @@ nextflow_workflow {
 
                 // input[0]: unified tombo_resquiggled channel [ meta, fast5 ]
                 // Use different FAST5 dirs for native vs ivt to avoid filename collision
-                input[0] = Channel.of(
+                input[0] = channel.of(
                     [ meta_16s_native, stub_fast5_native ],
                     [ meta_16s_ivt, stub_fast5_ivt ],
                     [ meta_23s_native, stub_fast5_native ],
@@ -45,7 +46,7 @@ nextflow_workflow {
                 )
 
                 // input[1]: unified eventalign channel [ meta, eventalign ]
-                input[1] = Channel.of(
+                input[1] = channel.of(
                     [ meta_16s_native, stub_eventalign ],
                     [ meta_16s_ivt, stub_eventalign ],
                     [ meta_23s_native, stub_eventalign ],
@@ -53,7 +54,7 @@ nextflow_workflow {
                 )
 
                 // input[2]: unified eventalign_xpore channel [ meta, eventalign ]
-                input[2] = Channel.of(
+                input[2] = channel.of(
                     [ meta_16s_native, stub_eventalign ],
                     [ meta_16s_ivt, stub_eventalign ],
                     [ meta_23s_native, stub_eventalign ],
@@ -62,7 +63,7 @@ nextflow_workflow {
 
                 // input[3]: unified bams channel [ meta, bam, bai ]
                 // Use different files for native vs ivt to avoid filename collision during staging
-                input[3] = Channel.of(
+                input[3] = channel.of(
                     [ meta_16s_native, stub_bam_native, stub_bai_native ],
                     [ meta_16s_ivt, stub_bam_ivt, stub_bai_ivt ],
                     [ meta_23s_native, stub_bam_native, stub_bai_native ],
@@ -70,7 +71,7 @@ nextflow_workflow {
                 )
 
                 // input[4]: ref_map (Groovy map)
-                input[4] = Channel.value([ '16s': ref, '23s': ref ])
+                input[4] = channel.value([ '16s': ref, '23s': ref ])
                 """
             }
         }
