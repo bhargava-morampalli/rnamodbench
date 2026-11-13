@@ -11,6 +11,6 @@ dependencies:
   - biopython
   - matplotlib=3.10.8
   - statsmodels
-  - samtools=1.17
+  - samtools=1.21
   - bedtools
   - git
